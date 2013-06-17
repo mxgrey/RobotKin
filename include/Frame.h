@@ -140,7 +140,7 @@ namespace golems {
         Isometry3d respectToFixed_; // Coordinates with respect to some fixed frame in nominal position
         
         
-    }; // clase Frame
+    }; // class Frame
     
 } // namespace golems
 

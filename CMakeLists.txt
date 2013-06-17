@@ -6,7 +6,7 @@ include_directories(include)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-file(GLOB lib_source "src/*.cpp")
+file(GLOB lib_source "src/*.cpp" "include/*.h")
 LIST(SORT lib_source)
 
 

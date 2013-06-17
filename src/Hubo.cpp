@@ -206,8 +206,7 @@ void Hubo::initialize()
     parentIndices[2] = 0;
     parentIndices[3] = -1;
     parentIndices[4] = -1;
-    
-//    parentIndices = {-1, 0, 0, -1, -1};
+
     Robot::initialize(linkages, parentIndices);
     name("HUBO");
 }

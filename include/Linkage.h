@@ -86,7 +86,7 @@ namespace golems {
     
     enum JointType {
         REVOLUTE,
-        PRISMATIC,
+        PRISMATIC
     };
     
     
@@ -103,6 +103,32 @@ namespace golems {
         //--------------------------------------------------------------------------
         // Linkage Nested Classes
         //--------------------------------------------------------------------------
+        class Link
+        {
+            friend class Linkage;
+            friend class Joint;
+
+        public:
+            //----------------------------------------------------------------------
+            // Link Lifecycle
+            //----------------------------------------------------------------------
+            // Constructors
+            Link();
+            Link(double mass, Vector3d com, string name = "");
+            Link(double mass, Vector3d com, Matrix3d inertiaTensor, string name = "");
+
+            void setMass(double mass, Vector3d com);
+            void setInertiaTensor(Matrix3d inertiaTensor);
+
+        protected:
+            bool massProvided;
+            bool tensorProvided;
+
+            double mass_;
+            Vector3d com_;
+            Matrix3d tensor_;
+
+        };
         class Joint : public Frame
         {
             
@@ -111,6 +137,7 @@ namespace golems {
             //----------------------------------------------------------------------
             friend class Linkage;
             friend class Robot;
+            friend class Link;
             
         public:
             
@@ -275,6 +302,9 @@ namespace golems {
         
         const vector<Linkage::Joint>& const_joints() const;
         vector<Linkage::Joint>& joints();
+
+        void addJoint(Linkage::Joint newJoint);
+        void insertJoint(Linkage::Joint newJoint, size_t jointIndex);
         
         const Linkage::Tool& const_tool() const;
         Linkage::Tool& tool();
@@ -309,7 +339,7 @@ namespace golems {
         vector<Linkage*> childLinkages_;
         vector<Linkage::Joint> joints_;
         Linkage::Tool tool_;
-     
+
         
     private:
         //--------------------------------------------------------------------------
