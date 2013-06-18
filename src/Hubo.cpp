@@ -23,7 +23,7 @@
 //------------------------------------------------------------------------------
 using namespace std;
 using namespace Eigen;
-using namespace golems;
+using namespace RobotKin;
 
 
 //------------------------------------------------------------------------------
@@ -31,8 +31,8 @@ using namespace golems;
 //------------------------------------------------------------------------------
 // Constructors
 Hubo::Hubo()
-:
-zeroSize(1e-9)
+        :
+        zeroSize(1e-9)
 {
     initialize();
 }
@@ -174,13 +174,15 @@ void Hubo::initialize()
         0.0,                    // ankle pitch
         0.0;                    // ankle roll
     
-    
+    std::cerr << "Init torso" << std::endl;
     // Linkage torso
     Linkage torso = initializeTorso();
     
+    std::cerr << "Init LA" << std::endl;
     // Linkage left arm;
     Linkage leftArm = initializeLeftArm();
     
+    std::cerr << "Init RA" << std::endl;
     // Linkage right arm;
     Linkage rightArm = initializeRightArm();
     
@@ -192,6 +194,7 @@ void Hubo::initialize()
     
     // Robot
     vector<Linkage> linkages(5);
+    vector<int> parentIndices(5);
     
     linkages[0] = torso;
     linkages[1] = leftArm;
@@ -199,15 +202,28 @@ void Hubo::initialize()
     linkages[3] = leftLeg;
     linkages[4] = rightLeg;
     
-    
-    vector<int> parentIndices(5);
     parentIndices[0] = -1;
     parentIndices[1] = 0;
     parentIndices[2] = 0;
     parentIndices[3] = -1;
     parentIndices[4] = -1;
+    
+    // FIXME: Why does the order seem to matter??
+//    linkages[0] = rightArm;
+//    linkages[1] = leftArm;
+//    linkages[2] = torso;
+//    linkages[3] = leftLeg;
+//    linkages[4] = rightLeg;
+    
+//    parentIndices[0] = 0;
+//    parentIndices[1] = 0;
+//    parentIndices[2] = -1;
+//    parentIndices[3] = -1;
+//    parentIndices[4] = -1;
 
+    cerr << "Init robot" << endl;
     Robot::initialize(linkages, parentIndices);
+    cerr << "init finished" << endl;
     name("HUBO");
 }
 
@@ -379,7 +395,7 @@ Linkage Hubo::initializeRightArm()
     for (size_t i = 0; i < nJoints; ++i) {
         joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(rightArmOffsets[i], Eigen::Vector3d::UnitZ()) );
         joints[i].name(jointNames[i]);
-    }    
+    }
     
     T <<
     0.0,  0.0,  1.0,  0.0,

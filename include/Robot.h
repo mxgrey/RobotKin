@@ -69,7 +69,7 @@
 using namespace std;
 using namespace Eigen;
 
-namespace golems {
+namespace RobotKin {
     
     
     //------------------------------------------------------------------------------
@@ -116,19 +116,27 @@ namespace golems {
         
         size_t linkageIndex(string linkageName) const;
         
+        // Getting individual linkages
         const Linkage& const_linkage(size_t linkageIndex) const;
         const Linkage& const_linkage(string linkageName) const;
         
         Linkage& linkage(size_t linkageIndex);
         Linkage& linkage(string linkageName);
         
+        // Getting all the linkages
         const vector<Linkage>& const_linkages() const;
         vector<Linkage>& linkages();
         
-        size_t nJoints() const;
+        // Adding new linkages
+        void addLinkage(int parentIndex, string name);
+        void addLinkage(string parentName, string name);
+        void addLinkage(Linkage linkage, string parentName, string name);
+        void addLinkage(Linkage linkage, int parentIndex, string name);
         
+        // Getting joint information
+        size_t nJoints() const;
         size_t jointIndex(string jointName) const;
-
+        
         const Linkage::Joint* const_joint(size_t jointIndex) const;
         const Linkage::Joint* const_joint(string jointName) const;
         
@@ -190,7 +198,7 @@ namespace golems {
     // Postfix Increment Operators
     //------------------------------------------------------------------------------
     
-} // namespace golems
+} // namespace RobotKin
 
 #endif
 

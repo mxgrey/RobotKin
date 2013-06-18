@@ -65,7 +65,7 @@
 //------------------------------------------------------------------------------
 // Class Declarations
 //------------------------------------------------------------------------------
-namespace golems
+namespace RobotKin
 {
     class Robot;
 }
@@ -76,7 +76,7 @@ namespace golems
 using namespace std;
 using namespace Eigen;
 
-namespace golems {
+namespace RobotKin {
     
     
     //------------------------------------------------------------------------------
@@ -85,6 +85,7 @@ namespace golems {
     typedef Matrix<double, 6, Dynamic> Matrix6Xd;
     
     enum JointType {
+        ANCHOR = 0,
         REVOLUTE,
         PRISMATIC
     };
@@ -113,12 +114,12 @@ namespace golems {
             // Link Lifecycle
             //----------------------------------------------------------------------
             // Constructors
-            Link();
-            Link(double mass, Vector3d com, string name = "");
-            Link(double mass, Vector3d com, Matrix3d inertiaTensor, string name = "");
+            Link(); // TODO
+            Link(double mass, Vector3d com, string name = ""); // TODO
+            Link(double mass, Vector3d com, Matrix3d inertiaTensor, string name = ""); // TODO
 
-            void setMass(double mass, Vector3d com);
-            void setInertiaTensor(Matrix3d inertiaTensor);
+            void setMass(double mass, Vector3d com); // TODO
+            void setInertiaTensor(Matrix3d inertiaTensor); // TODO
 
         protected:
             bool massProvided;
@@ -200,6 +201,9 @@ namespace golems {
             Linkage* linkage_;
             Robot* robot_;
             
+            bool hasLinkage;
+            bool hasRobot;
+            
         }; // class Joint
         
         class Tool : public Frame
@@ -251,9 +255,12 @@ namespace golems {
             // Tool Private Member Variables
             //----------------------------------------------------------------------
             Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
-            Linkage::Joint* joint_;
+            Linkage::Joint* joint_; // TODO: Why does this exist? Pointer to which joint?
             Linkage* linkage_;
             Robot* robot_;
+            
+            bool hasRobot;
+            bool hasLinkage;
             
         }; // class Tool
         
@@ -303,14 +310,18 @@ namespace golems {
         const vector<Linkage::Joint>& const_joints() const;
         vector<Linkage::Joint>& joints();
 
-        void addJoint(Linkage::Joint newJoint);
-        void insertJoint(Linkage::Joint newJoint, size_t jointIndex);
+        void addJoint(Linkage::Joint newJoint); // TODO
+        void insertJoint(Linkage::Joint newJoint, size_t jointIndex); // TODO
+        
+        void addTool(Linkage::Tool newTool); // TODO
+        void chooseTool(size_t toolIndex); // TODO
+        void chooseTool(string toolName); // TODO
         
         const Linkage::Tool& const_tool() const;
         Linkage::Tool& tool();
         
         VectorXd values() const;
-        void values(const VectorXd &someValues);
+        bool values(const VectorXd &someValues);
         
         const Isometry3d& respectToFixed() const;
         void respectToFixed(Isometry3d aCoordinate);
@@ -329,7 +340,7 @@ namespace golems {
         //--------------------------------------------------------------------------
         bool (*analyticalIK)(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
         
-    protected:        
+    protected:
         //--------------------------------------------------------------------------
         // Linkage Protected Member Variables
         //--------------------------------------------------------------------------
@@ -339,7 +350,14 @@ namespace golems {
         vector<Linkage*> childLinkages_;
         vector<Linkage::Joint> joints_;
         Linkage::Tool tool_;
-
+        // TODO: Consider allowing multiple switchable tools
+        //vector<Linkage::Tool> tools_;
+        
+        size_t activeTool_;
+        
+        bool hasRobot;
+        bool hasParent;
+        bool hasChildren;
         
     private:
         //--------------------------------------------------------------------------
@@ -361,7 +379,7 @@ namespace golems {
     }; // class Linkage
 
     
-} // namespace golems
+} // namespace RobotKin
 
 #endif
 

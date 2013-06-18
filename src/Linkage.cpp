@@ -21,7 +21,7 @@
 //------------------------------------------------------------------------------
 // Namespaces
 //------------------------------------------------------------------------------
-using namespace golems;
+using namespace RobotKin;
 
 
 //------------------------------------------------------------------------------
@@ -34,16 +34,17 @@ Linkage::Joint::Joint(Isometry3d respectToFixed,
                       JointType jointType,
                       double minValue,
                       double maxValue)
-:
-Frame::Frame(respectToFixed, name, id, JOINT),
-respectToFixedTransformed_(respectToFixed),
-respectToLinkage_(respectToFixed),
-jointType_(jointType),
-min_(minValue),
-max_(maxValue),
-value_(0),
-linkage_(0),
-robot_(0)
+            : Frame::Frame(respectToFixed, name, id, JOINT),
+              respectToFixedTransformed_(respectToFixed),
+              respectToLinkage_(respectToFixed),
+              jointType_(jointType),
+              min_(minValue),
+              max_(maxValue),
+              value_(0),
+              linkage_(0),
+              robot_(0),
+              hasRobot(false),
+              hasLinkage(false)
 {
     value(value_);
 }
@@ -71,7 +72,7 @@ void Linkage::Joint::value(double value)
     } else {
         respectToFixedTransformed_ = respectToFixed_ * Eigen::Translation3d(Eigen::Vector3d(0., 0., value_));
     }
-    if (linkage_ != 0 )
+    if ( hasLinkage )
         linkage_->updateFrames();
 }
 
@@ -95,12 +96,18 @@ const Isometry3d& Linkage::Joint::respectToLinkage() const
 
 Isometry3d Linkage::Joint::respectToRobot() const
 {
-    return linkage_->respectToRobot_ * respectToLinkage_;
+    if(hasLinkage)
+        return linkage_->respectToRobot_ * respectToLinkage_;
+    else
+        return Isometry3d::Identity();
 }
 
 Isometry3d Linkage::Joint::respectToWorld() const
 {
-    return linkage_->respectToWorld() * respectToLinkage_;
+    if(hasLinkage)
+        return linkage_->respectToWorld() * respectToLinkage_;
+    else
+        return Isometry3d::Identity();
 }
 
 const Linkage* Linkage::Joint::linkage() const
@@ -127,12 +134,13 @@ void Linkage::Joint::printInfo() const
 
 // Tool Class
 Linkage::Tool::Tool(Isometry3d respectToFixed, string name, size_t id)
-:
-Frame::Frame(respectToFixed, name, id, TOOL),
-respectToLinkage_(respectToFixed),
-joint_(0),
-linkage_(0),
-robot_(0)
+            : Frame::Frame(respectToFixed, name, id, TOOL),
+              respectToLinkage_(respectToFixed),
+              joint_(0),
+              linkage_(0),
+              robot_(0),
+              hasRobot(false),
+              hasLinkage(false)
 {
 
 }
@@ -144,11 +152,12 @@ Linkage::Tool::~Tool()
 }
 
 // Tool Methods
-const Isometry3d& Linkage::Tool::respectToFixed() const { return respectToFixed_; };
+const Isometry3d& Linkage::Tool::respectToFixed() const { return respectToFixed_; }
 void Linkage::Tool::respectToFixed(Isometry3d aCoordinate)
 {
     respectToFixed_ = aCoordinate;
-    linkage_->updateFrames();
+    if(hasLinkage)
+        linkage_->updateFrames();
 }
 
 const Isometry3d& Linkage::Tool::respectToLinkage() const
@@ -158,12 +167,18 @@ const Isometry3d& Linkage::Tool::respectToLinkage() const
 
 Isometry3d Linkage::Tool::respectToRobot() const
 {
-    return linkage_->respectToRobot_ * respectToLinkage_;
+    if(hasLinkage)
+        return linkage_->respectToRobot_ * respectToLinkage_;
+    else
+        return Isometry3d::Identity();
 }
 
 Isometry3d Linkage::Tool::respectToWorld() const
 {
-    return linkage_->respectToWorld() * respectToLinkage_;
+    if(hasLinkage)
+        return linkage_->respectToWorld() * respectToLinkage_;
+    else
+        return Isometry3d::Identity();
 }
 
 const Linkage::Joint* Linkage::Tool::parentJoint() const
@@ -173,7 +188,10 @@ const Linkage::Joint* Linkage::Tool::parentJoint() const
 
 const Linkage* Linkage::Tool::parentLinkage() const
 {
-    return linkage_;
+    if(hasLinkage)
+        return linkage_;
+    else
+        return NULL;
 }
 
 const Robot* Linkage::Tool::parentRobot() const
@@ -206,19 +224,19 @@ Linkage::Tool Linkage::Tool::Identity()
 //------------------------------------------------------------------------------
 // Constructors
 Linkage::Linkage()
-:
-Frame::Frame(Isometry3d::Identity(), "", 0, LINKAGE),
-respectToRobot_(Isometry3d::Identity()),
-initializing_(false)
+            : Frame::Frame(Isometry3d::Identity(), "", 0, LINKAGE),
+              respectToRobot_(Isometry3d::Identity()),
+              initializing_(false),
+              hasRobot(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
 }
 
 Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, Linkage::Joint joint, Linkage::Tool tool)
-:
-Frame::Frame(respectToFixed, name, id, LINKAGE),
-respectToRobot_(respectToFixed),
-initializing_(false)
+            : Frame::Frame(respectToFixed, name, id, LINKAGE),
+              respectToRobot_(respectToFixed),
+              initializing_(false),
+              hasRobot(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
     vector<Linkage::Joint> joints(1);
@@ -227,10 +245,10 @@ initializing_(false)
 }
 
 Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, vector<Linkage::Joint> joints, Linkage::Tool tool)
-:
-Frame::Frame(respectToFixed, name, id, LINKAGE),
-respectToRobot_(respectToFixed),
-initializing_(false)
+            : Frame::Frame(respectToFixed, name, id, LINKAGE),
+              respectToRobot_(respectToFixed),
+              initializing_(false),
+              hasRobot(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
     initialize(joints, tool);
@@ -293,15 +311,23 @@ VectorXd Linkage::values() const
     return theValues;
 }
 
-void Linkage::values(const VectorXd& someValues) {
-    assert(someValues.size() == nJoints());    
-    for (size_t i = 0; i < nJoints(); ++i) {
-        joints_[i].value(someValues(i));
+bool Linkage::values(const VectorXd& someValues)
+{    
+    if(someValues.size() == nJoints())
+    {
+        for (size_t i = 0; i < nJoints(); ++i) {
+            joints_[i].value(someValues(i));
+        }
+        updateFrames();
+        return true;
     }
-    updateFrames();
+    
+    std::cerr << "ERROR! Number of values (" << someValues.size() << ") does not match "
+              << "the number of joints (" << nJoints() << ")!" << std::endl;
+    return false;
 }
 
-const Isometry3d& Linkage::respectToFixed() const { return respectToFixed_; };
+const Isometry3d& Linkage::respectToFixed() const { return respectToFixed_; }
 void Linkage::respectToFixed(Isometry3d aCoordinate)
 {
     respectToFixed_ = aCoordinate;
@@ -317,7 +343,10 @@ const Isometry3d& Linkage::respectToRobot() const
 
 Isometry3d Linkage::respectToWorld() const
 {
-    return robot_->respectToWorld_ * respectToRobot_;
+    if(hasRobot)
+        return robot_->respectToWorld_ * respectToRobot_;
+    else
+        return Isometry3d::Identity();
 }
 
 void Linkage::jacobian(MatrixXd& J, const vector<Linkage::Joint>& jointFrames, Vector3d location, const Frame* refFrame) const

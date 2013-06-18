@@ -19,7 +19,7 @@
 //------------------------------------------------------------------------------
 // Namespaces
 //------------------------------------------------------------------------------
-using namespace golems;
+using namespace RobotKin;
 
 
 //------------------------------------------------------------------------------
@@ -27,22 +27,22 @@ using namespace golems;
 //------------------------------------------------------------------------------
 // Constructors
 Robot::Robot()
-:
-Frame::Frame(Isometry3d::Identity()),
-respectToWorld_(Isometry3d::Identity()),
-initializing_(false)
+        : Frame::Frame(Isometry3d::Identity()),
+          respectToWorld_(Isometry3d::Identity()),
+          initializing_(false)
 {
+    linkages_.resize(0);
     frameType_ = ROBOT;
 }
 
 Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
-:
-Frame::Frame(Isometry3d::Identity()),
-respectToWorld_(Isometry3d::Identity()),
-initializing_(false)
+        : Frame::Frame(Isometry3d::Identity()),
+          respectToWorld_(Isometry3d::Identity()),
+          initializing_(false)
 {
     frameType_ = ROBOT;
     
+    linkages_.resize(0);
     initialize(linkageObjs, parentIndices);
 }
 
@@ -191,18 +191,38 @@ void Robot::printInfo() const
 //------------------------------------------------------------------------------
 void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
 {
-    initializing_ = true;
     
-    assert(linkages.size() == parentIndices.size());
+    if(linkages.size() != parentIndices.size())
+    {
+        std::cerr << "ERROR! Number of linkages (" << linkages.size() << ") does not match "
+                  << "the number of parent indices (" << parentIndices.size() << ")!"
+                  << std::endl;
+        return;
+    }
     
+    cerr << "Sorting linkages" << endl;
     vector<indexParentIndexPair> iPI(linkages.size());
     for (size_t i = 0; i != linkages.size(); ++i) {
         iPI[i].I = i;
         iPI[i].pI = parentIndices[i];
     }
     sort(iPI.begin(), iPI.end());
+    // ^^^ Make sure that parents get added before children
     
     
+    initializing_ = true;
+    linkages_.reserve(10);
+    cerr << "Adding linkages" << endl;
+    for(size_t i = 0; i != linkages.size(); ++i)
+    {
+        cerr << "Adding " << linkages[iPI[i].I].name() << endl;
+        addLinkage(linkages[iPI[i].I], parentIndices[iPI[i].I], linkages[iPI[i].I].name());
+        cerr << "Finished adding" << endl;
+    }
+    
+
+    // Deprecated (I hope)
+    /*
     // Initialize
     int nJoints = 0;
     for (size_t i = 0; i != linkages.size(); ++i) {
@@ -222,23 +242,91 @@ void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
         }
         for (size_t j = 0; j != linkages_[i].nJoints(); ++j) {
             linkages_[i].joints_[j].linkage_ = &(linkages_[i]);
+            linkages_[i].joints_[j].hasLinkage = true;
             linkages_[i].joints_[j].robot_ = this;
+            linkages_[i].joints_[j].hasRobot = true;
             joints_.push_back(&(linkages_[i].joints_[j]));
             joints_.back()->id_ = jointCnt;
             jointNameToIndex_[joints_[jointCnt]->name()] = jointCnt;
             jointCnt++;
         }
         linkages_[i].tool_.linkage_ = &(linkages_[i]);
+        linkages_[i].tool_.hasLinkage = true;
         linkages_[i].tool_.robot_ = this;
+        linkages_[i].tool_.hasRobot = true;
         linkages_[i].robot_ = this;
+        linkages_[i].hasRobot = true;
         linkages_[i].tool_.id_ = i;
     }
+    */
     
     initializing_ = false;
+    
     
     updateFrames();
 }
 
+void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
+{
+    if(parentIndex == -1)
+        linkage.parentLinkage_ = NULL;
+    else if( parentIndex > linkages_.size()-1 )
+    {
+        std::cerr << "ERROR! Parent index value (" << parentIndex << ") is larger "
+                  << "than the current highest linkage index (" << linkages().size()-1 << ")!"
+                  << std::endl;
+        return;
+    }
+    else
+        linkage.parentLinkage_ = &(linkages_[parentIndex]);
+    
+    linkage.hasParent = true; // TODO: Decide if this should be true for root linkage or not
+    
+    
+    // Get the linkage adjusted to its new home
+    size_t newIndex = linkages_.size();
+    cerr << "Adding linkage #" << newIndex;
+    linkages_.push_back(linkage);
+    linkages_[newIndex].robot_ = this;
+//    linkages_[newIndex].hasRobot = true;
+    linkages_[newIndex].id_ = newIndex;
+    linkages_[newIndex].name_ = name;
+    // Move in its luggage
+    for(size_t j = 0; j != linkages_[newIndex].nJoints(); ++j)
+    {
+        cerr << " Joint:" << j;
+        linkages_[newIndex].joints_[j].linkage_ = &(linkages_[newIndex]);
+//        linkages_[newIndex].joints_[j].hasLinkage = true;
+        linkages_[newIndex].joints_[j].robot_ = this;
+//        linkages_[newIndex].joints_[j].hasRobot = true;
+        joints_.push_back(&(linkages_[newIndex].joints_[j]));
+        joints_.back()->id_ = joints_.size()-1;
+        jointNameToIndex_[joints_.back()->name()] = joints_.size()-1;
+    }
+    cerr << endl;
+    // TODO: Allow for multiple tools
+    linkages_[newIndex].tool_.linkage_ = &(linkages_[newIndex]);
+//    linkages_[newIndex].tool_.hasLinkage = true;
+    linkages_[newIndex].tool_.robot_ = this;
+//    linkages_[newIndex].tool_.hasRobot = true;
+    linkages_[newIndex].tool_.id_ = newIndex;
+    
+    // Tell the post office we've moved in
+    linkageNameToIndex_[linkages_[newIndex].name_] = newIndex;
+    
+    // Inform the parent of its pregnancy
+    if(linkages_[newIndex].parentLinkage_ != NULL)
+    {
+        linkages_[newIndex].parentLinkage_->childLinkages_.push_back(&linkages_[newIndex]);
+        linkages_[newIndex].hasChildren = true;
+    }
+}
+
+void Robot::addLinkage(int parentIndex, string name)
+{
+    Linkage dummyLinkage;
+    addLinkage(dummyLinkage, parentIndex, name);
+}
 
 //------------------------------------------------------------------------------
 // Robot Private Member Functions
