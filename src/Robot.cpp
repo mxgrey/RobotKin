@@ -212,15 +212,9 @@ void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
     
     initializing_ = true;
     
-    
-    linkages_.reserve(100);
-    cerr << "Adding linkages" << endl;
+
     for(size_t i = 0; i != linkages.size(); ++i)
-    {
-        cerr << "Adding " << linkages[iPI[i].I].name() << endl;
         addLinkage(linkages[iPI[i].I], parentIndices[iPI[i].I], linkages[iPI[i].I].name());
-        cerr << "Finished adding" << endl;
-    }
     
     
     
@@ -342,18 +336,9 @@ void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
     
     // Get the linkage adjusted to its new home
     size_t newIndex = linkages_.size();
-    
-    
-    
-    
-    cerr << "Adding linkage #" << newIndex;
+
     Linkage* tempLinkage = new Linkage(linkage);
     linkages_.push_back(tempLinkage);
-    
-    
-    if(linkages_[newIndex]->parentLinkage_ != NULL)
-        cerr << "Linkage " << linkages_[newIndex]->name_ << " (" << newIndex << ") is given a parent of "
-             << linkages_[parentIndex]->name_ << " (" << parentIndex << ")" << endl;
     
     linkages_[newIndex]->robot_ = this;
     linkages_[newIndex]->hasRobot = true;
@@ -362,7 +347,6 @@ void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
     // Move in its luggage
     for(size_t j = 0; j != linkages_[newIndex]->nJoints(); ++j)
     {
-        cerr << " Joint:" << j;
         linkages_[newIndex]->joints_[j]->linkage_ = linkages_[newIndex];
         linkages_[newIndex]->joints_[j]->hasLinkage = true;
         linkages_[newIndex]->joints_[j]->robot_ = this;
@@ -371,8 +355,7 @@ void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
         joints_.back()->id_ = joints_.size()-1;
         jointNameToIndex_[joints_.back()->name()] = joints_.size()-1;
     }
-    cerr << endl;
-    // TODO: Allow for multiple tools
+    // TODO: Allow for multiple tools maybe?
     linkages_[newIndex]->tool_.linkage_ = linkages_[newIndex];
     linkages_[newIndex]->tool_.hasLinkage = true;
     linkages_[newIndex]->tool_.robot_ = this;

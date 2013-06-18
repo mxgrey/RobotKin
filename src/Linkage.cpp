@@ -148,14 +148,24 @@ void Linkage::Joint::printInfo() const
 
 
 // Tool Class
+Linkage::Tool::Tool(const Tool &tool)
+    : Frame::Frame(tool.respectToFixed_, tool.name_, tool.id_),
+      respectToLinkage_(tool.respectToLinkage_),
+      linkage_(0),
+      robot_(0),
+      hasRobot(false),
+      hasLinkage(false)
+{
+
+}
+
 Linkage::Tool::Tool(Isometry3d respectToFixed, string name, size_t id)
-            : Frame::Frame(respectToFixed, name, id, TOOL),
-              respectToLinkage_(respectToFixed),
-              joint_(0),
-              linkage_(0),
-              robot_(0),
-              hasRobot(false),
-              hasLinkage(false)
+    : Frame::Frame(respectToFixed, name, id, TOOL),
+      respectToLinkage_(respectToFixed),
+      linkage_(0),
+      robot_(0),
+      hasRobot(false),
+      hasLinkage(false)
 {
 
 }
@@ -185,7 +195,7 @@ Isometry3d Linkage::Tool::respectToRobot() const
     if(hasLinkage)
         return linkage_->respectToRobot_ * respectToLinkage_;
     else
-        return Isometry3d::Identity();
+        return respectToLinkage_;
 }
 
 Isometry3d Linkage::Tool::respectToWorld() const
@@ -193,12 +203,7 @@ Isometry3d Linkage::Tool::respectToWorld() const
     if(hasLinkage)
         return linkage_->respectToWorld() * respectToLinkage_;
     else
-        return Isometry3d::Identity();
-}
-
-const Linkage::Joint* Linkage::Tool::parentJoint() const
-{
-    return joint_;
+        return respectToLinkage_;
 }
 
 const Linkage* Linkage::Tool::parentLinkage() const
@@ -211,8 +216,94 @@ const Linkage* Linkage::Tool::parentLinkage() const
 
 const Robot* Linkage::Tool::parentRobot() const
 {
-    return robot_;
+    if(hasRobot)
+        return robot_;
+    else
+        return NULL;
 }
+
+size_t Linkage::Tool::getLinkageID()
+{
+    if(hasLinkage)
+        return linkage_->id();
+    else
+        return 0;
+}
+
+string Linkage::Tool::getLinkageName()
+{
+    if(hasLinkage)
+        return linkage_->name();
+    else
+        return "";
+}
+
+size_t Linkage::Tool::getRobotID()
+{
+    if(hasRobot)
+        return robot_->id();
+    else
+        return 0;
+}
+
+string Linkage::Tool::getRobotName()
+{
+    if(hasRobot)
+        return robot_->name();
+    else
+        return "";
+}
+
+size_t Linkage::Tool::getParentJointID()
+{
+    if(hasLinkage)
+        if(linkage_->joints_.size() > 0)
+            return linkage_->joints_.size()-1;
+
+    return 0;
+}
+
+string Linkage::Tool::getParentJointName()
+{
+    if(hasLinkage)
+        if(linkage_->joints_.size() > 0)
+            return linkage_->joints().back()->name();
+
+    return "";
+}
+
+size_t Linkage::Joint::getLinkageID()
+{
+    if(hasLinkage)
+        return linkage_->id();
+    else
+        return 0;
+}
+
+string Linkage::Joint::getLinkageName()
+{
+    if(hasLinkage)
+        return linkage_->name();
+    else
+        return "";
+}
+
+size_t Linkage::Joint::getRobotID()
+{
+    if(hasRobot)
+        return robot_->id();
+    else
+        return 0;
+}
+
+string Linkage::Joint::getRobotName()
+{
+    if(hasRobot)
+        return robot_->name();
+    else
+        return "";
+}
+
 
 void Linkage::Tool::printInfo() const
 {
@@ -238,20 +329,43 @@ Linkage::Tool Linkage::Tool::Identity()
 // Linkage Lifecycle
 //------------------------------------------------------------------------------
 // Constructors
+Linkage::Linkage(const Linkage &linkage)
+    : Frame::Frame(linkage.respectToFixed_, linkage.name_,
+                   linkage.id_, linkage.frameType_),
+      respectToRobot_(linkage.respectToRobot_),
+      initializing_(false),
+      hasRobot(false),
+      hasChildren(false)
+{
+    vector<Linkage::Joint> joints; joints.resize(0);
+//    joints.resize(linkage.joints_.size());
+//    for(size_t i=0; i<linkage.joints_.size(); i++)
+//    {
+//        joints[i] = *(linkage.joints_[i]);
+//    }
+
+    //initialize(joints, linkage.tool_);
+
+    Linkage::Tool newTool;
+    initialize(joints, newTool);
+}
+
 Linkage::Linkage()
-            : Frame::Frame(Isometry3d::Identity(), "", 0, LINKAGE),
-              respectToRobot_(Isometry3d::Identity()),
-              initializing_(false),
-              hasRobot(false)
+    : Frame::Frame(Isometry3d::Identity(), "", 0, LINKAGE),
+      respectToRobot_(Isometry3d::Identity()),
+      initializing_(false),
+      hasRobot(false),
+      hasChildren(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
 }
 
 Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, Linkage::Joint joint, Linkage::Tool tool)
-            : Frame::Frame(respectToFixed, name, id, LINKAGE),
-              respectToRobot_(respectToFixed),
-              initializing_(false),
-              hasRobot(false)
+    : Frame::Frame(respectToFixed, name, id, LINKAGE),
+      respectToRobot_(respectToFixed),
+      initializing_(false),
+      hasRobot(false),
+      hasChildren(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
     vector<Linkage::Joint> joints(1);
@@ -260,10 +374,11 @@ Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, Linkage::Joi
 }
 
 Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, vector<Linkage::Joint> joints, Linkage::Tool tool)
-            : Frame::Frame(respectToFixed, name, id, LINKAGE),
-              respectToRobot_(respectToFixed),
-              initializing_(false),
-              hasRobot(false)
+    : Frame::Frame(respectToFixed, name, id, LINKAGE),
+      respectToRobot_(respectToFixed),
+      initializing_(false),
+      hasRobot(false),
+      hasChildren(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
     initialize(joints, tool);
@@ -443,13 +558,22 @@ void Linkage::initialize(vector<Linkage::Joint> joints, Linkage::Tool tool)
     }
     tool_ = tool;
     tool_.id_ = joints_.size();
-    tool_.joint_ = joints_.back();
     tool_.linkage_ = this;
+
+    if(hasRobot)
+        tool_.Tool::robot_ = robot_;
+    tool_.Tool::hasRobot = hasRobot;
     
     initializing_ = false;
 
     updateFrames();
 }
+
+//void Linkage::addJoint(Linkage::Joint newJoint)
+//{
+//    Joint* tempJoint = new Joint(newJoint);
+//}
+
 
 void Linkage::updateFrames()
 {
@@ -464,7 +588,8 @@ void Linkage::updateFrames()
         }
         tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
         
-        updateChildLinkage();
+        if(hasChildren)
+            updateChildLinkage();
     }
 }
 

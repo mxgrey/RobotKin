@@ -166,11 +166,11 @@ void tutorial()
     cout << hubo.linkage("RIGHT_ARM").values() << endl << endl;
     
     cout << "The " << rightHand->name() << " tool now has the following values:" << endl;
-    cout << "Respect to fixed frame (" << rightHand->parentJoint()->name() << " joint)" << endl;
+    cout << "Respect to fixed frame (" << rightHand->getParentJointName() << " joint)" << endl;
     cout << rightHand->respectToFixed().matrix() << endl << endl;
-    cout << "Respect to linkage frame (" << rightHand->parentLinkage()->name() << " linkage)" << endl;
+    cout << "Respect to linkage frame (" << rightHand->getLinkageName()<< " linkage)" << endl;
     cout << rightHand->respectToLinkage().matrix() << endl << endl;
-    cout << "Respect to robot frame (" << rightHand->parentRobot()->name() << " robot)" << endl;
+    cout << "Respect to robot frame (" << rightHand->getRobotName() << " robot)" << endl;
     cout << rightHand->respectToRobot().matrix() << endl << endl;
     
     cout << "Notice the transform with respect to the fixed frame did not change but the others did." << endl << endl;
@@ -181,11 +181,11 @@ void tutorial()
     cout << hubo.linkage("TORSO").values() << endl << endl;
     
     cout << "The " << rightHand->name() << " tool now has the following values:" << endl;
-    cout << "Respect to fixed frame (" << rightHand->parentJoint()->name() << " joint)" << endl;
+    cout << "Respect to fixed frame (" << rightHand->getParentJointName() << " joint)" << endl;
     cout << rightHand->respectToFixed().matrix() << endl << endl;
-    cout << "Respect to linkage frame (" << rightHand->parentLinkage()->name() << " linkage)" << endl;
+    cout << "Respect to linkage frame (" << rightHand->getLinkageName() << " linkage)" << endl;
     cout << rightHand->respectToLinkage().matrix() << endl << endl;
-    cout << "Respect to robot frame (" << rightHand->parentRobot()->name() << " robot)" << endl;
+    cout << "Respect to robot frame (" << rightHand->getRobotName() << " robot)" << endl;
     cout << rightHand->respectToRobot().matrix() << endl << endl;
     
     cout << "Notice the transform with respect to the fixed frame and the linkage frame did not change but the with respect to the robot frame did." << endl << endl;

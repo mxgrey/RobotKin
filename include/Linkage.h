@@ -179,8 +179,15 @@ namespace RobotKin {
             Isometry3d respectToRobot() const;
             
             Isometry3d respectToWorld() const;
-            
-            const Linkage* linkage() const;
+
+            size_t getLinkageID();
+            string getLinkageName();
+
+            size_t getRobotID();
+            string getRobotName();
+
+//            size_t getParentJointID();
+//            string getParentJointName();
             
             void printInfo() const; 
             
@@ -189,6 +196,10 @@ namespace RobotKin {
             // Joint Protected Member Variables
             //----------------------------------------------------------------------
             double value_; // Current joint value (R type = joint angle, P type = joint length)
+
+            const Linkage* linkage() const;
+
+            const Robot* parentRobot() const;
             
         private:
             //----------------------------------------------------------------------
@@ -221,6 +232,7 @@ namespace RobotKin {
             // Tool Lifecycle
             //----------------------------------------------------------------------
             // Constructors
+            Tool(const Tool& tool);
             Tool(Isometry3d respectToFixed = Isometry3d::Identity(),
                  string name = "",
                  size_t id = 0);
@@ -240,15 +252,25 @@ namespace RobotKin {
             
             Isometry3d respectToWorld() const;
             
-            const Linkage::Joint* parentJoint() const;
-            
-            const Linkage* parentLinkage() const;
-            
-            const Robot* parentRobot() const;
-            
             void printInfo() const;
             
             static Linkage::Tool Identity();
+
+            size_t getRobotID();
+            string getRobotName();
+
+            size_t getLinkageID();
+            string getLinkageName();
+
+            size_t getParentJointID();
+            string getParentJointName();
+
+
+        protected:
+
+            const Linkage* parentLinkage() const;
+
+            const Robot* parentRobot() const;
             
             
         private:
@@ -256,7 +278,6 @@ namespace RobotKin {
             // Tool Private Member Variables
             //----------------------------------------------------------------------
             Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
-            Linkage::Joint* joint_; // TODO: Why does this exist? Pointer to which joint?
             Linkage* linkage_;
             Robot* robot_;
             
@@ -271,7 +292,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Constructors
         Linkage();
-        // TODO: Linkage(Linkage& linkage);
+        Linkage(const Linkage &linkage);
         Linkage(Isometry3d respectToFixed,
                 string name, size_t id,
                 Linkage::Joint joint,
