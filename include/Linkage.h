@@ -152,6 +152,7 @@ namespace RobotKin {
                   JointType jointType = REVOLUTE,
                   double minValue = -M_PI,
                   double maxValue = M_PI);
+            //Joint(Joint& joint);
             
             // Destructor
             virtual ~Joint();
@@ -270,6 +271,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Constructors
         Linkage();
+        // TODO: Linkage(Linkage& linkage);
         Linkage(Isometry3d respectToFixed,
                 string name, size_t id,
                 Linkage::Joint joint,
@@ -307,8 +309,8 @@ namespace RobotKin {
         Linkage::Joint& joint(size_t jointIndex);
         Linkage::Joint& joint(string jointName);
         
-        const vector<Linkage::Joint>& const_joints() const;
-        vector<Linkage::Joint>& joints();
+        const vector<Linkage::Joint*>& const_joints() const;
+        vector<Linkage::Joint*>& joints();
 
         void addJoint(Linkage::Joint newJoint); // TODO
         void insertJoint(Linkage::Joint newJoint, size_t jointIndex); // TODO
@@ -330,7 +332,7 @@ namespace RobotKin {
         
         Isometry3d respectToWorld() const;
         
-        void jacobian(MatrixXd& J, const vector<Linkage::Joint>& jointFrames, Vector3d location, const Frame* refFrame) const;
+        void jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
         
         void printInfo() const;
         
@@ -348,7 +350,7 @@ namespace RobotKin {
         Robot* robot_;
         Linkage* parentLinkage_;
         vector<Linkage*> childLinkages_;
-        vector<Linkage::Joint> joints_;
+        vector<Linkage::Joint*> joints_;
         Linkage::Tool tool_;
         // TODO: Consider allowing multiple switchable tools
         //vector<Linkage::Tool> tools_;

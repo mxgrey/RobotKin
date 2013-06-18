@@ -28,6 +28,20 @@ using namespace RobotKin;
 // Linkage Nested Classes
 //------------------------------------------------------------------------------
 // Joint Class Constructors
+
+//Linkage::Joint::Joint(Joint &joint)
+//    : Frame::Frame(joint.respectToFixed_, joint.name(), joint.id(), JOINT),
+//      min_(joint.min_),
+//      max_(joint.max_),
+//      value_(joint.value_),
+//      linkage_(0),
+//      robot_(0),
+//      hasRobot(false),
+//      hasLinkage(false)
+//{
+    
+//}
+
 Linkage::Joint::Joint(Isometry3d respectToFixed,
                       string name,
                       size_t id,
@@ -48,6 +62,7 @@ Linkage::Joint::Joint(Isometry3d respectToFixed,
 {
     value(value_);
 }
+
 
 // Joint Destructor
 Linkage::Joint::~Joint()
@@ -283,19 +298,19 @@ size_t Linkage::nJoints() const { return joints_.size(); }
 const Linkage::Joint& Linkage::const_joint(size_t jointIndex) const
 {
     assert(jointIndex < nJoints());
-    return joints_[jointIndex];
+    return *joints_[jointIndex];
 }
-const Linkage::Joint& Linkage::const_joint(string jointName) const { return joints_[jointNameToIndex_.at(jointName)]; }
+const Linkage::Joint& Linkage::const_joint(string jointName) const { return *joints_[jointNameToIndex_.at(jointName)]; }
 
 Linkage::Joint& Linkage::joint(size_t jointIndex)
 {
     assert(jointIndex < nJoints());
-    return joints_[jointIndex];
+    return *joints_[jointIndex];
 }
-Linkage::Joint& Linkage::joint(string jointName) { return joints_[jointNameToIndex_.at(jointName)]; }
+Linkage::Joint& Linkage::joint(string jointName) { return *joints_[jointNameToIndex_.at(jointName)]; }
 
-const vector<Linkage::Joint>& Linkage::const_joints() const { return joints_; }
-vector<Linkage::Joint>& Linkage::joints() { return joints_; }
+const vector<Linkage::Joint*>& Linkage::const_joints() const { return joints_; }
+vector<Linkage::Joint*>& Linkage::joints() { return joints_; }
 
 
 const Linkage::Tool& Linkage::const_tool() const { return tool_; }
@@ -306,7 +321,7 @@ VectorXd Linkage::values() const
 {
     VectorXd theValues(nJoints(),1);
     for (size_t i = 0; i < nJoints(); ++i) {
-        theValues[i] = joints_[i].value();
+        theValues[i] = joints_[i]->value();
     }
     return theValues;
 }
@@ -316,7 +331,7 @@ bool Linkage::values(const VectorXd& someValues)
     if(someValues.size() == nJoints())
     {
         for (size_t i = 0; i < nJoints(); ++i) {
-            joints_[i].value(someValues(i));
+            joints_[i]->value(someValues(i));
         }
         updateFrames();
         return true;
@@ -349,7 +364,7 @@ Isometry3d Linkage::respectToWorld() const
         return Isometry3d::Identity();
 }
 
-void Linkage::jacobian(MatrixXd& J, const vector<Linkage::Joint>& jointFrames, Vector3d location, const Frame* refFrame) const
+void Linkage::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const
 { // location should be specified respect to linkage coordinate frame
     
     size_t nCols = jointFrames.size();
@@ -359,12 +374,12 @@ void Linkage::jacobian(MatrixXd& J, const vector<Linkage::Joint>& jointFrames, V
     
     for (size_t i = 0; i < nCols; ++i) {
         
-        o_i = jointFrames[i].respectToLinkage_.translation(); // Joint i location
+        o_i = jointFrames[i]->respectToLinkage_.translation(); // Joint i location
         d_i = o_i - location; // Vector from location to joint i
-        z_i = jointFrames[i].respectToLinkage_.rotation().col(2); // Joint i joint axis
+        z_i = jointFrames[i]->respectToLinkage_.rotation().col(2); // Joint i joint axis
         
         // Set column i of Jocabian
-        if (jointFrames[i].jointType_ == REVOLUTE) {
+        if (jointFrames[i]->jointType_ == REVOLUTE) {
             J.block(0, i, 3, 1) = d_i.cross(z_i);
             J.block(3, i, 3, 1) = z_i;
         } else {
@@ -394,14 +409,14 @@ void Linkage::printInfo() const
     cout << respectToWorld().matrix() << endl << endl;
     
     cout << "Joints (ID, Name, Value): " << endl;
-    for (vector<Linkage::Joint>::const_iterator jointIt = const_joints().begin();
+    for (vector<Linkage::Joint*>::const_iterator jointIt = const_joints().begin();
          jointIt != const_joints().end(); ++jointIt) {
-        cout << jointIt->id() << ", " << jointIt->name() << ", " << jointIt->value() << endl;
+        cout << (*jointIt)->id() << ", " << (*jointIt)->name() << ", " << (*jointIt)->value() << endl;
     }
     
-    for (vector<Linkage::Joint>::const_iterator jointIt = const_joints().begin();
+    for (vector<Linkage::Joint*>::const_iterator jointIt = const_joints().begin();
          jointIt != const_joints().end(); ++jointIt) {
-        jointIt->printInfo();
+        (*jointIt)->printInfo();
     }
     const_tool().printInfo();
     
@@ -420,14 +435,15 @@ void Linkage::initialize(vector<Linkage::Joint> joints, Linkage::Tool tool)
     initializing_ = true;
     joints_.resize(joints.size());
     for(size_t i = 0; i != joints_.size(); ++i) {
-        joints_[i] = joints[i];
-        joints_[i].id_ = i;
-        joints_[i].linkage_ = this;
-        jointNameToIndex_[joints_[i].name()] = i;
+        joints_[i] = new Joint(joints[i]);
+        joints_[i]->id_ = i;
+        joints_[i]->linkage_ = this;
+        joints_[i]->hasLinkage = true;
+        jointNameToIndex_[joints_[i]->name()] = i;
     }
     tool_ = tool;
     tool_.id_ = joints_.size();
-    tool_.joint_ = &(joints_.back());
+    tool_.joint_ = joints_.back();
     tool_.linkage_ = this;
     
     initializing_ = false;
@@ -440,13 +456,13 @@ void Linkage::updateFrames()
     if (~initializing_) {
         for (size_t i = 0; i < joints_.size(); ++i) {
             if (i == 0) {
-                joints_[i].respectToLinkage_ = joints_[i].respectToFixedTransformed_;
+                joints_[i]->respectToLinkage_ = joints_[i]->respectToFixedTransformed_;
                 
             } else {
-                joints_[i].respectToLinkage_ = joints_[i-1].respectToLinkage_ * joints_[i].respectToFixedTransformed_;
+                joints_[i]->respectToLinkage_ = joints_[i-1]->respectToLinkage_ * joints_[i]->respectToFixedTransformed_;
             }
         }
-        tool_.respectToLinkage_ = joints_[joints_.size()-1].respectToLinkage_ * tool_.respectToFixed_;
+        tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
         
         updateChildLinkage();
     }

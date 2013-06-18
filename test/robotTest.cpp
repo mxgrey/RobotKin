@@ -77,11 +77,11 @@ void tutorial()
     
     cout << "The linkages are: " << endl;
     cout << "(ID, Name, Parent)" << endl;
-    for (vector<Linkage>::iterator linkageIt = hubo.linkages().begin(); linkageIt != hubo.linkages().end(); ++linkageIt) {
-        if (linkageIt->parentLinkage() == 0) {
-            cout << linkageIt->id() << ", " << linkageIt->name() << " <- " << hubo.name() << endl;
+    for (vector<Linkage*>::iterator linkageIt = hubo.linkages().begin(); linkageIt != hubo.linkages().end(); ++linkageIt) {
+        if ((*linkageIt)->parentLinkage() == 0) {
+            cout << (*linkageIt)->id() << ", " << (*linkageIt)->name() << " <- " << hubo.name() << endl;
         } else {
-            cout << linkageIt->id() << ", " << linkageIt->name() << " <- " << linkageIt->parentLinkage()->name() << endl;
+            cout << (*linkageIt)->id() << ", " << (*linkageIt)->name() << " <- " << (*linkageIt)->parentLinkage()->name() << endl;
         }
     }
     cout << endl;
@@ -94,9 +94,9 @@ void tutorial()
     cout << "(ID, Name, Value): " << endl;
     
     // Notice that there is a const_joints() as well as a joints() method (this exist for the robot class well), which allows for when the "this" pointer is const as is the case with the const iterator below.
-    for (vector<Linkage::Joint>::const_iterator jointIt = hubo.linkage("RIGHT_ARM").const_joints().begin();
+    for (vector<Linkage::Joint*>::const_iterator jointIt = hubo.linkage("RIGHT_ARM").const_joints().begin();
          jointIt != hubo.linkage("RIGHT_ARM").const_joints().end(); ++jointIt) {
-        cout << jointIt->id() << ", " << jointIt->name() << ", " << jointIt->value() << endl;
+        cout << (*jointIt)->id() << ", " << (*jointIt)->name() << ", " << (*jointIt)->value() << endl;
     }
     cout << endl;
     
@@ -210,22 +210,22 @@ void tutorial()
     
     cout << "Or we can get the Jacobian from the " << hubo.linkage("RIGHT_LEG").tool().name() << " to the " << hubo.linkage("RIGHT_ARM").tool().name() << " and referenced with respect to " << hubo.name() << "." << endl << endl;
     
-    vector<Linkage::Joint> joints;
-    for (vector<Linkage::Joint>::reverse_iterator jointIt = hubo.linkage("RIGHT_LEG").joints().rbegin(); jointIt != hubo.linkage("RIGHT_LEG").joints().rend(); ++jointIt) {
+    vector<Linkage::Joint*> joints;
+    for (vector<Linkage::Joint*>::reverse_iterator jointIt = hubo.linkage("RIGHT_LEG").joints().rbegin(); jointIt != hubo.linkage("RIGHT_LEG").joints().rend(); ++jointIt) {
         joints.push_back(*jointIt);
     }
-    for (vector<Linkage::Joint>::iterator jointIt = hubo.linkage("TORSO").joints().begin(); jointIt != hubo.linkage("TORSO").joints().end(); ++jointIt) {
+    for (vector<Linkage::Joint*>::iterator jointIt = hubo.linkage("TORSO").joints().begin(); jointIt != hubo.linkage("TORSO").joints().end(); ++jointIt) {
         joints.push_back(*jointIt);
     }
-    for (vector<Linkage::Joint>::iterator jointIt = hubo.linkage("RIGHT_ARM").joints().begin(); jointIt != hubo.linkage("RIGHT_ARM").joints().end(); ++jointIt) {
+    for (vector<Linkage::Joint*>::iterator jointIt = hubo.linkage("RIGHT_ARM").joints().begin(); jointIt != hubo.linkage("RIGHT_ARM").joints().end(); ++jointIt) {
         joints.push_back(*jointIt);
     }
     
     cout << "There are " << joints.size() << " joints envolved in this Jacobian with the values of" << endl;
 
     cout << "(Name, Value)" << endl;
-    for (vector<Linkage::Joint>::iterator jointIt = joints.begin(); jointIt != joints.end(); ++jointIt) {
-        cout << jointIt->name() << ", " << jointIt->value() << endl;
+    for (vector<Linkage::Joint*>::iterator jointIt = joints.begin(); jointIt != joints.end(); ++jointIt) {
+        cout << (*jointIt)->name() << ", " << (*jointIt)->value() << endl;
     }
     cout << endl;
 

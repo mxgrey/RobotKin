@@ -124,8 +124,8 @@ namespace RobotKin {
         Linkage& linkage(string linkageName);
         
         // Getting all the linkages
-        const vector<Linkage>& const_linkages() const;
-        vector<Linkage>& linkages();
+        const vector<Linkage*>& const_linkages() const;
+        vector<Linkage*>& linkages();
         
         // Adding new linkages
         void addLinkage(int parentIndex, string name);
@@ -154,7 +154,7 @@ namespace RobotKin {
         
         Isometry3d respectToWorld() const;
         
-        void jacobian(MatrixXd& J, const vector<Linkage::Joint>& jointFrames, Vector3d location, const Frame* refFrame) const;
+        void jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
         
         void printInfo() const;
         
@@ -165,7 +165,7 @@ namespace RobotKin {
         // Robot Protected Member Functions
         //--------------------------------------------------------------------------
         Isometry3d respectToWorld_; // Coordinates with respect to robot base frame
-        vector<Linkage> linkages_;
+        vector<Linkage*> linkages_;
         map<string, size_t> linkageNameToIndex_;
         vector<Linkage::Joint*> joints_;
         map<string, size_t> jointNameToIndex_;
