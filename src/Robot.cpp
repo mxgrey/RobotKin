@@ -211,13 +211,52 @@ void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
     
     
     initializing_ = true;
-    linkages_.reserve(10);
+    
+    /*
+    linkages_.reserve(100);
     cerr << "Adding linkages" << endl;
     for(size_t i = 0; i != linkages.size(); ++i)
     {
         cerr << "Adding " << linkages[iPI[i].I].name() << endl;
         addLinkage(linkages[iPI[i].I], parentIndices[iPI[i].I], linkages[iPI[i].I].name());
         cerr << "Finished adding" << endl;
+    }
+    */
+    
+    
+    // Initialize
+    
+    size_t jointCnt = 0;
+    for (size_t i = 0; i != linkages.size(); ++i) {
+        
+        linkages_.push_back(linkages[iPI[i].I]);
+        linkages_[i].id_ = i;
+        linkageNameToIndex_[linkages_[i].name_] = i;
+        
+        
+        if (parentIndices[iPI[i].I] == -1) {
+            linkages_[i].parentLinkage_ = 0;
+        } else {
+            linkages_[i].parentLinkage_ = &(linkages_[parentIndices[iPI[i].I]]);
+            linkages_[parentIndices[iPI[i].I]].childLinkages_.push_back(&(linkages_[i]));
+        }
+        for (size_t j = 0; j != linkages_[i].nJoints(); ++j) {
+            linkages_[i].joints_[j].linkage_ = &(linkages_[i]);
+            linkages_[i].joints_[j].hasLinkage = true;
+            linkages_[i].joints_[j].robot_ = this;
+            linkages_[i].joints_[j].hasRobot = true;
+            joints_.push_back(&(linkages_[i].joints_[j]));
+            joints_.back()->id_ = jointCnt;
+            jointNameToIndex_[joints_[jointCnt]->name()] = jointCnt;
+            jointCnt++;
+        }
+        linkages_[i].tool_.linkage_ = &(linkages_[i]);
+        linkages_[i].tool_.hasLinkage = true;
+        linkages_[i].tool_.robot_ = this;
+        linkages_[i].tool_.hasRobot = true;
+        linkages_[i].robot_ = this;
+        linkages_[i].hasRobot = true;
+        linkages_[i].tool_.id_ = i;
     }
     
 
