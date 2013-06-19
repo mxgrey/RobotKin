@@ -232,7 +232,7 @@ namespace RobotKin {
             // Tool Lifecycle
             //----------------------------------------------------------------------
             // Constructors
-            Tool(const Tool& tool);
+//            Tool(const Tool& tool);
             Tool(Isometry3d respectToFixed = Isometry3d::Identity(),
                  string name = "",
                  size_t id = 0);
@@ -292,7 +292,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Constructors
         Linkage();
-        Linkage(const Linkage &linkage);
+        Linkage(const Linkage& linkage);
         Linkage(Isometry3d respectToFixed,
                 string name, size_t id,
                 Linkage::Joint joint,
@@ -311,6 +311,7 @@ namespace RobotKin {
         // Linkage Overloaded Operators
         //--------------------------------------------------------------------------
         // Assignment operator
+        Linkage& operator =( const Linkage& linkage );
         const Linkage& operator=(const VectorXd& values);
         
         
@@ -318,7 +319,7 @@ namespace RobotKin {
         // Linkage Public Member Functions
         //--------------------------------------------------------------------------
         
-        Linkage* parentLinkage();
+        Linkage* parentLinkage();        
         
         size_t nChildren() const;
         
@@ -335,10 +336,11 @@ namespace RobotKin {
 
         void addJoint(Linkage::Joint newJoint); // TODO
         void insertJoint(Linkage::Joint newJoint, size_t jointIndex); // TODO
-        
-        void addTool(Linkage::Tool newTool); // TODO
-        void chooseTool(size_t toolIndex); // TODO
-        void chooseTool(string toolName); // TODO
+
+        void setTool(Linkage::Tool newTool);        
+//        void addTool(Linkage::Tool newTool); // TODO
+//        void chooseTool(size_t toolIndex); // TODO
+//        void chooseTool(string toolName); // TODO
         
         const Linkage::Tool& const_tool() const;
         Linkage::Tool& tool();
@@ -357,6 +359,15 @@ namespace RobotKin {
         
         void printInfo() const;
         
+        size_t getParentLinkageID();
+        string getParentLinkageName();
+        
+        size_t getRobotID();
+        string getRobotName();
+        
+        void getChildIDs(vector<size_t>& ids);
+        void getChildNames(vector<string>& names);
+        void printChildren();
         
         //--------------------------------------------------------------------------
         // Linkage Public Member Variables
@@ -367,6 +378,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Linkage Protected Member Variables
         //--------------------------------------------------------------------------
+        
         Isometry3d respectToRobot_; // Coordinates with respect to robot base frame
         Robot* robot_;
         Linkage* parentLinkage_;
@@ -375,8 +387,7 @@ namespace RobotKin {
         Linkage::Tool tool_;
         // TODO: Consider allowing multiple switchable tools
         //vector<Linkage::Tool> tools_;
-        
-        size_t activeTool_;
+//        size_t activeTool_;
         
         bool hasRobot;
         bool hasParent;

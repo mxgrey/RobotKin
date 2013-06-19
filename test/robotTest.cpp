@@ -66,6 +66,19 @@ void tutorial()
     // Create an instance of a Hubo
     Hubo hubo;
     
+    {
+
+        Linkage* rightArmT = &hubo.linkage("RIGHT_ARM"); // Notice that this is a pointer
+        size_t torsoID = rightArmT->getParentLinkageID();
+        hubo.linkages()[torsoID]->printChildren();
+        
+        rightArmT->printChildren();
+        
+        std::cout << rightArmT->getParentLinkageName() << std::endl;
+//        rightArmT->printInfo();
+        
+    }
+    
     // Print info about hubo
     cout << "The robot " << hubo.name() << " consist of " << hubo.nLinkages() << " linkages and " << hubo.nJoints() << " joints all together." << endl << endl;
     
@@ -221,7 +234,7 @@ void tutorial()
         joints.push_back(*jointIt);
     }
     
-    cout << "There are " << joints.size() << " joints envolved in this Jacobian with the values of" << endl;
+    cout << "There are " << joints.size() << " joints involved in this Jacobian with the values of" << endl;
 
     cout << "(Name, Value)" << endl;
     for (vector<Linkage::Joint*>::iterator jointIt = joints.begin(); jointIt != joints.end(); ++jointIt) {
@@ -237,6 +250,22 @@ void tutorial()
     cout << "Jacobian is:" << endl;
     cout << J.matrix() << endl << endl;
     
+//    rightHand->printInfo();
+    
+//    rightArm->printInfo();
+    
+    {
+
+        Linkage* rightArmT = &hubo.linkage("RIGHT_ARM"); // Notice that this is a pointer
+        size_t torsoID = rightArmT->getParentLinkageID();
+        hubo.linkages()[torsoID]->printChildren();
+        
+        rightArmT->printChildren();
+        
+        std::cout << rightArmT->getParentLinkageName() << std::endl;
+//        rightArmT->printInfo();
+        
+    }
     
     cout << "--------------------------------------" << endl;
     cout << "|  Analytical Arm Inverse Kinematics |" << endl;

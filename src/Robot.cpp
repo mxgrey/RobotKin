@@ -200,7 +200,6 @@ void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
         return;
     }
     
-    cerr << "Sorting linkages" << endl;
     vector<indexParentIndexPair> iPI(linkages.size());
     for (size_t i = 0; i != linkages.size(); ++i) {
         iPI[i].I = i;
@@ -217,7 +216,7 @@ void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
         addLinkage(linkages[iPI[i].I], parentIndices[iPI[i].I], linkages[iPI[i].I].name());
     
     
-    
+    // Deprecated...........
     // Initialize
     /*
     size_t jointCnt = 0;
@@ -257,7 +256,7 @@ void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
     }
     */
 
-    // Deprecated (I hope)
+    // Also Deprecated............
     /*
     // Initialize
     int nJoints = 0;
@@ -319,8 +318,14 @@ void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
 
 void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
 {
+    // Get the linkage adjusted to its new home
+    size_t newIndex = linkages_.size();
+
+    Linkage* tempLinkage = new Linkage(linkage);
+    linkages_.push_back(tempLinkage);
+    
     if(parentIndex == -1)
-        linkage.parentLinkage_ = NULL;
+        linkages_[newIndex]->parentLinkage_ = NULL;
     else if( parentIndex > linkages_.size()-1 )
     {
         std::cerr << "ERROR! Parent index value (" << parentIndex << ") is larger "
@@ -329,16 +334,9 @@ void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
         return;
     }
     else
-        linkage.parentLinkage_ = linkages_[parentIndex];
+        linkages_[newIndex]->parentLinkage_ = linkages_[parentIndex];
     
-    linkage.hasParent = true; // TODO: Decide if this should be true for root linkage or not
-    
-    
-    // Get the linkage adjusted to its new home
-    size_t newIndex = linkages_.size();
-
-    Linkage* tempLinkage = new Linkage(linkage);
-    linkages_.push_back(tempLinkage);
+    linkages_[newIndex]->hasParent = true; // TODO: Decide if this should be true for root linkage or not
     
     linkages_[newIndex]->robot_ = this;
     linkages_[newIndex]->hasRobot = true;
@@ -369,7 +367,7 @@ void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
     if(linkages_[newIndex]->parentLinkage_ != NULL)
     {
         linkages_[newIndex]->parentLinkage_->childLinkages_.push_back(linkages_[newIndex]);
-        linkages_[newIndex]->hasChildren = true;
+        linkages_[newIndex]->parentLinkage_->hasChildren = true;
     }
 }
 

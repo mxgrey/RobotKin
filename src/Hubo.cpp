@@ -174,15 +174,15 @@ void Hubo::initialize()
         0.0,                    // ankle pitch
         0.0;                    // ankle roll
     
-    std::cerr << "Init torso" << std::endl;
+//    std::cerr << "Init torso" << std::endl;
     // Linkage torso
     Linkage torso = initializeTorso();
     
-    std::cerr << "Init LA" << std::endl;
+//    std::cerr << "Init LA" << std::endl;
     // Linkage left arm;
     Linkage leftArm = initializeLeftArm();
     
-    std::cerr << "Init RA" << std::endl;
+//    std::cerr << "Init RA" << std::endl;
     // Linkage right arm;
     Linkage rightArm = initializeRightArm();
     
@@ -221,9 +221,9 @@ void Hubo::initialize()
 //    parentIndices[3] = -1;
 //    parentIndices[4] = -1;
 
-    cerr << "Init robot" << endl;
+//    cerr << "Init robot" << endl;
     Robot::initialize(linkages, parentIndices);
-    cerr << "init finished" << endl;
+//    cerr << "init finished" << endl;
     name("HUBO");
 }
 

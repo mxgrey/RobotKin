@@ -148,16 +148,16 @@ void Linkage::Joint::printInfo() const
 
 
 // Tool Class
-Linkage::Tool::Tool(const Tool &tool)
-    : Frame::Frame(tool.respectToFixed_, tool.name_, tool.id_),
-      respectToLinkage_(tool.respectToLinkage_),
-      linkage_(0),
-      robot_(0),
-      hasRobot(false),
-      hasLinkage(false)
-{
+//Linkage::Tool::Tool(const Tool &tool)
+//    : Frame::Frame(tool.respectToFixed_, tool.name_, tool.id_, TOOL),
+//      respectToLinkage_(tool.respectToLinkage_),
+//      linkage_(0),
+//      robot_(0),
+//      hasRobot(false),
+//      hasLinkage(false)
+//{
 
-}
+//}
 
 Linkage::Tool::Tool(Isometry3d respectToFixed, string name, size_t id)
     : Frame::Frame(respectToFixed, name, id, TOOL),
@@ -304,6 +304,59 @@ string Linkage::Joint::getRobotName()
         return "";
 }
 
+size_t Linkage::getParentLinkageID()
+{
+    if(hasParent)
+        return parentLinkage_->id();
+    else
+        return 0;
+}
+
+string Linkage::getParentLinkageName()
+{
+    if(hasParent)
+        return parentLinkage_->name();
+    else
+        return "";
+}
+
+size_t Linkage::getRobotID()
+{
+    if(hasRobot)
+        return robot_->id();
+    else
+        return 0;
+}
+
+string Linkage::getRobotName()
+{
+    if(hasRobot)
+        return robot_->name();
+    else
+        return "";
+}
+
+void Linkage::getChildIDs(vector<size_t> &ids)
+{
+    ids.resize(childLinkages_.size());
+    for(size_t i=0; i<childLinkages_.size(); i++)
+        ids.push_back(childLinkages_[i]->id());
+}
+
+void Linkage::getChildNames(vector<string> &names)
+{
+    names.resize(childLinkages_.size());
+    for(size_t i=0; i<childLinkages_.size(); i++)
+        names.push_back(childLinkages_[i]->name());
+}
+
+void Linkage::printChildren()
+{
+    cout << "Children of " << name() << ":" << endl;
+    for(size_t i=0; i<childLinkages_.size(); i++)
+        cout << childLinkages_[i]->name() << " ("
+             << childLinkages_[i]->id() << ")" << endl;
+}
 
 void Linkage::Tool::printInfo() const
 {
@@ -329,25 +382,40 @@ Linkage::Tool Linkage::Tool::Identity()
 // Linkage Lifecycle
 //------------------------------------------------------------------------------
 // Constructors
+
+Linkage& Linkage::operator =( const Linkage& linkage )
+{
+    respectToFixed_ = linkage.respectToFixed_;
+    respectToRobot_ = linkage.respectToRobot_;
+    
+    name_ = linkage.name_;
+    id_ = linkage.id_;
+    frameType_ = linkage.frameType_;
+    
+    joints_.resize(0);
+    for(size_t i=0; i<linkage.joints_.size(); i++)
+        addJoint(*(linkage.joints_[i]));
+    setTool(linkage.tool_);
+    
+    updateFrames();
+}
+
 Linkage::Linkage(const Linkage &linkage)
     : Frame::Frame(linkage.respectToFixed_, linkage.name_,
                    linkage.id_, linkage.frameType_),
       respectToRobot_(linkage.respectToRobot_),
+      tool_(linkage.tool_),
       initializing_(false),
       hasRobot(false),
+      hasParent(false),
       hasChildren(false)
 {
-    vector<Linkage::Joint> joints; joints.resize(0);
-//    joints.resize(linkage.joints_.size());
-//    for(size_t i=0; i<linkage.joints_.size(); i++)
-//    {
-//        joints[i] = *(linkage.joints_[i]);
-//    }
+    for(size_t i=0; i<linkage.joints_.size(); i++)
+        addJoint(*(linkage.joints_[i]));
 
-    //initialize(joints, linkage.tool_);
-
-    Linkage::Tool newTool;
-    initialize(joints, newTool);
+    setTool(linkage.tool_);
+    
+    updateFrames();
 }
 
 Linkage::Linkage()
@@ -548,31 +616,49 @@ void Linkage::printInfo() const
 void Linkage::initialize(vector<Linkage::Joint> joints, Linkage::Tool tool)
 {
     initializing_ = true;
-    joints_.resize(joints.size());
-    for(size_t i = 0; i != joints_.size(); ++i) {
-        joints_[i] = new Joint(joints[i]);
-        joints_[i]->id_ = i;
-        joints_[i]->linkage_ = this;
-        joints_[i]->hasLinkage = true;
-        jointNameToIndex_[joints_[i]->name()] = i;
-    }
-    tool_ = tool;
-    tool_.id_ = joints_.size();
-    tool_.linkage_ = this;
-
-    if(hasRobot)
-        tool_.Tool::robot_ = robot_;
-    tool_.Tool::hasRobot = hasRobot;
+    
+    for(size_t i = 0; i != joints.size(); ++i)
+        addJoint(joints[i]);
+    
+    setTool(tool);
     
     initializing_ = false;
 
     updateFrames();
 }
 
-//void Linkage::addJoint(Linkage::Joint newJoint)
-//{
-//    Joint* tempJoint = new Joint(newJoint);
-//}
+void Linkage::addJoint(Linkage::Joint newJoint)
+{
+    Joint* tempJoint = new Joint(newJoint);
+    size_t newIndex = joints_.size();
+    joints_.push_back(tempJoint);
+    joints_[newIndex]->id_ = newIndex;
+    joints_[newIndex]->linkage_ = this;
+    joints_[newIndex]->hasLinkage = true;
+    jointNameToIndex_[joints_[newIndex]->name()] = newIndex;
+    
+    if(hasRobot)
+    {
+        joints_[newIndex]->robot_ = robot_;
+        joints_[newIndex]->hasRobot = true;
+        
+        robot_->joints_.push_back(joints_[newIndex]);
+        robot_->joints_.back()->id_ = joints_.size()-1;
+        jointNameToIndex_[joints_.back()->name()] = joints_.size()-1;
+    }
+}
+
+void Linkage::setTool(Linkage::Tool newTool)
+{
+    tool_ = newTool;
+    tool_.id_ = joints_.size();
+    tool_.linkage_ = this;
+    tool_.hasLinkage = true;
+
+    if(hasRobot)
+        tool_.Tool::robot_ = robot_;
+    tool_.Tool::hasRobot = hasRobot;
+}
 
 
 void Linkage::updateFrames()
@@ -586,7 +672,10 @@ void Linkage::updateFrames()
                 joints_[i]->respectToLinkage_ = joints_[i-1]->respectToLinkage_ * joints_[i]->respectToFixedTransformed_;
             }
         }
-        tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
+        if(joints_.size() > 0)
+            tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
+        else
+            tool_.respectToLinkage_ = tool_.respectToFixed_;
         
         if(hasChildren)
             updateChildLinkage();
@@ -598,7 +687,8 @@ void Linkage::updateChildLinkage()
 {
     for (size_t i = 0; i < nChildren(); ++i) {
         childLinkages_[i]->respectToRobot_ = tool_.respectToRobot() * childLinkages_[i]->respectToFixed_;
-        childLinkages_[i]->updateChildLinkage();
+        if(childLinkages_[i]->hasChildren)
+            childLinkages_[i]->updateChildLinkage();
     }
 }
 
