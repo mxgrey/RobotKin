@@ -29,18 +29,35 @@ using namespace RobotKin;
 //------------------------------------------------------------------------------
 // Joint Class Constructors
 
-//Linkage::Joint::Joint(Joint &joint)
-//    : Frame::Frame(joint.respectToFixed_, joint.name(), joint.id(), JOINT),
-//      min_(joint.min_),
-//      max_(joint.max_),
-//      value_(joint.value_),
-//      linkage_(0),
-//      robot_(0),
-//      hasRobot(false),
-//      hasLinkage(false)
-//{
-    
-//}
+Linkage::Joint& Linkage::Joint::operator =( const Linkage::Joint& joint )
+{
+    respectToFixed_ = joint.respectToFixed_;
+    respectToFixedTransformed_ = joint.respectToFixedTransformed_;
+
+    name_ = joint.name_;
+    id_ = joint.id_; // TODO: Should id really be changed?
+    frameType_ = joint.frameType_;
+
+    jointType_ = joint.jointType_;
+    min_ = joint.min_;
+    max_ = joint.max_;
+
+    value(joint.value_);
+}
+
+Linkage::Joint::Joint(const Joint &joint)
+    : Frame::Frame(joint.respectToFixed_, joint.name(), joint.id(), JOINT),
+      respectToFixedTransformed_(joint.respectToFixedTransformed_),
+      jointType_(joint.jointType_),
+      min_(joint.min_),
+      max_(joint.max_),
+      linkage_(NULL),
+      robot_(NULL),
+      hasRobot(false),
+      hasLinkage(false)
+{
+    value(joint.value_);
+}
 
 Linkage::Joint::Joint(Isometry3d respectToFixed,
                       string name,
@@ -71,7 +88,7 @@ Linkage::Joint::~Joint()
 }
 
 // Joint Overloaded Operators
-const Linkage::Joint& Linkage::Joint::operator=(double aValue)
+const Linkage::Joint& Linkage::Joint::operator=(const double aValue)
 {
     value(aValue);
     return *this;
@@ -132,7 +149,8 @@ const Linkage* Linkage::Joint::linkage() const
 
 void Linkage::Joint::printInfo() const
 {
-    cout << frameTypeString() << " Info: " << name() << " (ID: " << id()  << ")" << endl;
+    cout << frameTypeString() << " Info: " << name() << " (ID: " << id()  << "), Joint Type:"
+         << jointType_ << endl;
     cout << "Joint value: " << value() << endl;
     cout << "Respect to fixed frame:" << endl;
     cout << respectToFixed().matrix() << endl << endl;
@@ -148,22 +166,32 @@ void Linkage::Joint::printInfo() const
 
 
 // Tool Class
-//Linkage::Tool::Tool(const Tool &tool)
-//    : Frame::Frame(tool.respectToFixed_, tool.name_, tool.id_, TOOL),
-//      respectToLinkage_(tool.respectToLinkage_),
-//      linkage_(0),
-//      robot_(0),
-//      hasRobot(false),
-//      hasLinkage(false)
-//{
+Linkage::Tool& Linkage::Tool::operator =(const Linkage::Tool& tool)
+{
+    respectToFixed_ = tool.respectToFixed_;
+    respectToLinkage_ = tool.respectToLinkage_;
 
-//}
+    name_ = tool.name_;
+    frameType_ = tool.frameType_;
+}
+
+
+Linkage::Tool::Tool(const Tool &tool)
+    : Frame::Frame(tool.respectToFixed_, tool.name_, tool.id_, TOOL),
+      respectToLinkage_(tool.respectToLinkage_),
+      linkage_(NULL),
+      robot_(NULL),
+      hasRobot(false),
+      hasLinkage(false)
+{
+
+}
 
 Linkage::Tool::Tool(Isometry3d respectToFixed, string name, size_t id)
     : Frame::Frame(respectToFixed, name, id, TOOL),
       respectToLinkage_(respectToFixed),
-      linkage_(0),
-      robot_(0),
+      linkage_(NULL),
+      robot_(NULL),
       hasRobot(false),
       hasLinkage(false)
 {

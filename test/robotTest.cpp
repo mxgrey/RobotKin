@@ -66,18 +66,7 @@ void tutorial()
     // Create an instance of a Hubo
     Hubo hubo;
     
-    {
 
-        Linkage* rightArmT = &hubo.linkage("RIGHT_ARM"); // Notice that this is a pointer
-        size_t torsoID = rightArmT->getParentLinkageID();
-        hubo.linkages()[torsoID]->printChildren();
-        
-        rightArmT->printChildren();
-        
-        std::cout << rightArmT->getParentLinkageName() << std::endl;
-//        rightArmT->printInfo();
-        
-    }
     
     // Print info about hubo
     cout << "The robot " << hubo.name() << " consist of " << hubo.nLinkages() << " linkages and " << hubo.nJoints() << " joints all together." << endl << endl;
@@ -254,17 +243,19 @@ void tutorial()
     
 //    rightArm->printInfo();
     
+
     {
 
         Linkage* rightArmT = &hubo.linkage("RIGHT_ARM"); // Notice that this is a pointer
         size_t torsoID = rightArmT->getParentLinkageID();
         hubo.linkages()[torsoID]->printChildren();
-        
         rightArmT->printChildren();
-        
-        std::cout << rightArmT->getParentLinkageName() << std::endl;
-//        rightArmT->printInfo();
-        
+
+        rightArmT->printInfo();
+
+        Linkage* rightLegT = &hubo.linkage("RIGHT_LEG");
+        rightLegT->printInfo();
+
     }
     
     cout << "--------------------------------------" << endl;
@@ -328,7 +319,7 @@ void tutorial()
     hubo.rightLegAnalyticalIK(q1, B0, q0);
     
     cout << q1 << endl << endl;
-    
+
     
     cout << "------------------" << endl;
     cout << "|  Still to come |" << endl;

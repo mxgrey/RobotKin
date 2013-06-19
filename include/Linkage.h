@@ -152,7 +152,7 @@ namespace RobotKin {
                   JointType jointType = REVOLUTE,
                   double minValue = -M_PI,
                   double maxValue = M_PI);
-            //Joint(Joint& joint);
+            Joint(const Joint& joint);
             
             // Destructor
             virtual ~Joint();
@@ -161,7 +161,8 @@ namespace RobotKin {
             // Joint Overloaded Operators
             //----------------------------------------------------------------------
             // Assignment operator
-            const Linkage::Joint& operator=(double value);
+            const Linkage::Joint& operator=(const double value);
+            Linkage::Joint& operator=(const Linkage::Joint& joint); // TODO: Test this
             
             //----------------------------------------------------------------------
             // Joint Public Member Functions
@@ -232,7 +233,7 @@ namespace RobotKin {
             // Tool Lifecycle
             //----------------------------------------------------------------------
             // Constructors
-//            Tool(const Tool& tool);
+            Tool(const Tool& tool);
             Tool(Isometry3d respectToFixed = Isometry3d::Identity(),
                  string name = "",
                  size_t id = 0);
@@ -243,6 +244,8 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             // Tool Public Member Functions
             //----------------------------------------------------------------------
+            Tool& operator =(const Tool& tool);
+
             const Isometry3d& respectToFixed() const;
             void respectToFixed(Isometry3d aCoordinate);
             
