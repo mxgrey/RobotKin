@@ -58,7 +58,7 @@ bool Robot::loadURDF(string filename)
     return RobotKinURDF::loadURDF(*this, filename);
 }
 
-#endif
+#endif // HAVE_URDF_PARSE
 
 
 // Destructor

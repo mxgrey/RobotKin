@@ -1,4 +1,9 @@
 
+#define HAVE_URDF_PARSE // TODO: REMOVE THIS BEFORE RELEASE
+
+
+#ifdef HAVE_URDF_PARSE
+
 #include <urdf_parser/urdf_parser.h>
 #include <urdf_model/model.h>
 #include <urdf_model/link.h>
@@ -67,3 +72,9 @@ bool RobotKinURDF::loadURDF(Robot& robot, string filename)
   return true;
 }
 
+
+
+
+
+
+#endif // HAVE_URDF_PARSE

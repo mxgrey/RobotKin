@@ -332,7 +332,7 @@ void tutorial()
     cout << "-- Add methods to add and remove joints" << endl;
     
 
-    Robot parseTest("/home/grey/research/robotKin/urdf/drchubo.urdf");
+    Robot parseTest("../urdf/huboplus.urdf");
 }
 
 

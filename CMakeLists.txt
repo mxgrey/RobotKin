@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(RobotKin)
 
-set( CMAKE_VERBOSE_MAKEFILE true )
+#set( CMAKE_VERBOSE_MAKEFILE true )
 
 include_directories(include)
 
@@ -19,7 +19,7 @@ add_library(${PROJECT_NAME} SHARED ${lib_source})
 
 
 # Check if the user is set up to parse URDFs
-find_package( urdfdom )
+find_package( urdfdom QUIET )
 if( urdfdom_FOUND )
    MESSAGE(STATUS "Found urdfdom -- We will compile a URDF parser")
    find_package( urdfdom_headers REQUIRED )
@@ -29,7 +29,6 @@ if( urdfdom_FOUND )
    target_link_libraries( ${PROJECT_NAME}  ${urdfdom_LIBRARIES} )
    link_libraries( ${urdfdom_LIBRARIES} )
 
-   MESSAGE(STATUS "${urdfdom_LIBRARIES}")
 
 #   set(${urdfparser} "RobotKinUrdf")
 

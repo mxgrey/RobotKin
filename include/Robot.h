@@ -45,7 +45,7 @@
  -------------------------------------------------------------------------------
  */
 
-
+#define HAVE_URDF_PARSE // TODO: REMOVE THIS BEFORE RELEASE
 
 #ifndef _Robot_h_
 #define _Robot_h_
