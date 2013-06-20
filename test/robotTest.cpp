@@ -331,6 +331,8 @@ void tutorial()
     cout << "-- Possibly fix how joints and linkages are stored so everything is reference by a pointer" << endl;
     cout << "-- Add methods to add and remove joints" << endl;
     
+
+    Robot parseTest("/home/grey/research/robotKin/urdf/drchubo.urdf");
 }
 
 

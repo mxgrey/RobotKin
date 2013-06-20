@@ -63,6 +63,10 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
+#ifdef HAVE_URDF_PARSE
+#include "urdf_parsing.h"
+#endif // HAVE_URDF_PARSE
+
 //------------------------------------------------------------------------------
 // Namespaces
 //------------------------------------------------------------------------------
@@ -104,6 +108,11 @@ namespace RobotKin {
         // Constructors
         Robot();
         Robot(vector<Linkage> linkageObjs, vector<int> parentIndices);
+
+//#ifdef HAVE_URDF_PARSE
+        Robot(string filename);
+        bool loadURDF(string filename);
+//#endif // HAVE_URDF_PARSE
         
         // Destructor
         virtual ~Robot();

@@ -46,6 +46,20 @@ Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
     initialize(linkageObjs, parentIndices);
 }
 
+#ifdef HAVE_URDF_PARSE
+Robot::Robot(string filename)
+{
+    // TODO: Test to make sure filename ends with ".urdf"
+    loadURDF(filename);
+}
+
+bool Robot::loadURDF(string filename)
+{
+    return RobotKinURDF::loadURDF(*this, filename);
+}
+
+#endif
+
 
 // Destructor
 Robot::~Robot()
