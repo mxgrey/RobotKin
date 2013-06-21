@@ -71,7 +71,6 @@ Linkage::Joint::Joint(Isometry3d respectToFixed,
               respectToFixedTransformed_(respectToFixed),
               respectToLinkage_(respectToFixed),
               jointType_(jointType),
-              jointAxis_(axis),
               min_(minValue),
               max_(maxValue),
               value_(0),
@@ -80,7 +79,7 @@ Linkage::Joint::Joint(Isometry3d respectToFixed,
               hasRobot(false),
               hasLinkage(false)
 {
-    jointAxis_.normalize();
+    setJointAxis(axis);
     value(value_);
 }
 
@@ -610,8 +609,9 @@ void Linkage::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, 
         
         o_i = jointFrames[i]->respectToLinkage_.translation(); // Joint i location
         d_i = o_i - location; // Vector from location to joint i
-        z_i = jointFrames[i]->respectToLinkage_.rotation().col(2); // Joint i joint axis
-        
+//        z_i = jointFrames[i]->respectToLinkage_.rotation().col(2); // Joint i joint axis
+        z_i = jointFrames[i]->respectToLinkage_.rotation()*jointFrames[i]->jointAxis_;
+
         // Set column i of Jocabian
         if (jointFrames[i]->jointType_ == REVOLUTE) {
             J.block(0, i, 3, 1) = d_i.cross(z_i);

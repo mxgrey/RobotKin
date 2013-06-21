@@ -160,7 +160,8 @@ void Robot::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Ve
         
         o_i = jointFrames[i]->respectToRobot().translation(); // Joint i location
         d_i = o_i - location; // VEctor from location to joint i
-        z_i = jointFrames[i]->respectToRobot().rotation().col(2); // Joint i joint axis
+//        z_i = jointFrames[i]->respectToRobot().rotation().col(2); // Joint i joint axis
+        z_i = jointFrames[i]->respectToRobot().rotation()*jointFrames[i]->jointAxis_;
         
         // Set column i of Jocabian
         if (jointFrames[i]->jointType_ == REVOLUTE) {
