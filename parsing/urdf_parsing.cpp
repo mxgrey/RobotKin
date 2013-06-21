@@ -95,7 +95,6 @@ bool RobotKinURDF::loadURDF(Robot& robot, string filename)
 
 bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterface> model, boost::shared_ptr<urdf::Link> link, int id, int pID)
 {
-    std::cout << "Exploring " << id << ": " << link->name << std::endl;
     Linkage linkage(Isometry3d::Identity(), link->name, id);
 
     if(link->parent_joint)
@@ -151,12 +150,10 @@ bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint>
     Vector3d translation(ujoint->parent_to_joint_origin_transform.position.x,
                          ujoint->parent_to_joint_origin_transform.position.y,
                          ujoint->parent_to_joint_origin_transform.position.z);
-    std::cout << "Got translation: " << translation.transpose() << std::endl;
     transform.translate(translation);
 
     double w, x, y, z;
     ujoint->parent_to_joint_origin_transform.rotation.getQuaternion(x,y,z,w);
-    std::cout << "Got orientation: " << w << ", " << x << ", " << y << ", " << z << std::endl;
     Quaterniond quat(w,x,y,z);
     transform.rotate(quat);
 
