@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(RobotKin)
 
-set( CMAKE_VERBOSE_MAKEFILE true )
+#set( CMAKE_VERBOSE_MAKEFILE true )
 
 include_directories(include)
 
@@ -25,7 +25,7 @@ if( urdfdom_FOUND )
    include_directories( ${urdfdom_headers_INCLUDE_DIRS} )
    include_directories( ${urdfdom_INCLUDE_DIRS} )
 
-   message(STATUS "${urdfdom_LIBRARIES}")
+   #message(STATUS "${urdfdom_LIBRARIES}")
 
    link_libraries( ${urdfdom_LIBRARIES} )
 
