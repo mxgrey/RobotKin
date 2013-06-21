@@ -66,7 +66,7 @@ void tutorial()
     // Create an instance of a Hubo
     Hubo hubo;
     
-
+/*
     
     // Print info about hubo
     cout << "The robot " << hubo.name() << " consist of " << hubo.nLinkages() << " linkages and " << hubo.nJoints() << " joints all together." << endl << endl;
@@ -328,11 +328,12 @@ void tutorial()
     cout << "Things that still need to be added or fixed are the following:" << endl;
     cout << "-- Numerical Inverse Kinematics" << endl;
     cout << "-- Documentation has to be written" << endl;
-    cout << "-- Possibly fix how joints and linkages are stored so everything is reference by a pointer" << endl;
     cout << "-- Add methods to add and remove joints" << endl;
-    
+    */
 
+    system("pwd");
     Robot parseTest("../urdf/huboplus.urdf");
+    parseTest.printInfo();
 }
 
 

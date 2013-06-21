@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(RobotKin)
 
-#set( CMAKE_VERBOSE_MAKEFILE true )
+set( CMAKE_VERBOSE_MAKEFILE true )
 
 include_directories(include)
 
@@ -15,7 +15,6 @@ LIST(SORT lib_source)
 file(GLOB unit_tests_source "test/*.cpp")
 LIST(SORT unit_tests_source)
 
-add_library(${PROJECT_NAME} SHARED ${lib_source})
 
 
 # Check if the user is set up to parse URDFs
@@ -26,26 +25,29 @@ if( urdfdom_FOUND )
    include_directories( ${urdfdom_headers_INCLUDE_DIRS} )
    include_directories( ${urdfdom_INCLUDE_DIRS} )
 
-   target_link_libraries( ${PROJECT_NAME}  ${urdfdom_LIBRARIES} )
+   message(STATUS "${urdfdom_LIBRARIES}")
+
    link_libraries( ${urdfdom_LIBRARIES} )
 
+   find_package(Boost REQUIRED COMPONENTS system filesystem thread)
+   include_directories(${BOOST_INCLUDE_DIRS})
+   link_libraries( ${BOOST_LIBRARIES} )
 
-#   set(${urdfparser} "RobotKinUrdf")
-
-#   file(GLOB parse_source "parsing/*.cpp")
-#   LIST(SORT parse_source)
-#   add_library(${urdfparser} SHARED ${parse_source})
-
-#   target_link_libraries(${PROJECT_NAME} ${urdfparser})
-#   link_libraries(${urdfparser})
-
-   set_property( TARGET ${PROJECT_NAME}
-                 PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
 
 else( urdfdom_FOUND )
    MESSAGE(STATUS "Could NOT find urdfdom -- We will NOT compile a URDF parser")
 endif( urdfdom_FOUND )
 #############################################
+
+
+add_library(${PROJECT_NAME} SHARED ${lib_source})
+
+if( urdfdom_FOUND )
+
+   set_property( TARGET ${PROJECT_NAME}
+                 PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
+
+endif( urdfdom_FOUND )
 
 enable_testing()
 

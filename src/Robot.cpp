@@ -47,9 +47,13 @@ Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
 }
 
 #ifdef HAVE_URDF_PARSE
-Robot::Robot(string filename)
+Robot::Robot(string filename, string name, size_t id)
+    : Frame::Frame(Isometry3d::Identity(), name, id, ROBOT),
+      respectToWorld_(Isometry3d::Identity()),
+      initializing_(false)
 {
     // TODO: Test to make sure filename ends with ".urdf"
+    linkages_.resize(0);
     loadURDF(filename);
 }
 
@@ -352,6 +356,7 @@ void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
     
     linkages_[newIndex]->hasParent = true; // TODO: Decide if this should be true for root linkage or not
     
+
     linkages_[newIndex]->robot_ = this;
     linkages_[newIndex]->hasRobot = true;
     linkages_[newIndex]->id_ = newIndex;

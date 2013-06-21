@@ -39,6 +39,7 @@ Linkage::Joint& Linkage::Joint::operator =( const Linkage::Joint& joint )
     frameType_ = joint.frameType_;
 
     jointType_ = joint.jointType_;
+    jointAxis_ = joint.jointAxis_;
     min_ = joint.min_;
     max_ = joint.max_;
 
@@ -49,6 +50,7 @@ Linkage::Joint::Joint(const Joint &joint)
     : Frame::Frame(joint.respectToFixed_, joint.name(), joint.id(), JOINT),
       respectToFixedTransformed_(joint.respectToFixedTransformed_),
       jointType_(joint.jointType_),
+      jointAxis_(joint.jointAxis_),
       min_(joint.min_),
       max_(joint.max_),
       linkage_(NULL),
@@ -63,12 +65,13 @@ Linkage::Joint::Joint(Isometry3d respectToFixed,
                       string name,
                       size_t id,
                       JointType jointType,
-                      double minValue,
-                      double maxValue)
+                      Vector3d axis,
+                      double minValue, double maxValue)
             : Frame::Frame(respectToFixed, name, id, JOINT),
               respectToFixedTransformed_(respectToFixed),
               respectToLinkage_(respectToFixed),
               jointType_(jointType),
+              jointAxis_(axis),
               min_(minValue),
               max_(maxValue),
               value_(0),
@@ -77,6 +80,7 @@ Linkage::Joint::Joint(Isometry3d respectToFixed,
               hasRobot(false),
               hasLinkage(false)
 {
+    jointAxis_.normalize();
     value(value_);
 }
 
@@ -94,20 +98,28 @@ const Linkage::Joint& Linkage::Joint::operator=(const double aValue)
     return *this;
 }
 
+void Linkage::Joint::setJointAxis(Eigen::Vector3d axis)
+{
+    jointAxis_ = axis;
+    jointAxis_.normalize();
+}
+
 // Joint Methods
 double Linkage::Joint::value() const { return value_; }
 void Linkage::Joint::value(double value)
 {
     value_ = value;
     if (jointType_ == REVOLUTE) {
-        respectToFixedTransformed_ = respectToFixed_ * Eigen::AngleAxisd(value_, Eigen::Vector3d::UnitZ());
+        respectToFixedTransformed_ = respectToFixed_ * Eigen::AngleAxisd(value_, jointAxis_);
+    } else if(jointType_ == PRISMATIC){
+        respectToFixedTransformed_ = respectToFixed_ * Eigen::Translation3d(value_*jointAxis_);
     } else {
-        respectToFixedTransformed_ = respectToFixed_ * Eigen::Translation3d(Eigen::Vector3d(0., 0., value_));
+        respectToFixedTransformed_ = respectToFixed_;
     }
+
     if ( hasLinkage )
         linkage_->updateFrames();
 }
-
 
 const Isometry3d& Linkage::Joint::respectToFixed() const { return respectToFixed_; }
 void Linkage::Joint::respectToFixed(Isometry3d aCoordinate)
@@ -151,7 +163,7 @@ void Linkage::Joint::printInfo() const
 {
     cout << frameTypeString() << " Info: " << name() << " (ID: " << id()  << "), Joint Type:"
          << jointType_ << endl;
-    cout << "Joint value: " << value() << endl;
+    cout << "Joint value: " << value() << "\t Axis: " << jointAxis_.transpose() << endl;
     cout << "Respect to fixed frame:" << endl;
     cout << respectToFixed().matrix() << endl << endl;
     cout << "Respect to fixed after transformation: " << endl;
@@ -455,6 +467,17 @@ Linkage::Linkage()
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
 }
+
+Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id)
+    : Frame::Frame(respectToFixed, name, id, LINKAGE),
+      respectToRobot_(Isometry3d::Identity()),
+      initializing_(false),
+      hasRobot(false),
+      hasChildren(false)
+{
+    analyticalIK = Linkage::defaultAnalyticalIK;
+}
+
 
 Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, Linkage::Joint joint, Linkage::Tool tool)
     : Frame::Frame(respectToFixed, name, id, LINKAGE),

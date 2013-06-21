@@ -150,6 +150,7 @@ namespace RobotKin {
                   string name = "",
                   size_t id = 0,
                   JointType jointType = REVOLUTE,
+                  Vector3d axis=Eigen::Vector3d::UnitZ(),
                   double minValue = -M_PI,
                   double maxValue = M_PI);
             Joint(const Joint& joint);
@@ -169,6 +170,8 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             double value() const;
             void value(double value);
+
+            void setJointAxis(Eigen::Vector3d axis);
             
             const Isometry3d& respectToFixed() const;
             void respectToFixed(Isometry3d aCoordinate);
@@ -209,6 +212,7 @@ namespace RobotKin {
             JointType jointType_; // Type of joint (REVOLUTE or PRISMATIC)
             double min_; // Minimum joint value
             double max_; // Maximum joint value
+            Vector3d jointAxis_;
             Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
             Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
             Linkage* linkage_;
@@ -296,6 +300,7 @@ namespace RobotKin {
         // Constructors
         Linkage();
         Linkage(const Linkage& linkage);
+        Linkage(Isometry3d respectToFixed, string name, size_t id);
         Linkage(Isometry3d respectToFixed,
                 string name, size_t id,
                 Linkage::Joint joint,

@@ -110,7 +110,7 @@ namespace RobotKin {
         Robot(vector<Linkage> linkageObjs, vector<int> parentIndices);
 
 //#ifdef HAVE_URDF_PARSE
-        Robot(string filename);
+        Robot(string filename, string name="", size_t id=0);
         bool loadURDF(string filename);
 //#endif // HAVE_URDF_PARSE
         
