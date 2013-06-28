@@ -159,16 +159,21 @@ void Robot::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Ve
     for (size_t i = 0; i < nCols; i++) {
         
         o_i = jointFrames[i]->respectToRobot().translation(); // Joint i location
-        d_i = o_i - location; // VEctor from location to joint i
+//        d_i = o_i - location; // Vector from location to joint i
+        d_i = location - o_i; // Changing convention so that the position vector points away from the joint axis
 //        z_i = jointFrames[i]->respectToRobot().rotation().col(2); // Joint i joint axis
         z_i = jointFrames[i]->respectToRobot().rotation()*jointFrames[i]->jointAxis_;
         
         // Set column i of Jocabian
         if (jointFrames[i]->jointType_ == REVOLUTE) {
-            J.block(0, i, 3, 1) = d_i.cross(z_i);
+//            J.block(0, i, 3, 1) = d_i.cross(z_i);
+            J.block(0, i, 3, 1) = z_i.cross(d_i);
             J.block(3, i, 3, 1) = z_i;
-        } else {
+        } else if(jointFrames[i]->jointType_ == PRISMATIC) {
             J.block(0, i, 3, 1) = z_i;
+            J.block(3, i, 3, 1) = Vector3d::Zero();
+        } else {
+            J.block(0, i, 3, 1) = Vector3d::Zero();
             J.block(3, i, 3, 1) = Vector3d::Zero();
         }
         

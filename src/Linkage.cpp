@@ -608,16 +608,21 @@ void Linkage::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, 
     for (size_t i = 0; i < nCols; ++i) {
         
         o_i = jointFrames[i]->respectToLinkage_.translation(); // Joint i location
-        d_i = o_i - location; // Vector from location to joint i
+//        d_i = o_i - location; // Vector from location to joint i
+        d_i = location - o_i; // Changing convention so that the position vector points away from the joint axis
 //        z_i = jointFrames[i]->respectToLinkage_.rotation().col(2); // Joint i joint axis
         z_i = jointFrames[i]->respectToLinkage_.rotation()*jointFrames[i]->jointAxis_;
 
         // Set column i of Jocabian
         if (jointFrames[i]->jointType_ == REVOLUTE) {
-            J.block(0, i, 3, 1) = d_i.cross(z_i);
+//            J.block(0, i, 3, 1) = d_i.cross(z_i);
+            J.block(0, i, 3, 1) = z_i.cross(d_i); // Changing convention to (w x r)
             J.block(3, i, 3, 1) = z_i;
-        } else {
+        } else if(jointFrames[i]->jointType_ == PRISMATIC) {
             J.block(0, i, 3, 1) = z_i;
+            J.block(3, i, 3, 1) = Vector3d::Zero();
+        } else {
+            J.block(0, i, 3, 1) = Vector3d::Zero();
             J.block(3, i, 3, 1) = Vector3d::Zero();
         }
         
@@ -659,6 +664,7 @@ void Linkage::printInfo() const
     
     cout << "Jacobian for " << name() << ":" << endl;
     cout << J.matrix() << endl;
+    cout << "\n" << endl;
 }
 
 //------------------------------------------------------------------------------
