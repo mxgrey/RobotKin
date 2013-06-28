@@ -145,12 +145,21 @@ namespace RobotKin {
         // Getting joint information
         size_t nJoints() const;
         size_t jointIndex(string jointName) const;
-        
-        const Linkage::Joint* const_joint(size_t jointIndex) const;
-        const Linkage::Joint* const_joint(string jointName) const;
-        
-        Linkage::Joint* joint(size_t jointIndex);
-        Linkage::Joint* joint(string jointName);
+
+        // Pass by reference instead of sending a pointer
+//        const Linkage::Joint* const_joint(size_t jointIndex) const;
+//        const Linkage::Joint* const_joint(string jointName) const;
+        const Linkage::Joint& const_joint(size_t jointIndex) const;
+        const Linkage::Joint& const_joint(string jointName) const;
+
+//        Linkage::Joint* joint(size_t jointIndex);
+//        Linkage::Joint* joint(string jointName);
+        Linkage::Joint& joint(size_t jointIndex);
+        Linkage::Joint& joint(string jointName);
+
+        // Convenience function
+        bool setJointValue(size_t jointIndex, double val);
+        bool setJointValue(string jointName, double val);
         
         const vector<Linkage::Joint*>& const_joints() const;
         vector<Linkage::Joint*>& joints();

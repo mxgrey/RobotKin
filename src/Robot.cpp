@@ -101,19 +101,45 @@ size_t Robot::nJoints() const { return joints_.size(); }
 
 size_t Robot::jointIndex(string jointName) const { return jointNameToIndex_.at(jointName); }
 
-const Linkage::Joint* Robot::const_joint(size_t jointIndex) const
+const Linkage::Joint& Robot::const_joint(size_t jointIndex) const
 {
-    assert(jointIndex < nJoints());
-    return joints_[jointIndex];
-}
-const Linkage::Joint* Robot::const_joint(string jointName) const { return joints_[jointNameToIndex_.at(jointName)]; }
+    if(jointIndex < nJoints())
+        return *joints_[jointIndex];
 
-Linkage::Joint* Robot::joint(size_t jointIndex)
-{
-    assert(jointIndex < nJoints());
-    return joints_[jointIndex];
+    Linkage::Joint* dummyJoint = new Linkage::Joint;
+    dummyJoint->name("dummy");
+    return *dummyJoint;
 }
-Linkage::Joint* Robot::joint(string jointName) { return joints_[jointNameToIndex_.at(jointName)]; }
+const Linkage::Joint& Robot::const_joint(string jointName) const
+{
+    iterator j = jointNameToIndex_.find(jointName);
+    if( j != map::end )
+        return *joints_.at(j);
+
+    Linkage::Joint* dummyJoint = new Linkage::Joint;
+    dummyJoint->name("dummy");
+    return *dummyJoint;
+}
+
+Linkage::Joint& Robot::joint(size_t jointIndex)
+{
+    if(jointIndex < nJoints())
+        return *joints_[jointIndex];
+
+    Linkage::Joint* dummyJoint = new Linkage::Joint;
+    dummyJoint->name("dummy");
+    return *dummyJoint;
+}
+Linkage::Joint& Robot::joint(string jointName)
+{
+    iterator j = jointNameToIndex_.find(jointName);
+    if( j != map::end )
+        return *joints_.at(j);
+
+    Linkage::Joint* dummyJoint = new Linkage::Joint;
+    dummyJoint->name("dummy");
+    return *dummyJoint;
+}
 
 const vector<Linkage::Joint*>& Robot::const_joints() const { return joints_; }
 
