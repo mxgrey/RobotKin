@@ -333,9 +333,7 @@ void tutorial()
 
     system("pwd");
     Robot parseTest("../urdf/huboplus.urdf");
-//    parseTest.printInfo();
-
-
+    parseTest.printInfo();
 
 }
 

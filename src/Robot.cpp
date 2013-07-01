@@ -112,9 +112,9 @@ const Linkage::Joint& Robot::const_joint(size_t jointIndex) const
 }
 const Linkage::Joint& Robot::const_joint(string jointName) const
 {
-    iterator j = jointNameToIndex_.find(jointName);
-    if( j != map::end )
-        return *joints_.at(j);
+    map<string,size_t>::const_iterator j = jointNameToIndex_.find(jointName);
+    if( j != jointNameToIndex_.end() )
+        return *joints_.at(j->second);
 
     Linkage::Joint* dummyJoint = new Linkage::Joint;
     dummyJoint->name("dummy");
@@ -132,9 +132,9 @@ Linkage::Joint& Robot::joint(size_t jointIndex)
 }
 Linkage::Joint& Robot::joint(string jointName)
 {
-    iterator j = jointNameToIndex_.find(jointName);
-    if( j != map::end )
-        return *joints_.at(j);
+    map<string,size_t>::const_iterator j = jointNameToIndex_.find(jointName);
+    if( j != jointNameToIndex_.end() )
+        return *joints_.at(j->second);
 
     Linkage::Joint* dummyJoint = new Linkage::Joint;
     dummyJoint->name("dummy");
