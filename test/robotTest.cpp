@@ -333,7 +333,20 @@ void tutorial()
 
     system("pwd");
     Robot parseTest("../urdf/huboplus.urdf");
-    parseTest.printInfo();
+//    parseTest.printInfo();
+
+    parseTest.updateFrames();
+
+    vector<string> jointNames;
+    jointNames.push_back("RSP");
+    jointNames.push_back("RSR");
+    jointNames.push_back("RSY");
+    jointNames.push_back("REP");
+
+    vector<double> jointVals;
+    jointVals.resize(jointNames.size());
+
+    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());
 
 }
 

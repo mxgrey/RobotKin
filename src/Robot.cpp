@@ -155,13 +155,24 @@ VectorXd Robot::values() const
 }
 
 void Robot::values(const VectorXd& someValues) {
-    assert(someValues.size() == nJoints());
-    for (size_t i = 0; i < nJoints(); ++i) {
-        joints_[i]->value(someValues(i));
+
+    if(someValues.size() == nJoints())
+    {
+        for (size_t i = 0; i < nJoints(); ++i) {
+            joints_[i]->value(someValues(i));
+        }
+        updateFrames();
     }
-    updateFrames();
+    else
+        cerr << "Invalid number of joint values: " << someValues.size()
+             << "\n\t This should be equal to " << nJoints()
+             << "\n\t See line (" << __LINE__-10 << ") of Robot.cpp"
+             << endl;
 }
 
+void Robot::setJointValue(string jointName, double val){joint(jointName).value(val);}
+
+void Robot::setJointValue(size_t jointIndex, double val){joint(jointIndex).value(val);}
 
 const Isometry3d& Robot::respectToFixed() const { return respectToFixed_; }
 void Robot::respectToFixed(Isometry3d aCoordinate)
@@ -183,16 +194,14 @@ void Robot::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Ve
     Vector3d o_i, d_i, z_i; // Joint i location, offset, axis
     
     for (size_t i = 0; i < nCols; i++) {
-        
+
         o_i = jointFrames[i]->respectToRobot().translation(); // Joint i location
-//        d_i = o_i - location; // Vector from location to joint i
+        cout << jointFrames[i]->name() << " " << o_i.transpose() << " : " << location.transpose() << endl;
         d_i = location - o_i; // Changing convention so that the position vector points away from the joint axis
-//        z_i = jointFrames[i]->respectToRobot().rotation().col(2); // Joint i joint axis
         z_i = jointFrames[i]->respectToRobot().rotation()*jointFrames[i]->jointAxis_;
         
         // Set column i of Jocabian
         if (jointFrames[i]->jointType_ == REVOLUTE) {
-//            J.block(0, i, 3, 1) = d_i.cross(z_i);
             J.block(0, i, 3, 1) = z_i.cross(d_i);
             J.block(3, i, 3, 1) = z_i;
         } else if(jointFrames[i]->jointType_ == PRISMATIC) {

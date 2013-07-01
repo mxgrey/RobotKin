@@ -73,8 +73,22 @@
 using namespace std;
 using namespace Eigen;
 
+// TODO: Add a user-specified level of assertiveness
+
 namespace RobotKin {
-    
+
+    typedef enum {
+        RK_SOLVED = 0,
+        RK_CONVERGED,
+        RK_DIVERGED,
+        RK_NO_SOLUTION,
+        RK_INVALID_JOINT,
+        RK_INVALID_LINKAGE,
+
+
+        RK_TYPE_SIZE
+    } rk_result_t;
+
     
     //------------------------------------------------------------------------------
     // Typedefs
@@ -146,20 +160,15 @@ namespace RobotKin {
         size_t nJoints() const;
         size_t jointIndex(string jointName) const;
 
-        // Pass by reference instead of sending a pointer
-//        const Linkage::Joint* const_joint(size_t jointIndex) const;
-//        const Linkage::Joint* const_joint(string jointName) const;
         const Linkage::Joint& const_joint(size_t jointIndex) const;
         const Linkage::Joint& const_joint(string jointName) const;
 
-//        Linkage::Joint* joint(size_t jointIndex);
-//        Linkage::Joint* joint(string jointName);
         Linkage::Joint& joint(size_t jointIndex);
         Linkage::Joint& joint(string jointName);
 
         // Convenience function
-        bool setJointValue(size_t jointIndex, double val);
-        bool setJointValue(string jointName, double val);
+        void setJointValue(size_t jointIndex, double val);
+        void setJointValue(string jointName, double val);
         
         const vector<Linkage::Joint*>& const_joints() const;
         vector<Linkage::Joint*>& joints();
@@ -174,10 +183,20 @@ namespace RobotKin {
         
         void jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
         
+        void updateFrames();
         void printInfo() const;
         
-        
-        
+        //--------------------------------------------------------------------------
+        // Kinematics Solvers
+        //--------------------------------------------------------------------------
+
+        rk_result_t dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, vector<double> &jointValues,
+                                         const Isometry3d &target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        rk_result_t dampedLeastSquaresIK_chain(const vector<string>& jointNames, vector<double>& jointValues,
+                                         const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+
     protected:
         //--------------------------------------------------------------------------
         // Robot Protected Member Functions
@@ -199,7 +218,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Robot Constants, Enums, and Types
         //--------------------------------------------------------------------------
-        void updateFrames();
+
         
         
         
