@@ -717,6 +717,10 @@ void Linkage::setTool(Linkage::Tool newTool)
     tool_.Tool::hasRobot = hasRobot;
 }
 
+void Linkage::setJointValue(size_t jointIndex, double val){joint(jointIndex).value(val);}
+
+void Linkage::setJointValue(string jointName, double val){joint(jointName).value(val);}
+
 
 void Linkage::updateFrames()
 {

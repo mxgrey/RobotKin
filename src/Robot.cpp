@@ -80,14 +80,14 @@ size_t Robot::nLinkages() const { return linkages_.size(); }
 size_t Robot::linkageIndex(string linkageName) const { return linkageNameToIndex_.at(linkageName); }
 
 const Linkage& Robot::const_linkage(size_t linkageIndex) const
-{
+{ // FIXME: Remove assert
     assert(linkageIndex < nLinkages());
     return *linkages_[linkageIndex];
 }
 const Linkage& Robot::const_linkage(string linkageName) const { return *linkages_[linkageNameToIndex_.at(linkageName)]; }
 
 Linkage& Robot::linkage(size_t linkageIndex)
-{
+{ // FIXME: Remove assert
     assert(linkageIndex < nLinkages());
     return *linkages_[linkageIndex];
 }
@@ -196,9 +196,10 @@ void Robot::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Ve
     for (size_t i = 0; i < nCols; i++) {
 
         o_i = jointFrames[i]->respectToRobot().translation(); // Joint i location
-        cout << jointFrames[i]->name() << " " << o_i.transpose() << " : " << location.transpose() << endl;
         d_i = location - o_i; // Changing convention so that the position vector points away from the joint axis
         z_i = jointFrames[i]->respectToRobot().rotation()*jointFrames[i]->jointAxis_;
+
+        cout << jointFrames[i]->name() << " " << d_i.transpose() << " : " << z_i.transpose() << endl;
         
         // Set column i of Jocabian
         if (jointFrames[i]->jointType_ == REVOLUTE) {
@@ -269,7 +270,7 @@ void Robot::initialize(vector<Linkage> linkages, vector<int> parentIndices)
     
     
     initializing_ = true;
-    
+
 
     for(size_t i = 0; i != linkages.size(); ++i)
         addLinkage(linkages[iPI[i].I], parentIndices[iPI[i].I], linkages[iPI[i].I].name());

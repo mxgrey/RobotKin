@@ -331,6 +331,8 @@ namespace RobotKin {
         
         size_t nChildren() const;
         
+        void setJointValue(size_t jointIndex, double val);
+        void setJointValue(string jointName, double val);
         
         size_t nJoints() const;
         const Linkage::Joint& const_joint(size_t jointIndex) const;

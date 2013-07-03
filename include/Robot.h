@@ -196,6 +196,9 @@ namespace RobotKin {
         rk_result_t dampedLeastSquaresIK_chain(const vector<string>& jointNames, vector<double>& jointValues,
                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
+        rk_result_t dampedLeastSquaresIK_linkage(const string linkageName, vector<double>& jointValues,
+                                         const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
+
 
     protected:
         //--------------------------------------------------------------------------

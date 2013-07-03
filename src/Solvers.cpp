@@ -1,6 +1,8 @@
 
 #include "Robot.h"
+#include <eigen3/Eigen/SVD>
 
+typedef Matrix<double, 6, 1> Vector6d;
 
 namespace RobotKin {
 
@@ -18,7 +20,27 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     for(int i=0; i<joints.size(); i++)
         initVals[i] = joints[i]->value();
 
-    jacobian(J, joints, joints[joints.size()-1]->respectToRobot().translation(), this);
+    cout << "\n\n" << endl;
+    jacobian(J, joints, joints[joints.size()-1]->respectToRobot().translation()+finalTF.translation(), this);
+
+    JacobiSVD<MatrixXd> svd;
+    svd.compute(J, ComputeFullU | ComputeThinV);
+
+    cout <<  "\n\n" << svd.matrixU() << "\n\n\n" << svd.singularValues().transpose() << "\n\n\n" << svd.matrixV() << endl;
+
+    for(int i=0; i<svd.matrixU().cols(); i++)
+        cout << "u" << i << " : " << svd.matrixU().col(i).transpose() << endl;
+
+
+    AngleAxisd aatest(target.rotation());
+    cout << "AA: " << aatest.angle() << " : " << aatest.axis().transpose() << endl;
+
+    Vector6d goal;
+
+    goal << target.translation(), aatest.axis()*aatest.angle();
+
+    cout << "Goal: " << goal.transpose() << endl;
+
 
 
 }
@@ -42,8 +64,21 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, 
 }
 
 
+rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, vector<double> &jointValues,
+                                                const Isometry3d &target, const Isometry3d &finalTF)
+{
+    vector<size_t> jointIndices;
+    jointIndices.resize(linkage(linkageName).joints_.size());
+    for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)
+        jointIndices[i] = linkage(linkageName).joints_[i]->id();
+
+    Isometry3d linkageFinalTF;
+    linkageFinalTF = linkage(linkageName).tool().respectToFixed()*finalTF;
 
 
+
+    return dampedLeastSquaresIK_chain(jointIndices, jointValues, target, linkageFinalTF);
+}
 
 
 

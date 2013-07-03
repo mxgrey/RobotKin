@@ -332,7 +332,7 @@ void tutorial()
     */
 
     system("pwd");
-    Robot parseTest("../urdf/huboplus.urdf");
+    Robot parseTest("../urdf/drchubo.urdf");
 //    parseTest.printInfo();
 
     parseTest.updateFrames();
@@ -342,11 +342,21 @@ void tutorial()
     jointNames.push_back("RSR");
     jointNames.push_back("RSY");
     jointNames.push_back("REP");
+    jointNames.push_back("RWY");
+    jointNames.push_back("RWP");
+    jointNames.push_back("RWR");
 
     vector<double> jointVals;
     jointVals.resize(jointNames.size());
 
     parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());
+
+    Isometry3d target(Isometry3d::Identity());
+    target.translate(Vector3d(0, 10, 0));
+    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
+    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
+
+    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
 
 }
 
