@@ -346,7 +346,8 @@ void tutorial()
     jointNames.push_back("RWP");
     jointNames.push_back("RWR");
 
-    vector<double> jointVals;
+
+    VectorXd jointVals;
     jointVals.resize(jointNames.size());
 
     parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());

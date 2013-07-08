@@ -131,6 +131,8 @@ namespace RobotKin {
         // Destructor
         virtual ~Robot();
 
+
+        double gammaMax;
         
         //--------------------------------------------------------------------------
         // Robot Public Member Functions
@@ -190,13 +192,13 @@ namespace RobotKin {
         // Kinematics Solvers
         //--------------------------------------------------------------------------
 
-        rk_result_t dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, vector<double> &jointValues,
+        rk_result_t dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
                                          const Isometry3d &target, const Isometry3d &finalTF = Isometry3d::Identity());
 
-        rk_result_t dampedLeastSquaresIK_chain(const vector<string>& jointNames, vector<double>& jointValues,
+        rk_result_t dampedLeastSquaresIK_chain(const vector<string>& jointNames, VectorXd& jointValues,
                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
-        rk_result_t dampedLeastSquaresIK_linkage(const string linkageName, vector<double>& jointValues,
+        rk_result_t dampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
 

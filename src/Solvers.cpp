@@ -6,9 +6,35 @@ typedef Matrix<double, 6, 1> Vector6d;
 
 namespace RobotKin {
 
-rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, vector<double> &jointValues,
+
+void clampMag(VectorXd& v, double clamp)
+{
+    if(v.norm() > clamp)
+        v *= clamp/v.norm();
+}
+
+void clampMaxAbs(VectorXd& v, double clamp)
+{
+    int max=0;
+    for(int i=0; i<v.size(); i++)
+    {
+        if(v[i] > v[max])
+            max = i;
+    }
+
+    if(v[max]>clamp)
+        v *= clamp/v[max];
+}
+
+double minimum(double a, double b) { return a<b ? a : b;}
+
+// Based on a paper by Samuel R. Buss and Jin-Su Kim // TODO: Cite the paper properly
+rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
                                               const Isometry3d &target, const Isometry3d &finalTF)
 {
+    // Arbitrary constant for maximum angle change in one step
+    gammaMax = M_PI/4; // TODO: Put this in the constructor so the user can change it at a whim
+
     MatrixXd J;
 
     vector<Linkage::Joint*> joints;
@@ -16,7 +42,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     // FIXME: Add in safety checks
     for(int i=0; i<joints.size(); i++)
         joints[i] = joints_[jointIndices[i]];
-    vector<double> initVals(joints.size());
+    VectorXd initVals(joints.size());
     for(int i=0; i<joints.size(); i++)
         initVals[i] = joints[i]->value();
 
@@ -32,20 +58,68 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
         cout << "u" << i << " : " << svd.matrixU().col(i).transpose() << endl;
 
 
-    AngleAxisd aatest(target.rotation());
-    cout << "AA: " << aatest.angle() << " : " << aatest.axis().transpose() << endl;
 
+    AngleAxisd aagoal(target.rotation());
     Vector6d goal;
 
-    goal << target.translation(), aatest.axis()*aatest.angle();
-
-    cout << "Goal: " << goal.transpose() << endl;
+    goal << target.translation(), aagoal.axis()*aagoal.angle();
 
 
+    Vector6d alpha;
+    for(int i=0; i<6; i++)
+        alpha[i] = svd.matrixU().col(i).dot(goal);
 
+    std::cout << "Alpha: " << alpha.transpose() << std::endl;
+
+    Vector6d N;
+    for(int i=0; i<6; i++)
+    {
+        N[i] = svd.matrixU().block(0,i,3,1).norm();
+        N[i] += svd.matrixU().block(3,i,3,1).norm();
+    }
+
+    std::cout << "N: " << N.transpose() << std::endl;
+
+    VectorXd M(svd.matrixV().cols());
+    double tempMik = 0;
+    for(int i=0; i<svd.matrixV().cols(); i++)
+    {
+        M[i] = 0;
+        for(int k=0; k<svd.matrixU().cols(); k++)
+        {
+            tempMik = 0;
+            for(int j=0; j<svd.matrixV().cols(); j++)
+                tempMik += fabs(svd.matrixV()(j,i))*J(k,j);
+            M[i] += 1/svd.singularValues()[i]*tempMik;
+        }
+    }
+
+    std::cout << "M: " << M.transpose() << std::endl;
+
+    VectorXd gamma(svd.matrixV().cols());
+    for(int i=0; i<svd.matrixV().cols(); i++)
+        gamma[i] = minimum(1, N[i]/M[i])*gammaMax;
+
+    std::cout << "Gamma: " << gamma.transpose() << std::endl;
+
+    VectorXd delta(svd.matrixV().rows());
+    delta.setZero();
+    VectorXd tempPhi(svd.matrixV().rows());
+    for(int i=0; i<svd.matrixV().cols(); i++)
+    {
+        std::cout << "1/sigma: " << 1/svd.singularValues()[i] << std::endl;
+        tempPhi = 1/svd.singularValues()[i]*alpha[i]*svd.matrixV().col(i);
+        std::cout << "Phi: " << tempPhi.transpose() << std::endl;
+        clampMaxAbs(tempPhi, gamma[i]);
+        delta += tempPhi;
+        std::cout << "delta: " << delta.transpose() << std::endl;
+    }
+
+    clampMaxAbs(delta, gammaMax);
+    std::cout << "Final delta: " << delta.transpose() << std::endl;
 }
 
-rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, vector<double> &jointValues,
+rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
                                               const Isometry3d &target, const Isometry3d &finalTF)
 {
     // TODO: Make the conversion from vector<string> to vector<size_t> its own function
@@ -64,7 +138,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, 
 }
 
 
-rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, vector<double> &jointValues,
+rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
                                                 const Isometry3d &target, const Isometry3d &finalTF)
 {
     vector<size_t> jointIndices;
