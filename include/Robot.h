@@ -136,6 +136,7 @@ namespace RobotKin {
         double deltaClamp;
         double gammaMax;
         double tolerance;
+        double damp;
         size_t maxIterations;
         
         //--------------------------------------------------------------------------
@@ -207,6 +208,8 @@ namespace RobotKin {
                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
 
+        //////////////////
+
         rk_result_t pseudoinverseIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
                                           const Isometry3d &target, const Isometry3d &finalTF = Isometry3d::Identity());
 
@@ -216,6 +219,8 @@ namespace RobotKin {
         rk_result_t pseudoinverseIK_linkage(const string linkageName, VectorXd &jointValues,
                                             const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
+        //////////////////
+
         rk_result_t jacobianTransposeIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
                                           const Isometry3d &target, const Isometry3d &finalTF = Isometry3d::Identity());
 
@@ -223,6 +228,17 @@ namespace RobotKin {
                                           const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
         rk_result_t jacobianTransposeIK_linkage(const string linkageName, VectorXd &jointValues,
+                                            const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        /////////////////
+
+        rk_result_t dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
+                                          const Isometry3d &target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        rk_result_t dampedLeastSquaresIK_chain(const vector<string>& jointNames, VectorXd& jointValues,
+                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        rk_result_t dampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
                                             const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
 

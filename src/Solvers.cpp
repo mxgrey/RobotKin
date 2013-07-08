@@ -1,8 +1,10 @@
 
 #include "Robot.h"
 #include <eigen3/Eigen/SVD>
+#include <eigen3/Eigen/QR>
 
 typedef Matrix<double, 6, 1> Vector6d;
+typedef Matrix<double, 6, 6> Matrix6d;
 
 namespace RobotKin {
 
@@ -19,6 +21,13 @@ void clampMag(Vector6d& v, double clamp)
         v *= clamp/v.norm();
 }
 
+void clampMag(Vector3d& v, double clamp)
+{
+    if(v.norm() > clamp)
+        v *= clamp/v.norm();
+}
+
+
 void clampMaxAbs(VectorXd& v, double clamp)
 {
     int max=0;
@@ -32,7 +41,7 @@ void clampMaxAbs(VectorXd& v, double clamp)
         v *= clamp/v[max];
 }
 
-double minimum(double a, double b) { return a<b ? a : b;}
+double minimum(double a, double b) { return a<b ? a : b; }
 
 
 // Derived from code by Yohann Solaro ( http://listengine.tuxfamily.org/lists.tuxfamily.org/eigen/2010/01/msg00187.html )
@@ -385,27 +394,39 @@ rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices,
 
     aagoal = target.rotation();
 
-    double Tscale = 0.1; // TODO: Put these as a class member in the constructor
+    double Tscale = 3; // TODO: Put these as a class member in the constructor
     double Rscale = 0;
 
+    tolerance = 1*M_PI/180; // TODO: Put this in the constructor so the user can set it arbitrarily
+    maxIterations = 100; // TODO: Put this in the constructor so the user can set it arbitrarily
 
-    values(jointIndices, jointValues);
+    size_t iterations = 0;
+    do {
+        values(jointIndices, jointValues);
 
-    jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
+        jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
 
-    pose = joint(jointIndices.back()).respectToRobot()*finalTF;
-    aastate = pose.rotation();
-    state << pose.translation(), aastate.axis()*aastate.angle();
+        pose = joint(jointIndices.back()).respectToRobot()*finalTF;
+        aastate = pose.rotation();
+        state << pose.translation(), aastate.axis()*aastate.angle();
 
-    err << (target.translation()-pose.translation()).normalized()*Tscale,
-           (aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis()).normalized()*Rscale;
+        err << (target.translation()-pose.translation()).normalized()*Tscale,
+               (aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis()).normalized()*Rscale;
 
-    gamma = J*J.transpose()*err;
-    alpha = err.dot(gamma)/gamma.norm();
+        gamma = J*J.transpose()*err;
+        alpha = err.dot(gamma)/gamma.norm();
 
-    delta = alpha*J.transpose()*err;
+        delta = alpha*J.transpose()*err;
 
-    std::cout << delta.transpose() << std::endl;
+        jointValues += delta;
+        iterations++;
+
+        std::cout << iterations << " | Norm:" << delta.norm()
+//                  << "\tdelta: " << delta.transpose() << "\tJoints:" << jointValues.transpose() << std::endl;
+                  << " | " << (target.translation() - pose.translation()).norm()
+                  << "\tErr: " << (target.translation()-pose.translation()).transpose() << std::endl;
+
+    } while(err.norm() > tolerance && iterations < maxIterations);
 
 }
 
@@ -444,6 +465,118 @@ rk_result_t Robot::jacobianTransposeIK_linkage(const string linkageName, VectorX
 }
 
 
+
+
+rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const Isometry3d &target, const Isometry3d &finalTF)
+{
+
+
+    vector<Linkage::Joint*> joints;
+    joints.resize(jointIndices.size());
+    // FIXME: Add in safety checks
+    for(int i=0; i<joints.size(); i++)
+        joints[i] = joints_[jointIndices[i]];
+
+    // ~~ Declarations ~~
+    MatrixXd J;
+    MatrixXd Jinv;
+    Isometry3d pose;
+    AngleAxisd aagoal(target.rotation());
+    AngleAxisd aastate;
+    Vector3d Terr;
+    Vector3d Rerr;
+    Vector6d err;
+    VectorXd delta(jointValues.size());
+    VectorXd f(jointValues.size());
+
+
+    tolerance = 0.001;
+    maxIterations = 100; // TODO: Put this in the constructor so the user can set it arbitrarily
+    damp = 0.05;
+
+    values(jointIndices, jointValues);
+
+    pose = joint(jointIndices.back()).respectToRobot()*finalTF;
+    aastate = pose.rotation();
+
+    Terr = target.translation()-pose.translation();
+//    clampMag(Terr, Tscale);
+    Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
+//    clampMag(Rerr, Rscale);
+    err << Terr, Rerr;
+
+    size_t iterations = 0;
+    do {
+
+        jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
+
+        f = (J*J.transpose() + damp*damp*Matrix6d::Identity()).colPivHouseholderQr().solve(err);
+        delta = J.transpose()*f;
+
+        jointValues += delta;
+
+        values(jointIndices, jointValues);
+
+        pose = joint(jointIndices.back()).respectToRobot()*finalTF;
+        aastate = pose.rotation();
+
+        Terr = target.translation()-pose.translation();
+//        clampMag(Terr, Tscale);
+        Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
+//        cout << "Rerr: " << Rerr.transpose() << endl;
+//        clampMag(Rerr, Rscale);
+        err << Terr, Rerr;
+
+        iterations++;
+
+//        std::cout << iterations << " | Norm:" << delta.norm()
+////                  << "\tdelta: " << delta.transpose() << "\tJoints:" << jointValues.transpose() << std::endl;
+//                  << " | " << (target.translation() - pose.translation()).norm()
+//                  << "\tErr: " << (target.translation()-pose.translation()).transpose() << std::endl;
+
+
+
+    } while(err.norm() > tolerance && iterations < maxIterations);
+
+
+//    cout << "Joint vals:\t" << jointValues.transpose() << endl;
+
+//    cout << "End Pose:" << endl << (pose*finalTF).matrix() << endl;
+
+}
+
+rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
+                                              const Isometry3d &target, const Isometry3d &finalTF)
+{
+    // TODO: Make the conversion from vector<string> to vector<size_t> its own function
+    vector<size_t> jointIndices;
+    jointIndices.resize(jointNames.size());
+    map<string,size_t>::iterator j;
+    for(int i=0; i<jointNames.size(); i++)
+    {
+        j = jointNameToIndex_.find(jointNames[i]);
+        if( j == jointNameToIndex_.end() )
+            return RK_INVALID_JOINT;
+        jointIndices[i] = j->second;
+    }
+
+    return dampedLeastSquaresIK_chain(jointIndices, jointValues, target);
+}
+
+
+rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
+                                                const Isometry3d &target, const Isometry3d &finalTF)
+{
+    vector<size_t> jointIndices;
+    jointIndices.resize(linkage(linkageName).joints_.size());
+    for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)
+        jointIndices[i] = linkage(linkageName).joints_[i]->id();
+
+    Isometry3d linkageFinalTF;
+    linkageFinalTF = linkage(linkageName).tool().respectToFixed()*finalTF;
+
+    return dampedLeastSquaresIK_chain(jointIndices, jointValues, target, linkageFinalTF);
+}
 
 
 

@@ -332,7 +332,7 @@ void tutorial()
     */
 
     system("pwd");
-    Robot parseTest("../urdf/drchubo.urdf");
+    Robot parseTest("../urdf/huboplus.urdf");
 //    parseTest.printInfo();
 
     parseTest.updateFrames();
@@ -344,11 +344,12 @@ void tutorial()
     jointNames.push_back("REP");
     jointNames.push_back("RWY");
     jointNames.push_back("RWP");
-    jointNames.push_back("RWR");
+//    jointNames.push_back("RWR");
 
 
     VectorXd jointVals;
     jointVals.resize(jointNames.size());
+    jointVals.setZero();
 
 //    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());
 
@@ -357,7 +358,22 @@ void tutorial()
     target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
     target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
 
-    parseTest.jacobianTransposeIK_linkage("Body_RSP", jointVals, target);
+//    parseTest.setJointValue("REP", M_PI/2);
+//    Isometry3d target = parseTest.linkage("Body_RSP").tool().respectToRobot();
+    cout << "Start:" << endl << parseTest.linkage("Body_RSP").tool().respectToRobot().matrix() << endl;
+
+    cout << "Target:" << endl << target.matrix() << endl;
+
+    parseTest.setJointValue("REP", 0);
+
+    clock_t time;
+    time = clock();
+    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
+    cout << (clock() - time)/(double)CLOCKS_PER_SEC << endl;
+
+    cout << "End:" << endl << parseTest.linkage("Body_RSP").tool().respectToRobot().matrix() << endl;
+
+//    parseTest.jacobianTransposeIK_linkage("Body_RSP", jointVals, target);
 
 //    parseTest.pseudoinverseIK_linkage("Body_RSP", jointVals, target);
 

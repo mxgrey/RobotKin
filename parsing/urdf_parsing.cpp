@@ -42,6 +42,7 @@ bool RobotKinURDF::loadURDF(Robot& robot, string filename)
     xml_file.close();
 
     // Parse model using the urdf_parser
+    // TODO: Make sure the file exists before we ask urdfdom to parse it
     model = urdf::parseURDF( xml_model_string );
 
     // Output some info from the urdf
@@ -54,29 +55,29 @@ bool RobotKinURDF::loadURDF(Robot& robot, string filename)
     model->getLinks( links );
 
 
-    std::cout << "The robot has "<< links.size() << " links:" << std::endl;
+//    std::cout << "The robot has "<< links.size() << " links:" << std::endl;
 
-    for( int i = 0; i < links.size(); ++i ) {
-        std::cout << " Link [" << i << "]: "<< links[i]->name << std::endl;
-        if( links[i]->child_joints.size() > 0 ) {
-            std::cout << "\t -- with child joints: " << links[i]->child_joints[0]->name;
-            for(size_t c=1; c<links[i]->child_joints.size(); c++)
-                std::cout << ", " << links[i]->child_joints[c]->name;
-            std::cout << std::endl;
-        } else {
-            std::cout << "\t -- with NO child joint. Probably this is an end link" << std::endl;
-        }
+//    for( int i = 0; i < links.size(); ++i ) {
+//        std::cout << " Link [" << i << "]: "<< links[i]->name << std::endl;
+//        if( links[i]->child_joints.size() > 0 ) {
+//            std::cout << "\t -- with child joints: " << links[i]->child_joints[0]->name;
+//            for(size_t c=1; c<links[i]->child_joints.size(); c++)
+//                std::cout << ", " << links[i]->child_joints[c]->name;
+//            std::cout << std::endl;
+//        } else {
+//            std::cout << "\t -- with NO child joint. Probably this is an end link" << std::endl;
+//        }
 
-        if( links[i]->inertial ) {
-            std::cout << "\t -- with mass: "<< links[i]->inertial->mass << std::endl;
-            std::cout << "\t -- and inertia moments:"<< links[i]->inertial->ixx<<
-            ", "<<links[i]->inertial->ixy <<
-            ", "<<links[i]->inertial->ixz <<
-            ", "<<links[i]->inertial->iyy <<
-            ", "<<links[i]->inertial->iyz <<
-            ", "<<links[i]->inertial->izz <<std::endl;
-        }
-    }
+//        if( links[i]->inertial ) {
+//            std::cout << "\t -- with mass: "<< links[i]->inertial->mass << std::endl;
+//            std::cout << "\t -- and inertia moments:"<< links[i]->inertial->ixx<<
+//            ", "<<links[i]->inertial->ixy <<
+//            ", "<<links[i]->inertial->ixz <<
+//            ", "<<links[i]->inertial->iyy <<
+//            ", "<<links[i]->inertial->iyz <<
+//            ", "<<links[i]->inertial->izz <<std::endl;
+//        }
+//    }
 
 
     boost::shared_ptr<urdf::Link> rootLink = model->root_link_;
