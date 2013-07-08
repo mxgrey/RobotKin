@@ -132,7 +132,11 @@ namespace RobotKin {
         virtual ~Robot();
 
 
+        double errorClamp;
+        double deltaClamp;
         double gammaMax;
+        double tolerance;
+        size_t maxIterations;
         
         //--------------------------------------------------------------------------
         // Robot Public Member Functions
@@ -177,6 +181,7 @@ namespace RobotKin {
         
         VectorXd values() const;
         void values(const VectorXd& someValues);
+        void values(const vector<size_t> &jointIndices, const VectorXd& jointValues);
         
         const Isometry3d& respectToFixed() const;
         void respectToFixed(Isometry3d aCoordinate);
@@ -192,14 +197,33 @@ namespace RobotKin {
         // Kinematics Solvers
         //--------------------------------------------------------------------------
 
-        rk_result_t dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
+        rk_result_t selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
                                          const Isometry3d &target, const Isometry3d &finalTF = Isometry3d::Identity());
 
-        rk_result_t dampedLeastSquaresIK_chain(const vector<string>& jointNames, VectorXd& jointValues,
+        rk_result_t selectivelyDampedLeastSquaresIK_chain(const vector<string>& jointNames, VectorXd& jointValues,
                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
-        rk_result_t dampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
+        rk_result_t selectivelyDampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+
+        rk_result_t pseudoinverseIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
+                                          const Isometry3d &target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        rk_result_t pseudoinverseIK_chain(const vector<string>& jointNames, VectorXd& jointValues,
+                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        rk_result_t pseudoinverseIK_linkage(const string linkageName, VectorXd &jointValues,
+                                            const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        rk_result_t jacobianTransposeIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
+                                          const Isometry3d &target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        rk_result_t jacobianTransposeIK_chain(const vector<string>& jointNames, VectorXd& jointValues,
+                                          const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
+
+        rk_result_t jacobianTransposeIK_linkage(const string linkageName, VectorXd &jointValues,
+                                            const Isometry3d& target, const Isometry3d &finalTF = Isometry3d::Identity());
 
 
     protected:

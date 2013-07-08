@@ -350,14 +350,18 @@ void tutorial()
     VectorXd jointVals;
     jointVals.resize(jointNames.size());
 
-    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());
+//    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());
 
     Isometry3d target(Isometry3d::Identity());
-    target.translate(Vector3d(0, 10, 0));
+    target.translate(Vector3d(0.1, -0.1, 0));
     target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
     target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
 
-    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
+    parseTest.jacobianTransposeIK_linkage("Body_RSP", jointVals, target);
+
+//    parseTest.pseudoinverseIK_linkage("Body_RSP", jointVals, target);
+
+//    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
 
 }
 

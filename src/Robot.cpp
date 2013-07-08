@@ -170,6 +170,21 @@ void Robot::values(const VectorXd& someValues) {
              << endl;
 }
 
+void Robot::values(const vector<size_t>& jointIndices, const VectorXd& jointValues)
+{
+    if( jointIndices.size() == jointValues.size() )
+    {
+        for(size_t i=0; i<jointIndices.size(); i++)
+            joints_[jointIndices[i]]->value(jointValues[i]);
+        updateFrames();
+    }
+    else
+        cerr << "Invalid number of joint values: " << jointIndices.size()
+             << "\n\t This should be equal to " << jointValues.size()
+             << "\n\t See line (" << __LINE__-8 << ") of Robot.cpp"
+             << endl;
+}
+
 void Robot::setJointValue(string jointName, double val){joint(jointName).value(val);}
 
 void Robot::setJointValue(size_t jointIndex, double val){joint(jointIndex).value(val);}
@@ -199,7 +214,7 @@ void Robot::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Ve
         d_i = location - o_i; // Changing convention so that the position vector points away from the joint axis
         z_i = jointFrames[i]->respectToRobot().rotation()*jointFrames[i]->jointAxis_;
 
-        cout << jointFrames[i]->name() << " " << d_i.transpose() << " : " << z_i.transpose() << endl;
+//        cout << jointFrames[i]->name() << " " << d_i.transpose() << " : " << z_i.transpose() << endl;
         
         // Set column i of Jocabian
         if (jointFrames[i]->jointType_ == REVOLUTE) {
