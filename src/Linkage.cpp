@@ -117,8 +117,8 @@ void Linkage::Joint::value(double value)
     }
 
     // TODO: Decide if it is efficient to have this here
-//    if ( hasLinkage )
-//        linkage_->updateFrames();
+    if ( hasLinkage )
+        linkage_->updateFrames();
 }
 
 const Isometry3d& Linkage::Joint::respectToFixed() const { return respectToFixed_; }
