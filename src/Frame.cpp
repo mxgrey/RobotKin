@@ -15,6 +15,7 @@
 // Includes
 //------------------------------------------------------------------------------
 #include "Frame.h"
+#include "Robot.h"
 
 
 
@@ -30,11 +31,14 @@ using namespace std;
 //------------------------------------------------------------------------------
 // Constructors
 Frame::Frame(Isometry3d respectToFixed, string name, size_t id, FrameType frameType)
-:
-name_(name),
-id_(id),
-frameType_(frameType),
-respectToFixed_(respectToFixed)
+    : name_(name),
+      id_(id),
+      frameType_(frameType),
+      respectToFixed_(respectToFixed),
+      linkage_(NULL),
+      robot_(NULL),
+      hasRobot(false),
+      hasLinkage(false)
 {
     
 }
@@ -52,7 +56,25 @@ Frame::~Frame()
 size_t Frame::id() const { return id_; }
 
 string Frame::name() const { return name_; }
-void Frame::name(string name) { name_ = name; }
+
+void Frame::name(string name)
+{
+    if(hasRobot)
+    {
+        if(frameType()==LINKAGE)
+        {
+            robot_->linkageNameToIndex_[name] = robot_->linkageNameToIndex_[name_];
+            robot_->linkageNameToIndex_.erase(name_);
+        }
+
+        if(frameType()==JOINT)
+        {
+            robot_->jointNameToIndex_[name] = robot_->jointNameToIndex_[name_];
+            robot_->jointNameToIndex_.erase(name_);
+        }
+    }
+    name_ = name;
+}
 
 FrameType Frame::frameType() const { return frameType_; }
 string Frame::frameTypeString() const

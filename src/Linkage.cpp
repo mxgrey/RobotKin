@@ -52,11 +52,7 @@ Linkage::Joint::Joint(const Joint &joint)
       jointType_(joint.jointType_),
       jointAxis_(joint.jointAxis_),
       min_(joint.min_),
-      max_(joint.max_),
-      linkage_(NULL),
-      robot_(NULL),
-      hasRobot(false),
-      hasLinkage(false)
+      max_(joint.max_)
 {
     value(joint.value_);
 }
@@ -73,11 +69,7 @@ Linkage::Joint::Joint(Isometry3d respectToFixed,
               jointType_(jointType),
               min_(minValue),
               max_(maxValue),
-              value_(0),
-              linkage_(0),
-              robot_(0),
-              hasRobot(false),
-              hasLinkage(false)
+              value_(0)
 {
     setJointAxis(axis);
     value(value_);
@@ -190,22 +182,14 @@ Linkage::Tool& Linkage::Tool::operator =(const Linkage::Tool& tool)
 
 Linkage::Tool::Tool(const Tool &tool)
     : Frame::Frame(tool.respectToFixed_, tool.name_, tool.id_, TOOL),
-      respectToLinkage_(tool.respectToLinkage_),
-      linkage_(NULL),
-      robot_(NULL),
-      hasRobot(false),
-      hasLinkage(false)
+      respectToLinkage_(tool.respectToLinkage_)
 {
 
 }
 
 Linkage::Tool::Tool(Isometry3d respectToFixed, string name, size_t id)
     : Frame::Frame(respectToFixed, name, id, TOOL),
-      respectToLinkage_(respectToFixed),
-      linkage_(NULL),
-      robot_(NULL),
-      hasRobot(false),
-      hasLinkage(false)
+      respectToLinkage_(respectToFixed)
 {
 
 }
@@ -446,7 +430,6 @@ Linkage::Linkage(const Linkage &linkage)
       respectToRobot_(linkage.respectToRobot_),
       tool_(linkage.tool_),
       initializing_(false),
-      hasRobot(false),
       hasParent(false),
       hasChildren(false)
 {
@@ -462,7 +445,7 @@ Linkage::Linkage()
     : Frame::Frame(Isometry3d::Identity(), "", 0, LINKAGE),
       respectToRobot_(Isometry3d::Identity()),
       initializing_(false),
-      hasRobot(false),
+      hasParent(false),
       hasChildren(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
@@ -472,7 +455,7 @@ Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id)
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
       respectToRobot_(Isometry3d::Identity()),
       initializing_(false),
-      hasRobot(false),
+      hasParent(false),
       hasChildren(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
@@ -483,7 +466,7 @@ Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, Linkage::Joi
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
       respectToRobot_(respectToFixed),
       initializing_(false),
-      hasRobot(false),
+      hasParent(false),
       hasChildren(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
@@ -496,7 +479,7 @@ Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, vector<Linka
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
       respectToRobot_(respectToFixed),
       initializing_(false),
-      hasRobot(false),
+      hasParent(false),
       hasChildren(false)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;

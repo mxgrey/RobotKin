@@ -490,9 +490,9 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     VectorXd f(jointValues.size());
 
 
-    tolerance = 0.1;
-    maxIterations = 100; // TODO: Put this in the constructor so the user can set it arbitrarily
-    damp = 0.001;
+    tolerance = 0.001;
+    maxIterations = 50; // TODO: Put this in the constructor so the user can set it arbitrarily
+    damp = 0.05;
 
     values(jointIndices, jointValues);
 

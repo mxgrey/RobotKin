@@ -70,6 +70,8 @@ using namespace Eigen;
 
 namespace RobotKin {
     
+    class Robot;
+    class Linkage;
     
     //------------------------------------------------------------------------------
     // Typedefs
@@ -138,7 +140,12 @@ namespace RobotKin {
         size_t id_;
         FrameType frameType_;
         Isometry3d respectToFixed_; // Coordinates with respect to some fixed frame in nominal position
-        
+
+        Robot* robot_;
+        Linkage* linkage_;
+
+        bool hasRobot;
+        bool hasLinkage;
         
     }; // class Frame
     

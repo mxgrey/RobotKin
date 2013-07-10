@@ -402,53 +402,71 @@ void tutorial()
     */
 
     Robot parseTest("../urdf/drchubo.urdf");
+
+
+    parseTest.linkage("Body_RSP").name("RightArm");
+
+
+    parseTest.linkage("RightArm").printInfo();
+
+
+
+
+
+
+
+    // _____________________ IK Test Area ___________________________
 //    parseTest.printInfo();
 
-    parseTest.updateFrames();
+//    parseTest.updateFrames();
 
-    vector<string> jointNames;
-    jointNames.push_back("RSP");
-    jointNames.push_back("RSR");
-    jointNames.push_back("RSY");
-    jointNames.push_back("REP");
-    jointNames.push_back("RWY");
-    jointNames.push_back("RWP");
-    jointNames.push_back("RWR");
-
-
-    VectorXd jointVals;
-    jointVals.resize(jointNames.size());
-    jointVals.setZero();
-
-//    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());
-
-    Isometry3d target(Isometry3d::Identity());
-    target.translate(Vector3d(0.1, -0.1, 0));
-    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
-    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
-
-//    parseTest.setJointValue("REP", M_PI/2);
-//    Isometry3d target = parseTest.linkage("Body_RSP").tool().respectToRobot();
-    Isometry3d start = parseTest.linkage("Body_RSP").tool().respectToRobot();
-    cout << "Start:" << endl << start.matrix() << endl;
-
-    cout << "Target:" << endl << target.matrix() << endl;
+//    vector<string> jointNames;
+//    jointNames.push_back("RSP");
+//    jointNames.push_back("RSR");
+//    jointNames.push_back("RSY");
+//    jointNames.push_back("REP");
+//    jointNames.push_back("RWY");
+//    jointNames.push_back("RWP");
+//    jointNames.push_back("RWR");
 
 
+//    VectorXd jointVals;
+//    jointVals.resize(jointNames.size());
+//    jointVals.setZero();
 
-    clock_t time;
-    time = clock();
+////    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());
 
-    int count = 10;
-    for(int i=0; i<count; i++)
-    {
-        parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
-        parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, start);
-    }
+//    Isometry3d target(Isometry3d::Identity());
+//    target.translate(Vector3d(0.1, -0.1, 0));
+//    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
+//    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
 
-    cout << (clock() - time)/(double)CLOCKS_PER_SEC/count/2 << endl;
+////    parseTest.setJointValue("REP", M_PI/2);
+////    Isometry3d target = parseTest.linkage("Body_RSP").tool().respectToRobot();
+//    Isometry3d start = parseTest.linkage("Body_RSP").tool().respectToRobot();
+//    cout << "Start:" << endl << start.matrix() << endl;
 
-    cout << "End:" << endl << parseTest.linkage("Body_RSP").tool().respectToRobot().matrix() << endl;
+//    cout << "Target:" << endl << target.matrix() << endl;
+
+
+
+//    clock_t time;
+//    time = clock();
+
+//    int count = 10000;
+//    for(int i=0; i<count; i++)
+//    {
+//        parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
+//        parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, start);
+//    }
+
+//    clock_t endTime;
+//    endTime = clock();
+//    cout << (endTime - time)/(double)CLOCKS_PER_SEC/count/2 << " : " <<
+//            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
+
+
+//    cout << "End:" << endl << parseTest.linkage("Body_RSP").tool().respectToRobot().matrix() << endl;
 
 //    parseTest.jacobianTransposeIK_linkage("Body_RSP", jointVals, target);
 

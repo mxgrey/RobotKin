@@ -215,11 +215,8 @@ namespace RobotKin {
             Vector3d jointAxis_;
             Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
             Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
-            Linkage* linkage_;
-            Robot* robot_;
-            
-            bool hasLinkage;
-            bool hasRobot;
+
+
             
         }; // class Joint
         
@@ -231,6 +228,7 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             friend class Linkage;
             friend class Robot;
+            friend class Frame;
             
         public:
             //----------------------------------------------------------------------
@@ -285,11 +283,6 @@ namespace RobotKin {
             // Tool Private Member Variables
             //----------------------------------------------------------------------
             Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
-            Linkage* linkage_;
-            Robot* robot_;
-            
-            bool hasRobot;
-            bool hasLinkage;
             
         }; // class Tool
         
@@ -398,8 +391,7 @@ namespace RobotKin {
         // TODO: Consider allowing multiple switchable tools
         //vector<Linkage::Tool> tools_;
 //        size_t activeTool_;
-        
-        bool hasRobot;
+
         bool hasParent;
         bool hasChildren;
         

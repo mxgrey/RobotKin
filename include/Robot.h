@@ -113,7 +113,7 @@ namespace RobotKin {
         // Robot Friends
         //--------------------------------------------------------------------------
         friend class Linkage;
-        
+        friend class Frame;
         
     public:
         //--------------------------------------------------------------------------
@@ -136,6 +136,7 @@ namespace RobotKin {
         double deltaClamp;
         double gammaMax;
         double tolerance;
+        double transTolerance;
         double damp;
         size_t maxIterations;
         
