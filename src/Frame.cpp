@@ -57,23 +57,23 @@ size_t Frame::id() const { return id_; }
 
 string Frame::name() const { return name_; }
 
-void Frame::name(string name)
+void Frame::name(string newName)
 {
     if(hasRobot)
     {
         if(frameType()==LINKAGE)
         {
-            robot_->linkageNameToIndex_[name] = robot_->linkageNameToIndex_[name_];
+            robot_->linkageNameToIndex_[newName] = robot_->linkageNameToIndex_[name_];
             robot_->linkageNameToIndex_.erase(name_);
         }
 
         if(frameType()==JOINT)
         {
-            robot_->jointNameToIndex_[name] = robot_->jointNameToIndex_[name_];
+            robot_->jointNameToIndex_[newName] = robot_->jointNameToIndex_[name_];
             robot_->jointNameToIndex_.erase(name_);
         }
     }
-    name_ = name;
+    name_ = newName;
 }
 
 FrameType Frame::frameType() const { return frameType_; }

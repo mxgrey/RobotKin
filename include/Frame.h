@@ -109,7 +109,7 @@ namespace RobotKin {
         size_t id() const;
         
         string name() const;
-        void name(string name);
+        void name(string newName);
         
         FrameType frameType() const;
         string frameTypeString() const;

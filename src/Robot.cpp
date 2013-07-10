@@ -77,26 +77,39 @@ Robot::~Robot()
 //--------------------------------------------------------------------------
 size_t Robot::nLinkages() const { return linkages_.size(); }
 
-size_t Robot::linkageIndex(string linkageName) const { return linkageNameToIndex_.at(linkageName); }
+size_t Robot::linkageIndex(string linkageName) const
+{
+    map<string,size_t>::const_iterator j = linkageNameToIndex_.find(linkageName);
+    if( j != linkageNameToIndex_.end() )
+        return j->second;
+
+    return 0;
+}
 
 const Linkage& Robot::const_linkage(size_t linkageIndex) const
 { // FIXME: Remove assert
-    assert(linkageIndex < nLinkages());
     return *linkages_[linkageIndex];
 }
 const Linkage& Robot::const_linkage(string linkageName) const { return *linkages_[linkageNameToIndex_.at(linkageName)]; }
 
 Linkage& Robot::linkage(size_t linkageIndex)
 { // FIXME: Remove assert
-    assert(linkageIndex < nLinkages());
-    return *linkages_[linkageIndex];
+    if(linkageIndex < nJoints())
+        return *linkages_[linkageIndex];
+
+    Linkage* dummyLinkage = new Linkage;
+    dummyLinkage->name("dummy");
+    return *dummyLinkage;
 }
 Linkage& Robot::linkage(string linkageName)
 {
+    map<string,size_t>::iterator j = linkageNameToIndex_.find(linkageName);
+    if( j != linkageNameToIndex_.end() )
+        return *linkages_.at(j->second);
 
-
-
-    return *linkages_[linkageNameToIndex_.at(linkageName)];
+    Linkage* dummyLinkage = new Linkage;
+    dummyLinkage->name("dummy");
+    return *dummyLinkage;
 }
 
 const vector<Linkage*>& Robot::const_linkages() const { return linkages_; }

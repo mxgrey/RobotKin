@@ -383,7 +383,6 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         
         Isometry3d respectToRobot_; // Coordinates with respect to robot base frame
-        Robot* robot_;
         Linkage* parentLinkage_;
         vector<Linkage*> childLinkages_;
         vector<Linkage::Joint*> joints_;
