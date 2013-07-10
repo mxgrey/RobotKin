@@ -56,6 +56,7 @@
 // Includes
 //------------------------------------------------------------------------------
 #include "Frame.h"
+#include <math.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -74,15 +75,15 @@ namespace RobotKin
 // Namespaces
 //------------------------------------------------------------------------------
 using namespace std;
-using namespace Eigen;
 
-namespace RobotKin {
+namespace RobotKin
+{
     
     
     //------------------------------------------------------------------------------
     // Typedefs and Enums
     //------------------------------------------------------------------------------
-    typedef Matrix<double, 6, Dynamic> Matrix6Xd;
+    typedef Eigen::Matrix<double, 6, Eigen::Dynamic> Matrix6Xd;
     
     enum JointType {
         ANCHOR = 0,
@@ -115,21 +116,39 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             // Constructors
             Link(); // TODO
-            Link(double mass, Vector3d com, string name = ""); // TODO
-            Link(double mass, Vector3d com, Matrix3d inertiaTensor, string name = ""); // TODO
+            Link(double mass, Eigen::Vector3d com, string name = "");
+            Link(double mass, Eigen::Vector3d com, Eigen::Matrix3d inertiaTensor, string name = "");
 
-            void setMass(double mass, Vector3d com); // TODO
-            void setInertiaTensor(Matrix3d inertiaTensor); // TODO
+            // Destructor
+            virtual ~Link();
+
+            //----------------------------------------------------------------------
+            // Link Public Member Functions
+            //----------------------------------------------------------------------
+            string name() const;
+            void name(string name);
+
+            double mass() const;
+            void mass(double mass);
+
+            Eigen::Vector3d com() const;
+            void com(Eigen::Vector3d com);
+            
+            Eigen::Matrix3d inertiaTensor() const;
+            void inertiaTensor(Eigen::Matrix3d inertiaTensor);
 
         protected:
             bool massProvided;
             bool tensorProvided;
 
+            string name_;
             double mass_;
-            Vector3d com_;
-            Matrix3d tensor_;
+            Eigen::Vector3d com_;
+            Eigen::Matrix3d inertiaTensor_;
 
         };
+
+
         class Joint : public Frame
         {
             
@@ -146,13 +165,17 @@ namespace RobotKin {
             // Joint Lifecycle
             //----------------------------------------------------------------------
             // Constructors
-            Joint(Isometry3d respectToFixed = Isometry3d::Identity(),
+            Joint(Eigen::Isometry3d respectToFixed = Eigen::Isometry3d::Identity(),
                   string name = "",
                   size_t id = 0,
                   JointType jointType = REVOLUTE,
-                  Vector3d axis=Eigen::Vector3d::UnitZ(),
+                  Eigen::Vector3d axis=Eigen::Vector3d::UnitZ(),
                   double minValue = -M_PI,
-                  double maxValue = M_PI);
+                  double maxValue = M_PI,
+                  double minVel = -INFINITY,
+                  double maxVel = INFINITY,
+                  double minAcc = -INFINITY,
+                  double maxAcc = INFINITY);
             Joint(const Joint& joint);
             
             // Destructor
@@ -171,18 +194,46 @@ namespace RobotKin {
             double value() const;
             void value(double value);
 
+            double max() const;
+            void max(double max);
+
+            double min() const;
+
+            void min(double min);
+
+            double vel() const;
+            void vel(double vel);            
+
+            double maxVel() const;
+            void maxVel(double maxVel);
+
+            double minVel() const;
+            void minVel(double minVel);
+
+            double acc() const;
+            void acc(double acc);            
+
+            double maxAcc() const;
+            void maxAcc(double maxAcc);
+
+            double minAcc() const;
+            void minAcc(double minAcc);
+
             void setJointAxis(Eigen::Vector3d axis);
+
+            const Linkage::Link& const_link() const;
+            Linkage::Link& link();
             
-            const Isometry3d& respectToFixed() const;
-            void respectToFixed(Isometry3d aCoordinate);
+            const Eigen::Isometry3d& respectToFixed() const;
+            void respectToFixed(Eigen::Isometry3d aCoordinate);
             
-            const Isometry3d& respectToFixedTransformed() const;
+            const Eigen::Isometry3d& respectToFixedTransformed() const;
             
-            const Isometry3d& respectToLinkage() const;
+            const Eigen::Isometry3d& respectToLinkage() const;
             
-            Isometry3d respectToRobot() const;
+            Eigen::Isometry3d respectToRobot() const;
             
-            Isometry3d respectToWorld() const;
+            Eigen::Isometry3d respectToWorld() const;
 
             size_t getLinkageID();
             string getLinkageName();
@@ -200,6 +251,8 @@ namespace RobotKin {
             // Joint Protected Member Variables
             //----------------------------------------------------------------------
             double value_; // Current joint value (R type = joint angle, P type = joint length)
+            double vel_; // Current joint velocity
+            double acc_; // Current joint acceleration
 
             const Linkage* linkage() const;
 
@@ -212,9 +265,14 @@ namespace RobotKin {
             JointType jointType_; // Type of joint (REVOLUTE or PRISMATIC)
             double min_; // Minimum joint value
             double max_; // Maximum joint value
-            Vector3d jointAxis_;
-            Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
-            Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
+            double minVel_; // Minimum joint velocity
+            double maxVel_; // Maximum joint velocity
+            double minAcc_; // Minimum joint acceleration
+            double maxAcc_; // Maximum joint acceleration
+            Eigen::Vector3d jointAxis_;
+            Eigen::Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
+            Eigen::Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
+            Link link_;
 
 
             
@@ -236,7 +294,7 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             // Constructors
             Tool(const Tool& tool);
-            Tool(Isometry3d respectToFixed = Isometry3d::Identity(),
+            Tool(Eigen::Isometry3d respectToFixed = Eigen::Isometry3d::Identity(),
                  string name = "",
                  size_t id = 0);
             
@@ -248,14 +306,14 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             Tool& operator =(const Tool& tool);
 
-            const Isometry3d& respectToFixed() const;
-            void respectToFixed(Isometry3d aCoordinate);
+            const Eigen::Isometry3d& respectToFixed() const;
+            void respectToFixed(Eigen::Isometry3d aCoordinate);
             
-            const Isometry3d& respectToLinkage() const;
+            const Eigen::Isometry3d& respectToLinkage() const;
             
-            Isometry3d respectToRobot() const;
+            Eigen::Isometry3d respectToRobot() const;
             
-            Isometry3d respectToWorld() const;
+            Eigen::Isometry3d respectToWorld() const;
             
             void printInfo() const;
             
@@ -282,7 +340,7 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             // Tool Private Member Variables
             //----------------------------------------------------------------------
-            Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
+            Eigen::Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
             
         }; // class Tool
         
@@ -293,12 +351,12 @@ namespace RobotKin {
         // Constructors
         Linkage();
         Linkage(const Linkage& linkage);
-        Linkage(Isometry3d respectToFixed, string name, size_t id);
-        Linkage(Isometry3d respectToFixed,
+        Linkage(Eigen::Isometry3d respectToFixed, string name, size_t id);
+        Linkage(Eigen::Isometry3d respectToFixed,
                 string name, size_t id,
                 Linkage::Joint joint,
                 Linkage::Tool tool = Linkage::Tool::Identity());
-        Linkage(Isometry3d respectToFixed,
+        Linkage(Eigen::Isometry3d respectToFixed,
                 string name,
                 size_t id,
                 vector<Linkage::Joint> joints,
@@ -313,7 +371,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Assignment operator
         Linkage& operator =( const Linkage& linkage );
-        const Linkage& operator=(const VectorXd& values);
+        const Linkage& operator=(const Eigen::VectorXd& values);
         
         
         //--------------------------------------------------------------------------
@@ -348,17 +406,32 @@ namespace RobotKin {
         const Linkage::Tool& const_tool() const;
         Linkage::Tool& tool();
         
-        VectorXd values() const;
-        bool values(const VectorXd &someValues);
+        Eigen::VectorXd values() const;
+        bool values(const Eigen::VectorXd &someValues);
+
+        Eigen::VectorXd minValues() const;
+        Eigen::VectorXd maxValues() const;
+
+        Eigen::VectorXd vels() const;
+        void vels(const Eigen::VectorXd &someVels);
+
+        Eigen::VectorXd minVels() const;
+        Eigen::VectorXd maxVels() const;
+
+        Eigen::VectorXd accs() const;
+        void accs(const Eigen::VectorXd &someAccs);
+
+        Eigen::VectorXd minAccs() const;
+        Eigen::VectorXd maxAccs() const;
         
-        const Isometry3d& respectToFixed() const;
-        void respectToFixed(Isometry3d aCoordinate);
+        const Eigen::Isometry3d& respectToFixed() const;
+        void respectToFixed(Eigen::Isometry3d aCoordinate);
         
-        const Isometry3d& respectToRobot() const;
+        const Eigen::Isometry3d& respectToRobot() const;
         
-        Isometry3d respectToWorld() const;
+        Eigen::Isometry3d respectToWorld() const;
         
-        void jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
+        void jacobian(Eigen::MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Eigen::Vector3d location, const Frame* refFrame) const;
         
         void printInfo() const;
         
@@ -375,14 +448,14 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Linkage Public Member Variables
         //--------------------------------------------------------------------------
-        bool (*analyticalIK)(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
+        bool (*analyticalIK)(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
         
     protected:
         //--------------------------------------------------------------------------
         // Linkage Protected Member Variables
         //--------------------------------------------------------------------------
         
-        Isometry3d respectToRobot_; // Coordinates with respect to robot base frame
+        Eigen::Isometry3d respectToRobot_; // Coordinates with respect to robot base frame
         Linkage* parentLinkage_;
         vector<Linkage*> childLinkages_;
         vector<Linkage::Joint*> joints_;
@@ -401,7 +474,7 @@ namespace RobotKin {
         void initialize(vector<Linkage::Joint> joints, Linkage::Tool tool);
         void updateFrames();
         void updateChildLinkage();
-        static bool defaultAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
+        static bool defaultAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
         
         
         //--------------------------------------------------------------------------

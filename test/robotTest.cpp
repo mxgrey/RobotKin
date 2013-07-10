@@ -401,7 +401,7 @@ void tutorial()
     cout << "-- Add methods to add and remove joints" << endl;
     */
 
-    Robot parseTest("../urdf/drchubo.urdf");
+    Robot parseTest("../urdf/huboplus.urdf");
 
 
     parseTest.linkage("Body_RSP").name("RightArm");

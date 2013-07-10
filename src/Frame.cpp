@@ -30,7 +30,7 @@ using namespace std;
 // Lifecycle
 //------------------------------------------------------------------------------
 // Constructors
-Frame::Frame(Isometry3d respectToFixed, string name, size_t id, FrameType frameType)
+Frame::Frame(Eigen::Isometry3d respectToFixed, string name, size_t id, FrameType frameType)
     : name_(name),
       id_(id),
       frameType_(frameType),
@@ -105,7 +105,7 @@ string Frame::frameTypeString() const
     }
 }
 
-Isometry3d Frame::respectTo(const Frame* aFrame) const
+Eigen::Isometry3d Frame::respectTo(const Frame* aFrame) const
 {
     return aFrame->respectToWorld().inverse() * respectToWorld();
 }

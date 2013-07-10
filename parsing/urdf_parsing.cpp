@@ -9,6 +9,8 @@
 #include <fstream>
 #include <boost/shared_ptr.hpp>
 
+#include "Robot.h"
+
 #include "urdf_parsing.h"
 
 namespace RobotKinURDF{
@@ -93,7 +95,7 @@ bool RobotKinURDF::loadURDF(Robot& robot, string filename)
 
 bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterface> model, boost::shared_ptr<urdf::Link> link, int id, int pID)
 {
-    Linkage linkage(Isometry3d::Identity(), link->name, id);
+    Linkage linkage(Eigen::Isometry3d::Identity(), link->name, id);
 
     if(link->parent_joint)
         addURDFJoint(linkage, link->parent_joint);
@@ -144,15 +146,15 @@ bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterf
 
 bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint> ujoint)
 {
-    Isometry3d transform(Isometry3d::Identity());
-    Vector3d translation(ujoint->parent_to_joint_origin_transform.position.x,
+    Eigen::Isometry3d transform(Eigen::Isometry3d::Identity());
+    Eigen::Vector3d translation(ujoint->parent_to_joint_origin_transform.position.x,
                          ujoint->parent_to_joint_origin_transform.position.y,
                          ujoint->parent_to_joint_origin_transform.position.z);
     transform.translate(translation);
 
     double w, x, y, z;
     ujoint->parent_to_joint_origin_transform.rotation.getQuaternion(x,y,z,w);
-    Quaterniond quat(w,x,y,z);
+    Eigen::Quaterniond quat(w,x,y,z);
     transform.rotate(quat);
 
     RobotKin::JointType jt = REVOLUTE;
@@ -163,7 +165,7 @@ bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint>
     else
         jt = ANCHOR;
 
-    Vector3d jointAxis(ujoint->axis.x, ujoint->axis.y, ujoint->axis.z);
+    Eigen::Vector3d jointAxis(ujoint->axis.x, ujoint->axis.y, ujoint->axis.z);
     if(jointAxis.norm() == 0)
         jointAxis = Eigen::Vector3d::UnitZ();
     else
