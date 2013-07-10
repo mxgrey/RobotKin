@@ -91,7 +91,13 @@ Linkage& Robot::linkage(size_t linkageIndex)
     assert(linkageIndex < nLinkages());
     return *linkages_[linkageIndex];
 }
-Linkage& Robot::linkage(string linkageName) { return *linkages_[linkageNameToIndex_.at(linkageName)]; }
+Linkage& Robot::linkage(string linkageName)
+{
+
+
+
+    return *linkages_[linkageNameToIndex_.at(linkageName)];
+}
 
 const vector<Linkage*>& Robot::const_linkages() const { return linkages_; }
 
