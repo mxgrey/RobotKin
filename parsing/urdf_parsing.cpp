@@ -15,8 +15,9 @@
 
 namespace RobotKinURDF{
 
-bool exploreLink(Robot& robot, boost::shared_ptr<urdf::ModelInterface> model, boost::shared_ptr<urdf::Link> link, int id, int pID);
-bool addURDFJoint(Linkage& linkage, boost::shared_ptr<urdf::Joint> ujoint);
+    bool exploreLink(Robot& robot, boost::shared_ptr<urdf::ModelInterface> model, boost::shared_ptr<urdf::Link> link, int id, int pID);
+    bool addURDFJoint(Linkage& linkage, boost::shared_ptr<urdf::Joint> ujoint, boost::shared_ptr<urdf::Link> ulink);
+
 //int findRoot(urdf::ModelInterface model);
 
 }
@@ -50,36 +51,39 @@ bool RobotKinURDF::loadURDF(Robot& robot, string filename)
     // Output some info from the urdf
 
     // Robot name
-    std::cout << " URDF Robot name: "<< model->getName() << std::endl;
+    std::cout << "URDF Robot name: "<< model->getName() << std::endl;
 
     // Links
     std::vector< boost::shared_ptr<urdf::Link> > links;
     model->getLinks( links );
 
 
-//    std::cout << "The robot has "<< links.size() << " links:" << std::endl;
+   std::cout << "The robot has "<< links.size() << " links:" << std::endl;
 
-//    for( int i = 0; i < links.size(); ++i ) {
-//        std::cout << " Link [" << i << "]: "<< links[i]->name << std::endl;
-//        if( links[i]->child_joints.size() > 0 ) {
-//            std::cout << "\t -- with child joints: " << links[i]->child_joints[0]->name;
-//            for(size_t c=1; c<links[i]->child_joints.size(); c++)
-//                std::cout << ", " << links[i]->child_joints[c]->name;
-//            std::cout << std::endl;
-//        } else {
-//            std::cout << "\t -- with NO child joint. Probably this is an end link" << std::endl;
-//        }
+   for( int i = 0; i < links.size(); ++i ) {
+       std::cout << " Link [" << i << "]: "<< links[i]->name << std::endl;
+       if( links[i]->child_joints.size() > 0 ) {
+           std::cout << "\t -- with child joints: " << links[i]->child_joints[0]->name;
+           for(size_t c=1; c<links[i]->child_joints.size(); c++)
+               std::cout << ", " << links[i]->child_joints[c]->name;
+           std::cout << std::endl;
+       } else {
+           std::cout << "\t -- with NO child joint. Probably this is an end link" << std::endl;
+       }
 
-//        if( links[i]->inertial ) {
-//            std::cout << "\t -- with mass: "<< links[i]->inertial->mass << std::endl;
-//            std::cout << "\t -- and inertia moments:"<< links[i]->inertial->ixx<<
-//            ", "<<links[i]->inertial->ixy <<
-//            ", "<<links[i]->inertial->ixz <<
-//            ", "<<links[i]->inertial->iyy <<
-//            ", "<<links[i]->inertial->iyz <<
-//            ", "<<links[i]->inertial->izz <<std::endl;
-//        }
-//    }
+       if( links[i]->inertial ) {
+           std::cout << "\t -- with mass: " << links[i]->inertial->mass << std::endl;
+           std::cout << "\t -- with com: " << links[i]->inertial->origin.position.x << 
+               ", " << links[i]->inertial->origin.position.y << 
+               ", " << links[i]->inertial->origin.position.z << std::endl;
+           std::cout << "\t -- and inertia moments:"<< links[i]->inertial->ixx<<
+           ", "<<links[i]->inertial->ixy <<
+           ", "<<links[i]->inertial->ixz <<
+           ", "<<links[i]->inertial->iyy <<
+           ", "<<links[i]->inertial->iyz <<
+           ", "<<links[i]->inertial->izz <<std::endl;
+       }
+   }
 
 
     boost::shared_ptr<urdf::Link> rootLink = model->root_link_;
@@ -97,8 +101,9 @@ bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterf
 {
     Linkage linkage(Eigen::Isometry3d::Identity(), link->name, id);
 
-    if(link->parent_joint)
-        addURDFJoint(linkage, link->parent_joint);
+    if(link->parent_joint) {
+        addURDFJoint(linkage, link->parent_joint, link);
+    }
 
 
     if(link->child_joints.size()==1)
@@ -108,9 +113,10 @@ bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterf
         boost::shared_ptr<urdf::Link> childLink;
         do
         {
-            addURDFJoint(linkage, childJoint);
-
             model->getLink(childJoint->child_link_name, childLink);
+
+            addURDFJoint(linkage, childJoint, childLink);
+
             if(childLink->child_joints.size()==1)
                 childJoint = childLink->child_joints[0];
             else
@@ -119,6 +125,7 @@ bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterf
         } while(serial);
 
         robot.addLinkage(linkage, pID, linkage.name());
+
         for(size_t i=0; i<childLink->child_joints.size(); i++)
         {
             boost::shared_ptr<urdf::Joint> nextJoint = childLink->child_joints[i];
@@ -144,7 +151,7 @@ bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterf
         robot.addLinkage(linkage, pID, linkage.name());
 }
 
-bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint> ujoint)
+bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint> ujoint, boost::shared_ptr<urdf::Link> ulink)
 {
     Eigen::Isometry3d transform(Eigen::Isometry3d::Identity());
     Eigen::Vector3d translation(ujoint->parent_to_joint_origin_transform.position.x,
@@ -171,17 +178,22 @@ bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint>
     else
         jointAxis.normalize();
 
+
+    Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis);
     if(ujoint->limits)
     {
-        Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis, ujoint->limits->lower, ujoint->limits->upper);
-        linkage.addJoint(joint);
+        joint.min(ujoint->limits->lower);
+        joint.max(ujoint->limits->upper);
     }
-    else
-    {
-        Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis);
-        linkage.addJoint(joint);
+    if (ulink->inertial) {
+        joint.link().mass(ulink->inertial->mass);
+        Eigen::Vector3d com(ulink->inertial->origin.position.x,
+                            ulink->inertial->origin.position.y,
+                            ulink->inertial->origin.position.z);
+        joint.link().com(com);
     }
 
+    linkage.addJoint(joint);
 }
 
 
