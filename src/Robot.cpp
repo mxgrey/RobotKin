@@ -97,9 +97,9 @@ Linkage& Robot::linkage(size_t linkageIndex)
     if(linkageIndex < nJoints())
         return *linkages_[linkageIndex];
 
-    Linkage* dummyLinkage = new Linkage;
-    dummyLinkage->name("dummy");
-    return *dummyLinkage;
+    Linkage* invalidLinkage = new Linkage;
+    invalidLinkage->name("invalid");
+    return *invalidLinkage;
 }
 Linkage& Robot::linkage(string linkageName)
 {
@@ -107,9 +107,9 @@ Linkage& Robot::linkage(string linkageName)
     if( j != linkageNameToIndex_.end() )
         return *linkages_.at(j->second);
 
-    Linkage* dummyLinkage = new Linkage;
-    dummyLinkage->name("dummy");
-    return *dummyLinkage;
+    Linkage* invalidLinkage = new Linkage;
+    invalidLinkage->name("invalid");
+    return *invalidLinkage;
 }
 
 const vector<Linkage*>& Robot::const_linkages() const { return linkages_; }
@@ -125,9 +125,9 @@ const Linkage::Joint& Robot::const_joint(size_t jointIndex) const
     if(jointIndex < nJoints())
         return *joints_[jointIndex];
 
-    Linkage::Joint* dummyJoint = new Linkage::Joint;
-    dummyJoint->name("dummy");
-    return *dummyJoint;
+    Linkage::Joint* invalidJoint = new Linkage::Joint;
+    invalidJoint->name("invalid");
+    return *invalidJoint;
 }
 const Linkage::Joint& Robot::const_joint(string jointName) const
 {
@@ -135,9 +135,9 @@ const Linkage::Joint& Robot::const_joint(string jointName) const
     if( j != jointNameToIndex_.end() )
         return *joints_.at(j->second);
 
-    Linkage::Joint* dummyJoint = new Linkage::Joint;
-    dummyJoint->name("dummy");
-    return *dummyJoint;
+    Linkage::Joint* invalidJoint = new Linkage::Joint;
+    invalidJoint->name("invalid");
+    return *invalidJoint;
 }
 
 Linkage::Joint& Robot::joint(size_t jointIndex)
@@ -145,9 +145,9 @@ Linkage::Joint& Robot::joint(size_t jointIndex)
     if(jointIndex < nJoints())
         return *joints_[jointIndex];
 
-    Linkage::Joint* dummyJoint = new Linkage::Joint;
-    dummyJoint->name("dummy");
-    return *dummyJoint;
+    Linkage::Joint* invalidJoint = new Linkage::Joint;
+    invalidJoint->name("invalid");
+    return *invalidJoint;
 }
 Linkage::Joint& Robot::joint(string jointName)
 {
@@ -155,9 +155,9 @@ Linkage::Joint& Robot::joint(string jointName)
     if( j != jointNameToIndex_.end() )
         return *joints_.at(j->second);
 
-    Linkage::Joint* dummyJoint = new Linkage::Joint;
-    dummyJoint->name("dummy");
-    return *dummyJoint;
+    Linkage::Joint* invalidJoint = new Linkage::Joint;
+    invalidJoint->name("invalid");
+    return *invalidJoint;
 }
 
 const vector<Linkage::Joint*>& Robot::const_joints() const { return joints_; }
@@ -373,8 +373,8 @@ void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
 
 void Robot::addLinkage(int parentIndex, string name)
 {
-    Linkage dummyLinkage;
-    addLinkage(dummyLinkage, parentIndex, name);
+    Linkage invalidLinkage;
+    addLinkage(invalidLinkage, parentIndex, name);
 }
 
 //------------------------------------------------------------------------------

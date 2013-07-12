@@ -85,6 +85,7 @@ namespace RobotKin {
         RK_INVALID_JOINT,
         RK_INVALID_LINKAGE,
 
+        RK_SOLVER_NOT_READY,
 
         RK_TYPE_SIZE
     } rk_result_t;

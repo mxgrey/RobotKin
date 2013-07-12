@@ -113,6 +113,10 @@ void pinv(const MatrixXd &b, MatrixXd &a_pinv)
 rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
                                               const Isometry3d &target, const Isometry3d &finalTF)
 {
+    return RK_SOLVER_NOT_READY;
+    // FIXME: Make this work
+
+
     // Arbitrary constant for maximum angle change in one step
     gammaMax = M_PI/4; // TODO: Put this in the constructor so the user can change it at a whim
 
@@ -272,6 +276,10 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_linkage(const string linkageN
 rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
                                   const Isometry3d &target, const Isometry3d &finalTF)
 {
+    return RK_SOLVER_NOT_READY;
+    // FIXME: Make this solver work
+
+
     vector<Linkage::Joint*> joints;
     joints.resize(jointIndices.size());
     // FIXME: Add in safety checks
@@ -374,6 +382,10 @@ rk_result_t Robot::pseudoinverseIK_linkage(const string linkageName, VectorXd &j
 
 rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const Isometry3d &target, const Isometry3d &finalTF)
 {
+    return RK_SOLVER_NOT_READY;
+    // FIXME: Make this solver work
+
+
     vector<Linkage::Joint*> joints;
     joints.resize(jointIndices.size());
     // FIXME: Add in safety checks
@@ -500,9 +512,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     aastate = pose.rotation();
 
     Terr = target.translation()-pose.translation();
-//    clampMag(Terr, Tscale);
     Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
-//    clampMag(Rerr, Rscale);
     err << Terr, Rerr;
 
     size_t iterations = 0;
@@ -521,27 +531,13 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
         aastate = pose.rotation();
 
         Terr = target.translation()-pose.translation();
-//        clampMag(Terr, Tscale);
         Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
-//        cout << "Rerr: " << Rerr.transpose() << endl;
-//        clampMag(Rerr, Rscale);
         err << Terr, Rerr;
 
         iterations++;
 
-//        std::cout << iterations << " | Norm:" << delta.norm()
-////                  << "\tdelta: " << delta.transpose() << "\tJoints:" << jointValues.transpose() << std::endl;
-//                  << " | " << (target.translation() - pose.translation()).norm()
-//                  << "\tErr: " << (target.translation()-pose.translation()).transpose() << std::endl;
-
-
 
     } while(err.norm() > tolerance && iterations < maxIterations);
-
-
-//    cout << "Joint vals:\t" << jointValues.transpose() << endl;
-
-//    cout << "End Pose:" << endl << (pose*finalTF).matrix() << endl;
 
 }
 
