@@ -3,11 +3,10 @@
 
 #include "Robot.h"
 
-using namespace RobotKin;
 
 namespace RobotKinURDF{
 
-bool loadURDF(Robot& robot, string filename);
+bool loadURDF(RobotKin::Robot& robot, string filename);
 
 
 }

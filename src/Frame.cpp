@@ -23,6 +23,7 @@
 // Namespaces
 //------------------------------------------------------------------------------
 using namespace RobotKin;
+using namespace Eigen;
 using namespace std;
 
 

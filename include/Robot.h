@@ -67,11 +67,6 @@
 #include "urdf_parsing.h"
 #endif // HAVE_URDF_PARSE
 
-//------------------------------------------------------------------------------
-// Namespaces
-//------------------------------------------------------------------------------
-using namespace std;
-using namespace Eigen;
 
 // TODO: Add a user-specified level of assertiveness
 
@@ -125,7 +120,7 @@ namespace RobotKin {
         Robot(vector<Linkage> linkageObjs, vector<int> parentIndices);
 
 //#ifdef HAVE_URDF_PARSE
-        Robot(string filename, string name="", size_t id=0);
+        Robot(std::string filename, std::string name="", size_t id=0);
         bool loadURDF(string filename);
 //#endif // HAVE_URDF_PARSE
         

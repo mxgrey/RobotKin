@@ -21,6 +21,8 @@
 //------------------------------------------------------------------------------
 // Namespaces
 //------------------------------------------------------------------------------
+using namespace std;
+using namespace Eigen;
 using namespace RobotKin;
 
 
@@ -521,6 +523,7 @@ const Linkage::Joint& Linkage::const_joint(string jointName) const { return *joi
 
 Linkage::Joint& Linkage::joint(size_t jointIndex)
 {
+    // FIXME: Remove assert
     assert(jointIndex < nJoints());
     return *joints_[jointIndex];
 }

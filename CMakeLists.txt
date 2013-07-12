@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 2.6)
 project(RobotKin)
 
+set(CMAKE_BUILD_TYPE "Release")
 #set( CMAKE_VERBOSE_MAKEFILE true )
+
+set(LIBRARY_INSTALL_PATH /usr/lib)
 
 include_directories(include)
 
@@ -64,8 +67,20 @@ foreach(utest_src_file ${unit_tests_source})
 endforeach(utest_src_file)
 
 
-
+# TODO: Why is this in here twice??
 if( urdfdom_FOUND )
    set_property( GLOBAL
                  PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
 endif( urdfdom_FOUND )
+
+INSTALL(FILES   include/Robot.h
+                include/Frame.h
+                include/Linkage.h
+                include/urdf_parsing.h
+        DESTINATION /usr/include/)
+
+
+
+install(TARGETS ${PROJECT_NAME} DESTINATION ${LIBRARY_INSTALL_PATH})
+
+

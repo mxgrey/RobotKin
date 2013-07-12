@@ -403,9 +403,7 @@ void tutorial()
 
     Robot parseTest("../urdf/drchubo.urdf");
 
-
-    parseTest.linkage("Body_RSP").name("RightArm");
-
+    parseTest.linkage("Body_LHY").printInfo();
 
 
 
@@ -415,7 +413,8 @@ void tutorial()
 
 
 
-    // _____________________ IK Test Area ___________________________
+
+    // ________________________ IK Test Area __________________________
 //    parseTest.printInfo();
 
 //    parseTest.updateFrames();
@@ -443,30 +442,30 @@ void tutorial()
 
 ////    parseTest.setJointValue("REP", M_PI/2);
 ////    Isometry3d target = parseTest.linkage("Body_RSP").tool().respectToRobot();
-    Isometry3d start = parseTest.linkage("RightArm").tool().respectToRobot();
-    cout << "Start:" << endl << start.matrix() << endl;
+//    Isometry3d start = parseTest.linkage("RightArm").tool().respectToRobot();
+//    cout << "Start:" << endl << start.matrix() << endl;
 
-    cout << "Target:" << endl << target.matrix() << endl;
-
-
-
-    clock_t time;
-    time = clock();
-
-    int count = 100;
-    for(int i=0; i<count; i++)
-    {
-        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
-        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, start);
-    }
-
-    clock_t endTime;
-    endTime = clock();
-    cout << (endTime - time)/(double)CLOCKS_PER_SEC/count/2 << " : " <<
-            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
+//    cout << "Target:" << endl << target.matrix() << endl;
 
 
-    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
+
+//    clock_t time;
+//    time = clock();
+
+//    int count = 100;
+//    for(int i=0; i<count; i++)
+//    {
+//        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
+//        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, start);
+//    }
+
+//    clock_t endTime;
+//    endTime = clock();
+//    cout << (endTime - time)/(double)CLOCKS_PER_SEC/count/2 << " : " <<
+//            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
+
+
+//    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
 
 //    parseTest.jacobianTransposeIK_linkage("Body_RSP", jointVals, target);
 

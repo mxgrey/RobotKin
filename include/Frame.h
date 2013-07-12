@@ -64,8 +64,6 @@
 //------------------------------------------------------------------------------
 // Namespaces
 //------------------------------------------------------------------------------
-using namespace std;
-using namespace Eigen;
 
 
 namespace RobotKin {
@@ -107,19 +105,19 @@ namespace RobotKin {
         // Frame Public Member Functions
         //--------------------------------------------------------------------------
         size_t id() const;
-        
-        string name() const;
-        void name(string newName);
+
+        std::string name() const;
+        void name(std::string newName);
         
         FrameType frameType() const;
-        string frameTypeString() const;
+        std::string frameTypeString() const;
         
-        virtual const Isometry3d& respectToFixed() const = 0;
-        virtual void respectToFixed(Isometry3d aCoordinate) = 0;
+        virtual const Eigen::Isometry3d& respectToFixed() const = 0;
+        virtual void respectToFixed(Eigen::Isometry3d aCoordinate) = 0;
         
-        virtual Isometry3d respectToWorld() const = 0;
+        virtual Eigen::Isometry3d respectToWorld() const = 0;
 
-        Isometry3d respectTo(const Frame* aFrame) const;
+        Eigen::Isometry3d respectTo(const Frame* aFrame) const;
         
         virtual void printInfo() const;
         
@@ -128,18 +126,18 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Frame Constructor
         //--------------------------------------------------------------------------
-        Frame(Isometry3d respectToFixed = Isometry3d::Identity(),
-              string name = "",
+        Frame(Eigen::Isometry3d respectToFixed = Eigen::Isometry3d::Identity(),
+              std::string name = "",
               size_t id = 0,
               FrameType frameType = UNKNOWN);
         
         //--------------------------------------------------------------------------
         // Frame Protected Member Variables
         //--------------------------------------------------------------------------
-        string name_;
+        std::string name_;
         size_t id_;
         FrameType frameType_;
-        Isometry3d respectToFixed_; // Coordinates with respect to some fixed frame in nominal position
+        Eigen::Isometry3d respectToFixed_; // Coordinates with respect to some fixed frame in nominal position
 
         Robot* robot_;
         Linkage* linkage_;

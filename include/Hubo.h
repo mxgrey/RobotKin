@@ -62,13 +62,8 @@
 #include <vector>
 
 
-//------------------------------------------------------------------------------
-// Namespaces
-//------------------------------------------------------------------------------
-using namespace std;
-using namespace Eigen;
-using namespace RobotKin;
-
+namespace RobotKin
+{
 
 //------------------------------------------------------------------------------
 // Typedefs
@@ -170,7 +165,7 @@ private:
     
 }; // class Hubo
 
-
+} // namespace RobotKin
 
 #endif
 

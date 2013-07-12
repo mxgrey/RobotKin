@@ -13,8 +13,8 @@
 
 namespace RobotKinURDF{
 
-bool exploreLink(Robot& robot, boost::shared_ptr<urdf::ModelInterface> model, boost::shared_ptr<urdf::Link> link, int id, int pID);
-bool addURDFJoint(Linkage& linkage, boost::shared_ptr<urdf::Joint> ujoint);
+bool exploreLink(RobotKin::Robot& robot, boost::shared_ptr<urdf::ModelInterface> model, boost::shared_ptr<urdf::Link> link, int id, int pID);
+bool addURDFJoint(RobotKin::Linkage& linkage, boost::shared_ptr<urdf::Joint> ujoint);
 //int findRoot(urdf::ModelInterface model);
 
 }
@@ -24,7 +24,7 @@ bool addURDFJoint(Linkage& linkage, boost::shared_ptr<urdf::Joint> ujoint);
 using namespace RobotKinURDF;
 using namespace std;
 
-bool RobotKinURDF::loadURDF(Robot& robot, string filename)
+bool RobotKinURDF::loadURDF(RobotKin::Robot& robot, string filename)
 {
     boost::shared_ptr<urdf::ModelInterface> model;
 
@@ -43,6 +43,7 @@ bool RobotKinURDF::loadURDF(Robot& robot, string filename)
 
     // Parse model using the urdf_parser
     // TODO: Make sure the file exists before we ask urdfdom to parse it
+    // Otherwise we get a segfault -____-U
     model = urdf::parseURDF( xml_model_string );
 
     // Output some info from the urdf
@@ -91,9 +92,9 @@ bool RobotKinURDF::loadURDF(Robot& robot, string filename)
 
 
 
-bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterface> model, boost::shared_ptr<urdf::Link> link, int id, int pID)
+bool RobotKinURDF::exploreLink(RobotKin::Robot &robot, boost::shared_ptr<urdf::ModelInterface> model, boost::shared_ptr<urdf::Link> link, int id, int pID)
 {
-    Linkage linkage(Isometry3d::Identity(), link->name, id);
+    RobotKin::Linkage linkage(Eigen::Isometry3d::Identity(), link->name, id);
 
     if(link->parent_joint)
         addURDFJoint(linkage, link->parent_joint);
@@ -142,7 +143,7 @@ bool RobotKinURDF::exploreLink(Robot &robot, boost::shared_ptr<urdf::ModelInterf
         robot.addLinkage(linkage, pID, linkage.name());
 }
 
-bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint> ujoint)
+bool RobotKinURDF::addURDFJoint(RobotKin::Linkage &linkage, boost::shared_ptr<urdf::Joint> ujoint)
 {
     Isometry3d transform(Isometry3d::Identity());
     Vector3d translation(ujoint->parent_to_joint_origin_transform.position.x,
@@ -155,13 +156,13 @@ bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint>
     Quaterniond quat(w,x,y,z);
     transform.rotate(quat);
 
-    RobotKin::JointType jt = REVOLUTE;
+    RobotKin::JointType jt = RobotKin::REVOLUTE;
     if(ujoint->type == urdf::Joint::REVOLUTE)
-        jt = REVOLUTE;
+        jt = RobotKin::REVOLUTE;
     else if(ujoint->type == urdf::Joint::PRISMATIC)
-        jt = PRISMATIC;
+        jt = RobotKin::PRISMATIC;
     else
-        jt = ANCHOR;
+        jt = RobotKin::ANCHOR;
 
     Vector3d jointAxis(ujoint->axis.x, ujoint->axis.y, ujoint->axis.z);
     if(jointAxis.norm() == 0)
@@ -171,12 +172,12 @@ bool RobotKinURDF::addURDFJoint(Linkage &linkage, boost::shared_ptr<urdf::Joint>
 
     if(ujoint->limits)
     {
-        Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis, ujoint->limits->lower, ujoint->limits->upper);
+        RobotKin::Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis, ujoint->limits->lower, ujoint->limits->upper);
         linkage.addJoint(joint);
     }
     else
     {
-        Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis);
+        RobotKin::Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis);
         linkage.addJoint(joint);
     }
 
