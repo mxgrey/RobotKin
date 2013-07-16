@@ -39,8 +39,6 @@ Then :
 
 If you encounter an error about visual_array or collision_array missing in the last step, you probably have ROS Groovy installed and sourced. Try removing it from your ~/.bashrc or ~/.zshrc (you may need to log out and log back in). Personally, I had to resort to manually deleting certain headers from the ROS source tree. Let me know if you get hung up at this stage: mxgrey@gatech.edu. After the above steps are complete, RobotKin should automatically detect the installed packages. Simply run cmake again and recompile.
 
-You can now configure and buld:
-
     mkdir build
     cmake ..
     make
