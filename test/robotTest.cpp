@@ -400,12 +400,12 @@ void tutorial()
     cout << "-- Documentation has to be written" << endl;
     cout << "-- Add methods to add and remove joints" << endl;
     */
-
+#ifdef HAVE_URDF_PARSE
     Robot parseTest("../urdf/drchubo.urdf");
 
+    cout << "print info on joint Body_LHY" << endl;
     parseTest.linkage("Body_LHY").printInfo();
-
-
+#endif
 
 
 

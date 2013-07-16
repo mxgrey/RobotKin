@@ -119,10 +119,10 @@ namespace RobotKin {
         Robot();
         Robot(std::vector<Linkage> linkageObjs, std::vector<int> parentIndices);
 
-//#ifdef HAVE_URDF_PARSE
+#ifdef HAVE_URDF_PARSE
         Robot(std::string filename, std::string name="", size_t id=0);
         bool loadURDF(std::string filename);
-//#endif // HAVE_URDF_PARSE
+#endif // HAVE_URDF_PARSE
         
         // Destructor
         virtual ~Robot();
