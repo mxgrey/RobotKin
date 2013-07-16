@@ -73,16 +73,13 @@ namespace RobotKin
 //------------------------------------------------------------------------------
 // Namespaces
 //------------------------------------------------------------------------------
-using namespace std;
-using namespace Eigen;
 
 namespace RobotKin {
-    
     
     //------------------------------------------------------------------------------
     // Typedefs and Enums
     //------------------------------------------------------------------------------
-    typedef Matrix<double, 6, Dynamic> Matrix6Xd;
+    typedef Eigen::Matrix<double, 6, Eigen::Dynamic> Matrix6Xd;
     
     enum JointType {
         ANCHOR = 0,
@@ -115,19 +112,19 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             // Constructors
             Link(); // TODO
-            Link(double mass, Vector3d com, string name = ""); // TODO
-            Link(double mass, Vector3d com, Matrix3d inertiaTensor, string name = ""); // TODO
+            Link(double mass, Eigen::Vector3d com, std::string name = ""); // TODO
+            Link(double mass, Eigen::Vector3d com, Eigen::Matrix3d inertiaTensor, std::string name = ""); // TODO
 
-            void setMass(double mass, Vector3d com); // TODO
-            void setInertiaTensor(Matrix3d inertiaTensor); // TODO
+            void setMass(double mass, Eigen::Vector3d com); // TODO
+            void setInertiaTensor(Eigen::Matrix3d inertiaTensor); // TODO
 
         protected:
             bool massProvided;
             bool tensorProvided;
 
             double mass_;
-            Vector3d com_;
-            Matrix3d tensor_;
+            Eigen::Vector3d com_;
+            Eigen::Matrix3d tensor_;
 
         };
         class Joint : public Frame
@@ -146,11 +143,11 @@ namespace RobotKin {
             // Joint Lifecycle
             //----------------------------------------------------------------------
             // Constructors
-            Joint(Isometry3d respectToFixed = Isometry3d::Identity(),
-                  string name = "",
+            Joint(Eigen::Isometry3d respectToFixed = Eigen::Isometry3d::Identity(),
+                  std::string name = "",
                   size_t id = 0,
                   JointType jointType = REVOLUTE,
-                  Vector3d axis=Eigen::Vector3d::UnitZ(),
+                  Eigen::Vector3d axis=Eigen::Vector3d::UnitZ(),
                   double minValue = -M_PI,
                   double maxValue = M_PI);
             Joint(const Joint& joint);
@@ -173,22 +170,22 @@ namespace RobotKin {
 
             void setJointAxis(Eigen::Vector3d axis);
             
-            const Isometry3d& respectToFixed() const;
-            void respectToFixed(Isometry3d aCoordinate);
+            const Eigen::Isometry3d& respectToFixed() const;
+            void respectToFixed(Eigen::Isometry3d aCoordinate);
             
-            const Isometry3d& respectToFixedTransformed() const;
+            const Eigen::Isometry3d& respectToFixedTransformed() const;
             
-            const Isometry3d& respectToLinkage() const;
+            const Eigen::Isometry3d& respectToLinkage() const;
             
-            Isometry3d respectToRobot() const;
+            Eigen::Isometry3d respectToRobot() const;
             
-            Isometry3d respectToWorld() const;
+            Eigen::Isometry3d respectToWorld() const;
 
             size_t getLinkageID();
-            string getLinkageName();
+            std::string getLinkageName();
 
             size_t getRobotID();
-            string getRobotName();
+            std::string getRobotName();
 
 //            size_t getParentJointID();
 //            string getParentJointName();
@@ -212,9 +209,9 @@ namespace RobotKin {
             JointType jointType_; // Type of joint (REVOLUTE or PRISMATIC)
             double min_; // Minimum joint value
             double max_; // Maximum joint value
-            Vector3d jointAxis_;
-            Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
-            Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
+            Eigen::Vector3d jointAxis_;
+            Eigen::Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
+            Eigen::Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
 
 
             
@@ -236,8 +233,8 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             // Constructors
             Tool(const Tool& tool);
-            Tool(Isometry3d respectToFixed = Isometry3d::Identity(),
-                 string name = "",
+            Tool(Eigen::Isometry3d respectToFixed = Eigen::Isometry3d::Identity(),
+                 std::string name = "",
                  size_t id = 0);
             
             // Destructor
@@ -248,27 +245,27 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             Tool& operator =(const Tool& tool);
 
-            const Isometry3d& respectToFixed() const;
-            void respectToFixed(Isometry3d aCoordinate);
+            const Eigen::Isometry3d& respectToFixed() const;
+            void respectToFixed(Eigen::Isometry3d aCoordinate);
             
-            const Isometry3d& respectToLinkage() const;
+            const Eigen::Isometry3d& respectToLinkage() const;
             
-            Isometry3d respectToRobot() const;
+            Eigen::Isometry3d respectToRobot() const;
             
-            Isometry3d respectToWorld() const;
+            Eigen::Isometry3d respectToWorld() const;
             
             void printInfo() const;
             
             static Linkage::Tool Identity();
 
             size_t getRobotID();
-            string getRobotName();
+            std::string getRobotName();
 
             size_t getLinkageID();
-            string getLinkageName();
+            std::string getLinkageName();
 
             size_t getParentJointID();
-            string getParentJointName();
+            std::string getParentJointName();
 
 
         protected:
@@ -282,7 +279,7 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             // Tool Private Member Variables
             //----------------------------------------------------------------------
-            Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
+            Eigen::Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
             
         }; // class Tool
         
@@ -293,15 +290,15 @@ namespace RobotKin {
         // Constructors
         Linkage();
         Linkage(const Linkage& linkage);
-        Linkage(Isometry3d respectToFixed, string name, size_t id);
-        Linkage(Isometry3d respectToFixed,
-                string name, size_t id,
+        Linkage(Eigen::Isometry3d respectToFixed, std::string name, size_t id);
+        Linkage(Eigen::Isometry3d respectToFixed,
+                std::string name, size_t id,
                 Linkage::Joint joint,
                 Linkage::Tool tool = Linkage::Tool::Identity());
-        Linkage(Isometry3d respectToFixed,
-                string name,
+        Linkage(Eigen::Isometry3d respectToFixed,
+                std::string name,
                 size_t id,
-                vector<Linkage::Joint> joints,
+                std::vector<Linkage::Joint> joints,
                 Linkage::Tool tool = Linkage::Tool::Identity());
         
         // Destructor
@@ -313,7 +310,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Assignment operator
         Linkage& operator =( const Linkage& linkage );
-        const Linkage& operator=(const VectorXd& values);
+        const Linkage& operator=(const Eigen::VectorXd& values);
         
         
         //--------------------------------------------------------------------------
@@ -325,17 +322,17 @@ namespace RobotKin {
         size_t nChildren() const;
         
         void setJointValue(size_t jointIndex, double val);
-        void setJointValue(string jointName, double val);
+        void setJointValue(std::string jointName, double val);
         
         size_t nJoints() const;
         const Linkage::Joint& const_joint(size_t jointIndex) const;
-        const Linkage::Joint& const_joint(string jointName) const;
+        const Linkage::Joint& const_joint(std::string jointName) const;
         
         Linkage::Joint& joint(size_t jointIndex);
-        Linkage::Joint& joint(string jointName);
+        Linkage::Joint& joint(std::string jointName);
         
-        const vector<Linkage::Joint*>& const_joints() const;
-        vector<Linkage::Joint*>& joints();
+        const std::vector<Linkage::Joint*>& const_joints() const;
+        std::vector<Linkage::Joint*>& joints();
 
         void addJoint(Linkage::Joint newJoint); // TODO
         void insertJoint(Linkage::Joint newJoint, size_t jointIndex); // TODO
@@ -348,44 +345,44 @@ namespace RobotKin {
         const Linkage::Tool& const_tool() const;
         Linkage::Tool& tool();
         
-        VectorXd values() const;
-        bool values(const VectorXd &someValues);
+        Eigen::VectorXd values() const;
+        bool values(const Eigen::VectorXd &someValues);
         
-        const Isometry3d& respectToFixed() const;
-        void respectToFixed(Isometry3d aCoordinate);
+        const Eigen::Isometry3d& respectToFixed() const;
+        void respectToFixed(Eigen::Isometry3d aCoordinate);
         
-        const Isometry3d& respectToRobot() const;
+        const Eigen::Isometry3d& respectToRobot() const;
         
-        Isometry3d respectToWorld() const;
+        Eigen::Isometry3d respectToWorld() const;
         
-        void jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
+        void jacobian(Eigen::MatrixXd& J, const std::vector<Linkage::Joint*>& jointFrames, Eigen::Vector3d location, const Frame* refFrame) const;
         
         void printInfo() const;
         
         size_t getParentLinkageID();
-        string getParentLinkageName();
+        std::string getParentLinkageName();
         
         size_t getRobotID();
-        string getRobotName();
+        std::string getRobotName();
         
-        void getChildIDs(vector<size_t>& ids);
-        void getChildNames(vector<string>& names);
+        void getChildIDs(std::vector<size_t>& ids);
+        void getChildNames(std::vector<std::string>& names);
         void printChildren();
         
         //--------------------------------------------------------------------------
         // Linkage Public Member Variables
         //--------------------------------------------------------------------------
-        bool (*analyticalIK)(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
+        bool (*analyticalIK)(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
         
     protected:
         //--------------------------------------------------------------------------
         // Linkage Protected Member Variables
         //--------------------------------------------------------------------------
         
-        Isometry3d respectToRobot_; // Coordinates with respect to robot base frame
+        Eigen::Isometry3d respectToRobot_; // Coordinates with respect to robot base frame
         Linkage* parentLinkage_;
-        vector<Linkage*> childLinkages_;
-        vector<Linkage::Joint*> joints_;
+        std::vector<Linkage*> childLinkages_;
+        std::vector<Linkage::Joint*> joints_;
         Linkage::Tool tool_;
         // TODO: Consider allowing multiple switchable tools
         //vector<Linkage::Tool> tools_;
@@ -398,17 +395,17 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Linkage Public Member Functions
         //--------------------------------------------------------------------------
-        void initialize(vector<Linkage::Joint> joints, Linkage::Tool tool);
+        void initialize(std::vector<Linkage::Joint> joints, Linkage::Tool tool);
         void updateFrames();
         void updateChildLinkage();
-        static bool defaultAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
+        static bool defaultAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
         
         
         //--------------------------------------------------------------------------
         // Linkage Private Member Variables
         //--------------------------------------------------------------------------
         bool initializing_;
-        map<string, size_t> jointNameToIndex_;
+        std::map<std::string, size_t> jointNameToIndex_;
         
         
     }; // class Linkage

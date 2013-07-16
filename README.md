@@ -1,57 +1,48 @@
-robotKin
+RobotKin
 ========
-
-In order to parse URDFs:
-
-In some directory that you don't care about, run the following commands:
-
-      hg clone https://bitbucket.org/osrf/urdfdom_headers
-      mkdir urdfdom_headers/build && cd urdfdom_headers/build
-      cmake ..
-      sudo make install
-      cd ../..
-
-      git clone https://github.com/ros/console_bridge.git
-      mkdir console_bridge/build && cd console_bridge/build
-      cmake ..
-      sudo make install
-      cd ../..
-
-      hg clone https://bitbucket.org/osrf/urdfdom
-      mkdir urdfdom/build && cd urdfdom/build
-      cmake ..
-      sudo make install
-      cd ../..
-
-If you encounter an error about visual_array or collision_array missing in the last step, you probably have ROS Groovy installed and sourced. Try removing it from your ~/.bashrc or ~/.zshrc (you may need to log out and log back in).
-
-Personally, I had to resort to manually deleting certain headers from the ROS source tree. Let me know if you get hung up at this stage: mxgrey@gatech.edu
-
-After the above steps are complete, RobotKin should automatically detect the installed packages. Simply run cmake again and recompile.
 
 A robot kinematics C++ library.
 
-To take this library for a test drive do the following terminal commands:
+In order to parse URDFs, compile the dependencies in the following manner : 
 
-Clone the repository:
+In RobotKin folder
 
-      git clone https://github.com/rowoflo/robotKin.git
+    mkdir libraries/install
+    cd libraries
 
-CD into build directory:
+    # You can set the install path to any you want (e.g /usr/local)
+    export ROBOTKIN_DEP_INSTALL_PATH=`pwd`/install 
+    export CMAKE_PREFIX_PATH=$ROBOTKIN_INSTALL_PATH:$CMAKE_PREFIX_PATH
+    
+    # Set the following for runtime
+    export LD_LIBRARY_PATH=$ROBOTKIN_INSTALL_PATH/lib:$LD_LIBRARY_PATH
 
-      cd robotKin/build
+Then :
 
-Cmake to the parent directory:
+    hg clone https://bitbucket.org/osrf/urdfdom_headers
+    mkdir urdfdom_headers/build && cd urdfdom_headers/build
+    cmake -DCMAKE_INSTALL_PREFIX:PATH=$ROBOTKIN_DEP_INSTALL_PATH ..
+    make install
+    cd ../..
 
-      cmake ..
+    git clone https://github.com/ros/console_bridge.git
+    mkdir console_bridge/build && cd console_bridge/build
+    cmake -DCMAKE_INSTALL_PREFIX:PATH=$ROBOTKIN_DEP_INSTALL_PATH .. 
+    make install
+    cd ../..
 
-Make from this director:
+    hg clone https://bitbucket.org/osrf/urdfdom
+    mkdir urdfdom/build && cd urdfdom/build
+    cmake -DCMAKE_INSTALL_PREFIX:PATH=$ROBOTKIN_DEP_INSTALL_PATH ..
+    make install
+    cd ../..
 
-      make
+If you encounter an error about visual_array or collision_array missing in the last step, you probably have ROS Groovy installed and sourced. Try removing it from your ~/.bashrc or ~/.zshrc (you may need to log out and log back in). Personally, I had to resort to manually deleting certain headers from the ROS source tree. Let me know if you get hung up at this stage: mxgrey@gatech.edu. After the above steps are complete, RobotKin should automatically detect the installed packages. Simply run cmake again and recompile.
 
-CD into bin directory:
-
-      cd ../bin
+    mkdir build
+    cmake ..
+    make
+    cd ../bin
 
 Run program:
 

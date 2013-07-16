@@ -68,13 +68,13 @@ namespace RobotKin
 //------------------------------------------------------------------------------
 // Typedefs
 //------------------------------------------------------------------------------
-typedef Matrix< double, 4, 1 > Vector4d;
-typedef Matrix< double, 5, 1 > Vector5d;
-typedef Matrix< double, 6, 1 > Vector6d;
-typedef Matrix< double, 25, 1 > Vector25d;
-typedef Matrix<double, 1, 2> Matrix12d;
-typedef Matrix<double, 6, 2>  Matrix62d;
-typedef Matrix< double, 6, 6 > Matrix66d;
+typedef Eigen::Matrix< double, 4, 1 > Vector4d;
+typedef Eigen::Matrix< double, 5, 1 > Vector5d;
+typedef Eigen::Matrix< double, 6, 1 > Vector6d;
+typedef Eigen::Matrix< double, 25, 1 > Vector25d;
+typedef Eigen::Matrix<double, 1, 2> Matrix12d;
+typedef Eigen::Matrix<double, 6, 2>  Matrix62d;
+typedef Eigen::Matrix< double, 6, 6 > Matrix66d;
 
 enum {
     SIDE_LEFT,
@@ -98,40 +98,40 @@ public:
     //--------------------------------------------------------------------------
     // Hubo Public Member Functions
     //--------------------------------------------------------------------------
-    bool leftArmAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
-    bool rightArmAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
+    bool leftArmAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
+    bool rightArmAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
     
-    void armFK(Isometry3d& B, const Vector6d& q, size_t side);
-    bool armAnalyticalIK(VectorXd& q, const Isometry3d& B, const Vector6d& qPrev, size_t side);
+    void armFK(Eigen::Isometry3d& B, const Vector6d& q, size_t side);
+    bool armAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Vector6d& qPrev, size_t side);
     
     
-    bool leftLegAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
-    bool rightLegAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);
+    bool leftLegAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
+    bool rightLegAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
     
-    void legFK(Isometry3d& B, const Vector6d& q, size_t side);
-    bool legAnalyticalIK(VectorXd& q, const Isometry3d& B, const Vector6d& qPrev, size_t side);
+    void legFK(Eigen::Isometry3d& B, const Vector6d& q, size_t side);
+    bool legAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Vector6d& qPrev, size_t side);
     
     //--------------------------------------------------------------------------
     // Hubo Public Member Variables
     //--------------------------------------------------------------------------
     // Lengths
     double torsoLength;
-    VectorXd armLengths;
-    VectorXd legLengths;
+    Eigen::VectorXd armLengths;
+    Eigen::VectorXd legLengths;
     
     // Limits
-    MatrixX2d torsoLimits;
-    MatrixX2d leftArmLimits;
-    MatrixX2d rightArmLimits;
-    MatrixX2d leftLegLimits;
-    MatrixX2d rightLegLimits;
+    Eigen::MatrixX2d torsoLimits;
+    Eigen::MatrixX2d leftArmLimits;
+    Eigen::MatrixX2d rightArmLimits;
+    Eigen::MatrixX2d leftLegLimits;
+    Eigen::MatrixX2d rightLegLimits;
     
     // Offsets
     double torsoOffset;
-    VectorXd leftArmOffsets;
-    VectorXd rightArmOffsets;
-    VectorXd leftLegOffsets;
-    VectorXd rightLegOffsets;
+    Eigen::VectorXd leftArmOffsets;
+    Eigen::VectorXd rightArmOffsets;
+    Eigen::VectorXd leftLegOffsets;
+    Eigen::VectorXd rightLegOffsets;
     
     //------------------------------------------------------------------------------
     // Hubo Public Helper Functions

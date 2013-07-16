@@ -3,6 +3,9 @@
 #include <eigen3/Eigen/SVD>
 #include <eigen3/Eigen/QR>
 
+using namespace std;
+using namespace Eigen;
+
 typedef Matrix<double, 6, 1> Vector6d;
 typedef Matrix<double, 6, 6> Matrix6d;
 
