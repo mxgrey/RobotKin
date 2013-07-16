@@ -73,16 +73,13 @@ namespace RobotKin
 //------------------------------------------------------------------------------
 // Namespaces
 //------------------------------------------------------------------------------
-using namespace std;
-using namespace Eigen;
 
 namespace RobotKin {
-    
     
     //------------------------------------------------------------------------------
     // Typedefs and Enums
     //------------------------------------------------------------------------------
-    typedef Matrix<double, 6, Dynamic> Matrix6Xd;
+    typedef Eigen::Matrix<double, 6, Eigen::Dynamic> Matrix6Xd;
     
     enum JointType {
         ANCHOR = 0,
@@ -115,19 +112,19 @@ namespace RobotKin {
             //----------------------------------------------------------------------
             // Constructors
             Link(); // TODO
-            Link(double mass, Vector3d com, string name = ""); // TODO
-            Link(double mass, Vector3d com, Matrix3d inertiaTensor, string name = ""); // TODO
+            Link(double mass, Eigen::Vector3d com, std::string name = ""); // TODO
+            Link(double mass, Eigen::Vector3d com, Eigen::Matrix3d inertiaTensor, std::string name = ""); // TODO
 
-            void setMass(double mass, Vector3d com); // TODO
-            void setInertiaTensor(Matrix3d inertiaTensor); // TODO
+            void setMass(double mass, Eigen::Vector3d com); // TODO
+            void setInertiaTensor(Eigen::Matrix3d inertiaTensor); // TODO
 
         protected:
             bool massProvided;
             bool tensorProvided;
 
             double mass_;
-            Vector3d com_;
-            Matrix3d tensor_;
+            Eigen::Vector3d com_;
+            Eigen::Matrix3d tensor_;
 
         }; // Class Link
 
@@ -210,7 +207,6 @@ namespace RobotKin {
         Vector3d jointAxis_;
         Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
         Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
-
 
 
     }; // class Joint

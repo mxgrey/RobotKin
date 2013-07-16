@@ -6,7 +6,7 @@
 
 namespace RobotKinURDF{
 
-bool loadURDF(RobotKin::Robot& robot, string filename);
+bool loadURDF(RobotKin::Robot& robot, std::string filename);
 
 
 }

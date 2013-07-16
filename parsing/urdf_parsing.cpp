@@ -1,5 +1,3 @@
-#ifdef HAVE_URDF_PARSE
-
 #include <urdf_parser/urdf_parser.h>
 #include <urdf_model/model.h>
 #include <urdf_model/link.h>
@@ -22,6 +20,7 @@ bool addURDFJoint(RobotKin::Linkage& linkage, boost::shared_ptr<urdf::Joint> ujo
 
 
 using namespace RobotKinURDF;
+using namespace Eigen;
 using namespace std;
 
 bool RobotKinURDF::loadURDF(RobotKin::Robot& robot, string filename)
@@ -182,7 +181,3 @@ bool RobotKinURDF::addURDFJoint(RobotKin::Linkage &linkage, boost::shared_ptr<ur
     }
 
 }
-
-
-
-#endif // HAVE_URDF_PARSE
