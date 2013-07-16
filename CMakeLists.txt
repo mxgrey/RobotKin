@@ -11,46 +11,50 @@ include_directories(include)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-file(GLOB lib_source "src/*.cpp" "include/*.h" "parsing/*.cpp")
-LIST(SORT lib_source)
+option( HAVE_URDF_PARSE "add urdf parsing"  ON )
 
+file(GLOB lib_source "src/*.cpp" "include/*.h")
+list(SORT lib_source)
 
 file(GLOB unit_tests_source "test/*.cpp")
 LIST(SORT unit_tests_source)
 
+if( HAVE_URDF_PARSE ) #---------------------------
 
+    file(GLOB parse_source "parsing/*.cpp")
+    set(lib_source ${lib_source} ${parse_source} )
 
-# Check if the user is set up to parse URDFs
-find_package( urdfdom QUIET )
-if( urdfdom_FOUND )
-   MESSAGE(STATUS "Found urdfdom -- We will compile a URDF parser")
-   find_package( urdfdom_headers REQUIRED )
-   include_directories( ${urdfdom_headers_INCLUDE_DIRS} )
-   include_directories( ${urdfdom_INCLUDE_DIRS} )
+    # Check if the user is set up to parse URDFs
+    find_package( urdfdom QUIET )
+    if( urdfdom_FOUND )
+       MESSAGE(STATUS "Found urdfdom -- We will compile a URDF parser")
+       find_package( urdfdom_headers REQUIRED )
+       include_directories( ${urdfdom_headers_INCLUDE_DIRS} )
+       include_directories( ${urdfdom_INCLUDE_DIRS} )
 
-   #message(STATUS "${urdfdom_LIBRARIES}")
+       #message(STATUS "${urdfdom_LIBRARIES}")
 
-   link_libraries( ${urdfdom_LIBRARIES} )
+       link_libraries( ${urdfdom_LIBRARIES} )
 
-   find_package(Boost REQUIRED COMPONENTS system filesystem thread)
-   include_directories(${BOOST_INCLUDE_DIRS})
-   link_libraries( ${BOOST_LIBRARIES} )
+       find_package(Boost REQUIRED COMPONENTS system filesystem thread)
+       include_directories(${BOOST_INCLUDE_DIRS})
+       link_libraries( ${BOOST_LIBRARIES} )
 
+    else( urdfdom_FOUND )
+       MESSAGE(STATUS "Could NOT find urdfdom -- We will NOT compile a URDF parser")
+    endif( urdfdom_FOUND )
 
-else( urdfdom_FOUND )
-   MESSAGE(STATUS "Could NOT find urdfdom -- We will NOT compile a URDF parser")
-endif( urdfdom_FOUND )
-#############################################
+endif( HAVE_URDF_PARSE ) #---------------------------
 
+# Define target
 
 add_library(${PROJECT_NAME} SHARED ${lib_source})
 
-if( urdfdom_FOUND )
-
-   set_property( TARGET ${PROJECT_NAME}
-                 PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
-
-endif( urdfdom_FOUND )
+if( HAVE_URDF_PARSE )
+   if( urdfdom_FOUND )
+        set_property( TARGET ${PROJECT_NAME} PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
+    endif()
+endif()
 
 enable_testing()
 
@@ -82,5 +86,4 @@ INSTALL(FILES   include/Robot.h
 
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${LIBRARY_INSTALL_PATH})
-
 
