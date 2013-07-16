@@ -98,18 +98,18 @@ public:
     //--------------------------------------------------------------------------
     // Hubo Public Member Functions
     //--------------------------------------------------------------------------
-    bool leftArmAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
-    bool rightArmAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
+    bool leftArmAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Eigen::VectorXd& qPrev);
+    bool rightArmAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Eigen::VectorXd& qPrev);
     
-    void armFK(Eigen::Isometry3d& B, const Vector6d& q, size_t side);
-    bool armAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Vector6d& qPrev, size_t side);
+    void armFK(TRANSFORM& B, const Vector6d& q, size_t side);
+    bool armAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Vector6d& qPrev, size_t side);
     
     
-    bool leftLegAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
-    bool rightLegAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Eigen::VectorXd& qPrev);
+    bool leftLegAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Eigen::VectorXd& qPrev);
+    bool rightLegAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Eigen::VectorXd& qPrev);
     
-    void legFK(Eigen::Isometry3d& B, const Vector6d& q, size_t side);
-    bool legAnalyticalIK(Eigen::VectorXd& q, const Eigen::Isometry3d& B, const Vector6d& qPrev, size_t side);
+    void legFK(TRANSFORM& B, const Vector6d& q, size_t side);
+    bool legAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Vector6d& qPrev, size_t side);
     
     //--------------------------------------------------------------------------
     // Hubo Public Member Variables

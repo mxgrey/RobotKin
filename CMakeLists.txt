@@ -53,8 +53,8 @@ add_library(${PROJECT_NAME} SHARED ${lib_source})
 if( HAVE_URDF_PARSE )
    if( urdfdom_FOUND )
         set_property( TARGET ${PROJECT_NAME} PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
-    endif()
-endif()
+    endif( urdfdom_FOUND )
+endif( HAVE_URDF_PARSE )
 
 enable_testing()
 
@@ -72,10 +72,13 @@ endforeach(utest_src_file)
 
 
 # TODO: Why is this in here twice??
-if( urdfdom_FOUND )
-   set_property( GLOBAL
-                 PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
-endif( urdfdom_FOUND )
+
+if( HAVE_URDF_PARSE )
+    if( urdfdom_FOUND )
+       set_property( GLOBAL
+                     PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
+    endif( urdfdom_FOUND )
+endif( HAVE_URDF_PARSE )
 
 install(FILES   include/Robot.h
                 include/Frame.h

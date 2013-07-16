@@ -59,11 +59,11 @@ Joint::Joint(const Joint &joint)
     value(joint.value_);
 }
 
-Joint::Joint(Isometry3d respectToFixed,
+Joint::Joint(TRANSFORM respectToFixed,
                       string name,
                       size_t id,
                       JointType jointType,
-                      Vector3d axis,
+                      AXIS axis,
                       double minValue, double maxValue)
             : Frame::Frame(respectToFixed, name, id, JOINT),
               respectToFixedTransformed_(respectToFixed),
@@ -91,7 +91,7 @@ const Joint& Joint::operator=(const double aValue)
     return *this;
 }
 
-void Joint::setJointAxis(Eigen::Vector3d axis)
+void Joint::setJointAxis(AXIS axis)
 {
     jointAxis_ = axis;
     jointAxis_.normalize();
@@ -148,37 +148,37 @@ void Joint::max(double newMax)
 
 
 
-const Isometry3d& Joint::respectToFixed() const { return respectToFixed_; }
-void Joint::respectToFixed(Isometry3d aCoordinate)
+const TRANSFORM& Joint::respectToFixed() const { return respectToFixed_; }
+void Joint::respectToFixed(TRANSFORM aCoordinate)
 {
     respectToFixed_ = aCoordinate;
     value(value_);
 }
 
-const Isometry3d& Joint::respectToFixedTransformed() const
+const TRANSFORM& Joint::respectToFixedTransformed() const
 {
     return respectToFixedTransformed_;
 }
 
-const Isometry3d& Joint::respectToLinkage() const
+const TRANSFORM& Joint::respectToLinkage() const
 {
     return respectToLinkage_;
 }
 
-Isometry3d Joint::respectToRobot() const
+TRANSFORM Joint::respectToRobot() const
 {
     if(hasLinkage)
         return linkage_->respectToRobot_ * respectToLinkage_;
     else
-        return Isometry3d::Identity();
+        return TRANSFORM::Identity();
 }
 
-Isometry3d Joint::respectToWorld() const
+TRANSFORM Joint::respectToWorld() const
 {
     if(hasLinkage)
         return linkage_->respectToWorld() * respectToLinkage_;
     else
-        return Isometry3d::Identity();
+        return TRANSFORM::Identity();
 }
 
 const Linkage* Joint::linkage() const
@@ -222,7 +222,7 @@ Tool::Tool(const Tool &tool)
 
 }
 
-Tool::Tool(Isometry3d respectToFixed, string name, size_t id)
+Tool::Tool(TRANSFORM respectToFixed, string name, size_t id)
     : Frame::Frame(respectToFixed, name, id, TOOL),
       respectToLinkage_(respectToFixed)
 {
@@ -236,20 +236,20 @@ Tool::~Tool()
 }
 
 // Tool Methods
-const Isometry3d& Tool::respectToFixed() const { return respectToFixed_; }
-void Tool::respectToFixed(Isometry3d aCoordinate)
+const TRANSFORM& Tool::respectToFixed() const { return respectToFixed_; }
+void Tool::respectToFixed(TRANSFORM aCoordinate)
 {
     respectToFixed_ = aCoordinate;
     if(hasLinkage)
         linkage_->updateFrames();
 }
 
-const Isometry3d& Tool::respectToLinkage() const
+const TRANSFORM& Tool::respectToLinkage() const
 {
     return respectToLinkage_;
 }
 
-Isometry3d Tool::respectToRobot() const
+TRANSFORM Tool::respectToRobot() const
 {
     if(hasLinkage)
         return linkage_->respectToRobot_ * respectToLinkage_;
@@ -257,7 +257,7 @@ Isometry3d Tool::respectToRobot() const
         return respectToLinkage_;
 }
 
-Isometry3d Tool::respectToWorld() const
+TRANSFORM Tool::respectToWorld() const
 {
     if(hasLinkage)
         return linkage_->respectToWorld() * respectToLinkage_;
@@ -477,8 +477,8 @@ Linkage::Linkage(const Linkage &linkage)
 }
 
 Linkage::Linkage()
-    : Frame::Frame(Isometry3d::Identity(), "", 0, LINKAGE),
-      respectToRobot_(Isometry3d::Identity()),
+    : Frame::Frame(TRANSFORM::Identity(), "", 0, LINKAGE),
+      respectToRobot_(TRANSFORM::Identity()),
       initializing_(false),
       hasParent(false),
       hasChildren(false)
@@ -486,9 +486,9 @@ Linkage::Linkage()
     analyticalIK = Linkage::defaultAnalyticalIK;
 }
 
-Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id)
+Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id)
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
-      respectToRobot_(Isometry3d::Identity()),
+      respectToRobot_(TRANSFORM::Identity()),
       initializing_(false),
       hasParent(false),
       hasChildren(false)
@@ -497,7 +497,7 @@ Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id)
 }
 
 
-Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, Joint joint, Tool tool)
+Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id, Joint joint, Tool tool)
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
       respectToRobot_(respectToFixed),
       initializing_(false),
@@ -510,7 +510,7 @@ Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, Joint joint,
     initialize(joints, tool);
 }
 
-Linkage::Linkage(Isometry3d respectToFixed, string name, size_t id, vector<Joint> joints, Tool tool)
+Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id, vector<Joint> joints, Tool tool)
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
       respectToRobot_(respectToFixed),
       initializing_(false),
@@ -595,35 +595,35 @@ bool Linkage::values(const VectorXd& someValues)
     return false;
 }
 
-const Isometry3d& Linkage::respectToFixed() const { return respectToFixed_; }
-void Linkage::respectToFixed(Isometry3d aCoordinate)
+const TRANSFORM& Linkage::respectToFixed() const { return respectToFixed_; }
+void Linkage::respectToFixed(TRANSFORM aCoordinate)
 {
     respectToFixed_ = aCoordinate;
     updateFrames();
 }
 
 
-const Isometry3d& Linkage::respectToRobot() const
+const TRANSFORM& Linkage::respectToRobot() const
 {
     return respectToRobot_;
 }
 
 
-Isometry3d Linkage::respectToWorld() const
+TRANSFORM Linkage::respectToWorld() const
 {
     if(hasRobot)
         return robot_->respectToWorld_ * respectToRobot_;
     else
-        return Isometry3d::Identity();
+        return TRANSFORM::Identity();
 }
 
-void Linkage::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const
+void Linkage::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const
 { // location should be specified respect to linkage coordinate frame
     
     size_t nCols = jointFrames.size();
     J.resize(6, nCols);
     
-    Vector3d o_i, d_i, z_i; // Joint i location, offset, axis
+    TRANSLATION o_i, d_i, z_i; // Joint i location, offset, axis
     
     for (size_t i = 0; i < nCols; ++i) {
         
@@ -640,10 +640,10 @@ void Linkage::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, Vector3d 
             J.block(3, i, 3, 1) = z_i;
         } else if(jointFrames[i]->jointType_ == PRISMATIC) {
             J.block(0, i, 3, 1) = z_i;
-            J.block(3, i, 3, 1) = Vector3d::Zero();
+            J.block(3, i, 3, 1) = TRANSLATION::Zero();
         } else {
-            J.block(0, i, 3, 1) = Vector3d::Zero();
-            J.block(3, i, 3, 1) = Vector3d::Zero();
+            J.block(0, i, 3, 1) = TRANSLATION::Zero();
+            J.block(3, i, 3, 1) = TRANSLATION::Zero();
         }
         
     }
@@ -773,7 +773,7 @@ void Linkage::updateChildLinkage()
     }
 }
 
-bool Linkage::defaultAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev) {
+bool Linkage::defaultAnalyticalIK(VectorXd& q, const TRANSFORM& B, const VectorXd& qPrev) {
     // This function is just a place holder and should not be used. The analyticalIK function pointer should be set to the real analytical IK function.
     q = NAN * qPrev;
     return false;

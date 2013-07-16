@@ -24,7 +24,7 @@ void clampMag(Vector6d& v, double clamp)
         v *= clamp/v.norm();
 }
 
-void clampMag(Vector3d& v, double clamp)
+void clampMag(TRANSLATION& v, double clamp)
 {
     if(v.norm() > clamp)
         v *= clamp/v.norm();
@@ -114,7 +114,7 @@ void pinv(const MatrixXd &b, MatrixXd &a_pinv)
 
 // Based on a paper by Samuel R. Buss and Jin-Su Kim // TODO: Cite the paper properly
 rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
-                                              const Isometry3d &target, const Isometry3d &finalTF)
+                                              const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     return RK_SOLVER_NOT_READY;
     // FIXME: Make this work
@@ -133,7 +133,7 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &j
     // ~~ Declarations ~~
     MatrixXd J;
     JacobiSVD<MatrixXd> svd;
-    Isometry3d pose;
+    TRANSFORM pose;
     AngleAxisd aagoal;
     AngleAxisd aastate;
     Vector6d goal;
@@ -242,7 +242,7 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &j
 }
 
 rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
-                                              const Isometry3d &target, const Isometry3d &finalTF)
+                                              const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     // TODO: Make the conversion from vector<string> to vector<size_t> its own function
     vector<size_t> jointIndices;
@@ -261,14 +261,14 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<string> &j
 
 
 rk_result_t Robot::selectivelyDampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
-                                                const Isometry3d &target, const Isometry3d &finalTF)
+                                                const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     vector<size_t> jointIndices;
     jointIndices.resize(linkage(linkageName).joints_.size());
     for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)
         jointIndices[i] = linkage(linkageName).joints_[i]->id();
 
-    Isometry3d linkageFinalTF;
+    TRANSFORM linkageFinalTF;
     linkageFinalTF = linkage(linkageName).tool().respectToFixed()*finalTF;
 
     return selectivelyDampedLeastSquaresIK_chain(jointIndices, jointValues, target, linkageFinalTF);
@@ -277,7 +277,7 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_linkage(const string linkageN
 
 
 rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
-                                  const Isometry3d &target, const Isometry3d &finalTF)
+                                  const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     return RK_SOLVER_NOT_READY;
     // FIXME: Make this solver work
@@ -292,7 +292,7 @@ rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, Vec
     // ~~ Declarations ~~
     MatrixXd J;
     MatrixXd Jinv;
-    Isometry3d pose;
+    TRANSFORM pose;
     AngleAxisd aagoal;
     AngleAxisd aastate;
     Vector6d goal;
@@ -328,7 +328,7 @@ rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, Vec
             err[i] *= 0;
         err.normalize();
 
-        Vector3d e = (target.translation() - pose.translation()).normalized()*0.005;
+        TRANSLATION e = (target.translation() - pose.translation()).normalized()*0.005;
 
 //        delta = Jinv*err*0.1;
 //        clampMag(delta, deltaClamp);
@@ -350,7 +350,7 @@ rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, Vec
 
 
 rk_result_t Robot::pseudoinverseIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
-                                              const Isometry3d &target, const Isometry3d &finalTF)
+                                              const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     // TODO: Make the conversion from vector<string> to vector<size_t> its own function
     vector<size_t> jointIndices;
@@ -369,21 +369,21 @@ rk_result_t Robot::pseudoinverseIK_chain(const vector<string> &jointNames, Vecto
 
 
 rk_result_t Robot::pseudoinverseIK_linkage(const string linkageName, VectorXd &jointValues,
-                                                const Isometry3d &target, const Isometry3d &finalTF)
+                                                const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     vector<size_t> jointIndices;
     jointIndices.resize(linkage(linkageName).joints_.size());
     for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)
         jointIndices[i] = linkage(linkageName).joints_[i]->id();
 
-    Isometry3d linkageFinalTF;
+    TRANSFORM linkageFinalTF;
     linkageFinalTF = linkage(linkageName).tool().respectToFixed()*finalTF;
 
     return pseudoinverseIK_chain(jointIndices, jointValues, target, linkageFinalTF);
 }
 
 
-rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const Isometry3d &target, const Isometry3d &finalTF)
+rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     return RK_SOLVER_NOT_READY;
     // FIXME: Make this solver work
@@ -398,7 +398,7 @@ rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices,
     // ~~ Declarations ~~
     MatrixXd J;
     MatrixXd Jinv;
-    Isometry3d pose;
+    TRANSFORM pose;
     AngleAxisd aagoal;
     AngleAxisd aastate;
     Vector6d state;
@@ -447,7 +447,7 @@ rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices,
 
 
 rk_result_t Robot::jacobianTransposeIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
-                                              const Isometry3d &target, const Isometry3d &finalTF)
+                                              const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     // TODO: Make the conversion from vector<string> to vector<size_t> its own function
     vector<size_t> jointIndices;
@@ -466,14 +466,14 @@ rk_result_t Robot::jacobianTransposeIK_chain(const vector<string> &jointNames, V
 
 
 rk_result_t Robot::jacobianTransposeIK_linkage(const string linkageName, VectorXd &jointValues,
-                                                const Isometry3d &target, const Isometry3d &finalTF)
+                                                const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     vector<size_t> jointIndices;
     jointIndices.resize(linkage(linkageName).joints_.size());
     for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)
         jointIndices[i] = linkage(linkageName).joints_[i]->id();
 
-    Isometry3d linkageFinalTF;
+    TRANSFORM linkageFinalTF;
     linkageFinalTF = linkage(linkageName).tool().respectToFixed()*finalTF;
 
     return jacobianTransposeIK_chain(jointIndices, jointValues, target, linkageFinalTF);
@@ -482,7 +482,7 @@ rk_result_t Robot::jacobianTransposeIK_linkage(const string linkageName, VectorX
 
 
 
-rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const Isometry3d &target, const Isometry3d &finalTF)
+rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const TRANSFORM &target, const TRANSFORM &finalTF)
 {
 
 
@@ -495,11 +495,11 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     // ~~ Declarations ~~
     MatrixXd J;
     MatrixXd Jinv;
-    Isometry3d pose;
+    TRANSFORM pose;
     AngleAxisd aagoal(target.rotation());
     AngleAxisd aastate;
-    Vector3d Terr;
-    Vector3d Rerr;
+    TRANSLATION Terr;
+    TRANSLATION Rerr;
     Vector6d err;
     VectorXd delta(jointValues.size());
     VectorXd f(jointValues.size());
@@ -545,7 +545,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 }
 
 rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
-                                              const Isometry3d &target, const Isometry3d &finalTF)
+                                              const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     // TODO: Make the conversion from vector<string> to vector<size_t> its own function
     vector<size_t> jointIndices;
@@ -564,14 +564,14 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, 
 
 
 rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
-                                                const Isometry3d &target, const Isometry3d &finalTF)
+                                                const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     vector<size_t> jointIndices;
     jointIndices.resize(linkage(linkageName).joints_.size());
     for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)
         jointIndices[i] = linkage(linkageName).joints_[i]->id();
 
-    Isometry3d linkageFinalTF;
+    TRANSFORM linkageFinalTF;
     linkageFinalTF = linkage(linkageName).tool().respectToFixed()*finalTF;
 
     return dampedLeastSquaresIK_chain(jointIndices, jointValues, target, linkageFinalTF);

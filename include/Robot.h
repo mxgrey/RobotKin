@@ -63,9 +63,6 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
-#ifdef HAVE_URDF_PARSE
-#include "urdf_parsing.h"
-#endif // HAVE_URDF_PARSE
 
 
 // TODO: Add a user-specified level of assertiveness
@@ -119,10 +116,8 @@ namespace RobotKin {
         Robot();
         Robot(std::vector<Linkage> linkageObjs, std::vector<int> parentIndices);
 
-#ifdef HAVE_URDF_PARSE
         Robot(std::string filename, std::string name="", size_t id=0);
         bool loadURDF(std::string filename);
-#endif // HAVE_URDF_PARSE
         
         // Destructor
         virtual ~Robot();
@@ -165,28 +160,28 @@ namespace RobotKin {
         size_t jointIndex(std::string jointName) const;
 
         const Joint& const_joint(size_t jointIndex) const;
-        const Joint& const_joint(string jointName) const;
+        const Joint& const_joint(std::string jointName) const;
 
         Joint& joint(size_t jointIndex);
-        Joint& joint(string jointName);
+        Joint& joint(std::string jointName);
 
         // Convenience function
         void setJointValue(size_t jointIndex, double val);
         void setJointValue(std::string jointName, double val);
         
-        const vector<Linkage::Joint*>& const_joints() const;
-        vector<Linkage::Joint*>& joints();
+        const std::vector<Joint*>& const_joints() const;
+        std::vector<Joint*>& joints();
         
         Eigen::VectorXd values() const;
         void values(const Eigen::VectorXd& someValues);
         void values(const std::vector<size_t> &jointIndices, const Eigen::VectorXd& jointValues);
         
-        const Eigen::Isometry3d& respectToFixed() const;
-        void respectToFixed(Eigen::Isometry3d aCoordinate);
+        const TRANSFORM& respectToFixed() const;
+        void respectToFixed(TRANSFORM aCoordinate);
         
-        Eigen::Isometry3d respectToWorld() const;
+        TRANSFORM respectToWorld() const;
         
-        void jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
+        void jacobian(Eigen::MatrixXd& J, const std::vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const;
         
         void updateFrames();
         void printInfo() const;
@@ -196,54 +191,54 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
 
         rk_result_t selectivelyDampedLeastSquaresIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
-                                         const Eigen::Isometry3d &target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                         const TRANSFORM &target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t selectivelyDampedLeastSquaresIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
-                                         const Eigen::Isometry3d& target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                         const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t selectivelyDampedLeastSquaresIK_linkage(const std::string linkageName, Eigen::VectorXd &jointValues,
-                                         const Eigen::Isometry3d& target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                         const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
 
         //////////////////
 
         rk_result_t pseudoinverseIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
-                                          const Eigen::Isometry3d &target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                          const TRANSFORM &target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t pseudoinverseIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
-                                          const Eigen::Isometry3d& target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                          const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t pseudoinverseIK_linkage(const std::string linkageName, Eigen::VectorXd &jointValues,
-                                            const Eigen::Isometry3d& target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                            const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         //////////////////
 
         rk_result_t jacobianTransposeIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
-                                          const Eigen::Isometry3d &target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                          const TRANSFORM &target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t jacobianTransposeIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
-                                          const Eigen::Isometry3d& target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                          const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t jacobianTransposeIK_linkage(const std::string linkageName, Eigen::VectorXd &jointValues,
-                                            const Eigen::Isometry3d& target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                            const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         /////////////////
 
         rk_result_t dampedLeastSquaresIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
-                                          const Eigen::Isometry3d &target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                          const TRANSFORM &target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t dampedLeastSquaresIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
-                                          const Eigen::Isometry3d& target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                          const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t dampedLeastSquaresIK_linkage(const std::string linkageName, Eigen::VectorXd &jointValues,
-                                            const Eigen::Isometry3d& target, const Eigen::Isometry3d &finalTF = Eigen::Isometry3d::Identity());
+                                            const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
 
     protected:
         //--------------------------------------------------------------------------
         // Robot Protected Member Functions
         //--------------------------------------------------------------------------
-        Eigen::Isometry3d respectToWorld_; // Coordinates with respect to robot base frame
+        TRANSFORM respectToWorld_; // Coordinates with respect to robot base frame
         std::vector<Linkage*> linkages_;
         std::map<std::string, size_t> linkageNameToIndex_;
         std::vector<Joint*> joints_;

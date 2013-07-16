@@ -49,22 +49,22 @@ Hubo::~Hubo()
 //------------------------------------------------------------------------------
 // Hubo Public Member Functions
 //------------------------------------------------------------------------------
-bool Hubo::leftArmAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev)
+bool Hubo::leftArmAnalyticalIK(VectorXd& q, const TRANSFORM& B, const VectorXd& qPrev)
 {
     return armAnalyticalIK(q, B, qPrev, SIDE_LEFT);
 }
 
-bool Hubo::rightArmAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev)
+bool Hubo::rightArmAnalyticalIK(VectorXd& q, const TRANSFORM& B, const VectorXd& qPrev)
 {
     return armAnalyticalIK(q, B, qPrev, SIDE_RIGHT);
 }
 
-bool Hubo::leftLegAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev)
+bool Hubo::leftLegAnalyticalIK(VectorXd& q, const TRANSFORM& B, const VectorXd& qPrev)
 {
     return legAnalyticalIK(q, B, qPrev, SIDE_LEFT);
 }
 
-bool Hubo::rightLegAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev)
+bool Hubo::rightLegAnalyticalIK(VectorXd& q, const TRANSFORM& B, const VectorXd& qPrev)
 {
     return legAnalyticalIK(q, B, qPrev, SIDE_RIGHT);
 }
@@ -231,7 +231,7 @@ void Hubo::initialize()
 Linkage Hubo::initializeTorso()
 {    
     Matrix<double, 4, 4> T;
-    Isometry3d jointFrame;
+    TRANSFORM jointFrame;
     
     T <<
     1.0,  0.0,  0.0,  0.0,
@@ -242,7 +242,7 @@ Linkage Hubo::initializeTorso()
     
     Joint joint(jointFrame, "TOR");
     
-    Linkage torso(Isometry3d::Identity(), "TORSO", 0, joint);
+    Linkage torso(TRANSFORM::Identity(), "TORSO", 0, joint);
     
     return torso;
 }
@@ -253,7 +253,7 @@ Linkage Hubo::initializeLeftArm()
     Matrix<double, 4, 4> T;
     size_t nJoints = 6;
     
-    vector<Isometry3d> jointFrames;
+    vector<TRANSFORM> jointFrames;
     jointFrames.resize(nJoints);
     vector<string> jointNames;
     jointNames.resize(nJoints);
@@ -311,7 +311,7 @@ Linkage Hubo::initializeLeftArm()
     jointNames[5] = "LWP";
     
     for (size_t i = 0; i < nJoints; ++i) {
-        joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(leftArmOffsets[i], Eigen::Vector3d::UnitZ()) );
+        joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(leftArmOffsets[i], TRANSLATION::UnitZ()) );
         joints[i].name(jointNames[i]);
     }
     
@@ -321,10 +321,10 @@ Linkage Hubo::initializeLeftArm()
     0.0,  1.0,  0.0,  0.0,
     0.0,  0.0,  0.0,  1.0;
     
-    Isometry3d toolFrame(T);
+    TRANSFORM toolFrame(T);
     Tool tool(toolFrame, "LEFT_HAND");
     
-    Linkage leftArm(Isometry3d::Identity(), "LEFT_ARM", 0, joints, tool);
+    Linkage leftArm(TRANSFORM::Identity(), "LEFT_ARM", 0, joints, tool);
     
     return leftArm;
 }
@@ -335,7 +335,7 @@ Linkage Hubo::initializeRightArm()
     Matrix<double, 4, 4> T;
     size_t nJoints = 6;
     
-    vector<Isometry3d> jointFrames;
+    vector<TRANSFORM> jointFrames;
     jointFrames.resize(nJoints);
     vector<string> jointNames;
     jointNames.resize(nJoints);
@@ -393,7 +393,7 @@ Linkage Hubo::initializeRightArm()
     jointNames[5] = "RWP";
     
     for (size_t i = 0; i < nJoints; ++i) {
-        joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(rightArmOffsets[i], Eigen::Vector3d::UnitZ()) );
+        joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(rightArmOffsets[i], TRANSLATION::UnitZ()) );
         joints[i].name(jointNames[i]);
     }
     
@@ -403,10 +403,10 @@ Linkage Hubo::initializeRightArm()
     0.0,  1.0,  0.0,  0.0,
     0.0,  0.0,  0.0,  1.0;
     
-    Isometry3d toolFrame(T);
+    TRANSFORM toolFrame(T);
     Tool tool(toolFrame, "RIGHT_HAND");
     
-    Linkage rightArm(Isometry3d::Identity(), "RIGHT_ARM", 0, joints, tool);
+    Linkage rightArm(TRANSFORM::Identity(), "RIGHT_ARM", 0, joints, tool);
     
     return rightArm;
 }
@@ -417,7 +417,7 @@ Linkage Hubo::initializeLeftLeg()
     Matrix<double, 4, 4> T;
     size_t nJoints = 6;
     
-    vector<Isometry3d> jointFrames;
+    vector<TRANSFORM> jointFrames;
     jointFrames.resize(nJoints);
     vector<string> jointNames;
     jointNames.resize(nJoints);
@@ -475,7 +475,7 @@ Linkage Hubo::initializeLeftLeg()
     jointNames[5] = "LAR";
     
     for (size_t i = 0; i < nJoints; ++i) {
-        joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(leftLegOffsets[i], Eigen::Vector3d::UnitZ()) );
+        joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(leftLegOffsets[i], TRANSLATION::UnitZ()) );
         joints[i].name(jointNames[i]);
     }
     
@@ -485,10 +485,10 @@ Linkage Hubo::initializeLeftLeg()
     0.0,  0.0,  1.0,  0.0,
     0.0,  0.0,  0.0,  1.0;
     
-    Isometry3d toolFrame(T);
+    TRANSFORM toolFrame(T);
     Tool tool(toolFrame, "LEFT_FOOT");
     
-    Linkage leftLeg(Isometry3d::Identity(), "LEFT_LEG", 0, joints, tool);
+    Linkage leftLeg(TRANSFORM::Identity(), "LEFT_LEG", 0, joints, tool);
     
     return leftLeg;    
 }
@@ -499,7 +499,7 @@ Linkage Hubo::initializeRightLeg()
     Matrix<double, 4, 4> T;
     size_t nJoints = 6;
     
-    vector<Isometry3d> jointFrames;
+    vector<TRANSFORM> jointFrames;
     jointFrames.resize(nJoints);
     vector<string> jointNames;
     jointNames.resize(nJoints);
@@ -557,7 +557,7 @@ Linkage Hubo::initializeRightLeg()
     jointNames[5] = "RAR";
     
     for (size_t i = 0; i < nJoints; ++i) {
-        joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(rightLegOffsets[i], Eigen::Vector3d::UnitZ()) );
+        joints[i].respectToFixed(jointFrames[i] * Eigen::AngleAxisd(rightLegOffsets[i], TRANSLATION::UnitZ()) );
         joints[i].name(jointNames[i]);
     }
     
@@ -567,16 +567,16 @@ Linkage Hubo::initializeRightLeg()
     0.0,  0.0,  1.0,  0.0,
     0.0,  0.0,  0.0,  1.0;
     
-    Isometry3d toolFrame(T);
+    TRANSFORM toolFrame(T);
     Tool tool(toolFrame, "RIGHT_FOOT");
     
-    Linkage rightLeg(Isometry3d::Identity(), "RIGHT_LEG", 0, joints, tool);
+    Linkage rightLeg(TRANSFORM::Identity(), "RIGHT_LEG", 0, joints, tool);
     
     return rightLeg;
 }
 
 
-void Hubo::armFK(Isometry3d& B, const Vector6d& q, size_t side)
+void Hubo::armFK(TRANSFORM& B, const Vector6d& q, size_t side)
 {
     size_t index;
     if (side == SIDE_RIGHT) {
@@ -590,7 +590,7 @@ void Hubo::armFK(Isometry3d& B, const Vector6d& q, size_t side)
     linkage(index).values(q0);
 }
 
-void Hubo::legFK(Isometry3d& B, const Vector6d& q, size_t side)
+void Hubo::legFK(TRANSFORM& B, const Vector6d& q, size_t side)
 {
     size_t index;
     if (side == SIDE_RIGHT) {
@@ -604,13 +604,13 @@ void Hubo::legFK(Isometry3d& B, const Vector6d& q, size_t side)
     linkage(index).values(q0);
 }
 
-bool Hubo::armAnalyticalIK(VectorXd& q, const Isometry3d& B, const Vector6d& qPrev, size_t side)
+bool Hubo::armAnalyticalIK(VectorXd& q, const TRANSFORM& B, const Vector6d& qPrev, size_t side)
 {
     q.resize(6,1);
     Eigen::ArrayXXd qAll(6,8);
     
     // Declarations
-    Isometry3d shoulder, shoulderInv, toolFixed, toolFixedInv, B5_6, BInv;
+    TRANSFORM shoulder, shoulderInv, toolFixed, toolFixedInv, B5_6, BInv;
     double nx, sx, ax, px;
     double ny, sy, ay, py;
     double nz, sz, az, pz;
@@ -904,8 +904,8 @@ bool Hubo::armAnalyticalIK(VectorXd& q, const Isometry3d& B, const Vector6d& qPr
             qtemp = qtemp.cwiseMin(limits.col(1));
             // then take the max of those angles and the joint lower limits
             qtemp = qtemp.cwiseMax(limits.col(0));
-            // create an Isometry3d 4x4 matrix for the temp pose
-            Isometry3d Btemp;
+            // create an TRANSFORM 4x4 matrix for the temp pose
+            TRANSFORM Btemp;
             // find the pose associated with the temp angles
             armFK( Btemp, qtemp, side );
             // calculate the distance from previous pose to temp pose locations
@@ -924,11 +924,11 @@ bool Hubo::armAnalyticalIK(VectorXd& q, const Isometry3d& B, const Vector6d& qPr
 }
 
 
-bool Hubo::legAnalyticalIK(VectorXd& q, const Isometry3d& B, const Vector6d& qPrev, size_t side) {
+bool Hubo::legAnalyticalIK(VectorXd& q, const TRANSFORM& B, const Vector6d& qPrev, size_t side) {
     Eigen::ArrayXXd qAll(6,8);
     
     // Declarations
-    Isometry3d neck, neckInv, waist, waistInv, BInv;
+    TRANSFORM neck, neckInv, waist, waistInv, BInv;
     double nx, sx, ax, px;
     double ny, sy, ay, py;
     double nz, sz, az, pz;
@@ -1109,8 +1109,8 @@ bool Hubo::legAnalyticalIK(VectorXd& q, const Isometry3d& B, const Vector6d& qPr
             qtemp = qtemp.cwiseMin(limits.col(1));
             // then take the max of those angles and the joint lower limits
             qtemp = qtemp.cwiseMax(limits.col(0));
-            // create an Isometry3d 4x4 matrix for the temp pose
-            Isometry3d Btemp;
+            // create an TRANSFORM 4x4 matrix for the temp pose
+            TRANSFORM Btemp;
             // find the pose associated with the temp angles
             legFK( Btemp, qtemp, side );
             // calculate the distance from previous pose to temp pose locations

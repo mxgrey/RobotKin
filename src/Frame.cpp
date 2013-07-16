@@ -23,15 +23,14 @@
 // Namespaces
 //------------------------------------------------------------------------------
 using namespace RobotKin;
-using namespace Eigen;
 using namespace std;
-
+using namespace Eigen;
 
 //------------------------------------------------------------------------------
 // Lifecycle
 //------------------------------------------------------------------------------
 // Constructors
-Frame::Frame(Isometry3d respectToFixed, string name, size_t id, FrameType frameType)
+Frame::Frame(TRANSFORM respectToFixed, string name, size_t id, FrameType frameType)
     : name_(name),
       id_(id),
       frameType_(frameType),
@@ -106,15 +105,15 @@ string Frame::frameTypeString() const
     }
 }
 
-Isometry3d Frame::respectTo(const Frame* aFrame) const
+TRANSFORM Frame::respectTo(const Frame* aFrame) const
 {
     return aFrame->respectToWorld().inverse() * respectToWorld();
 }
 
-Isometry3d Frame::withRespectTo(const Frame &frame) const { return respectTo(&frame); }
-Isometry3d Frame::withRespectTo(const Robot &robot) const { return respectTo(&robot); }
-Isometry3d Frame::withRespectTo(const Linkage &linkage) const { return respectTo(&linkage); }
-Isometry3d Frame::withRespectTo(const Joint &joint) const { return respectTo(&joint); }
+TRANSFORM Frame::withRespectTo(const Frame &frame) const { return respectTo(&frame); }
+TRANSFORM Frame::withRespectTo(const Robot &robot) const { return respectTo(&robot); }
+TRANSFORM Frame::withRespectTo(const Linkage &linkage) const { return respectTo(&linkage); }
+TRANSFORM Frame::withRespectTo(const Joint &joint) const { return respectTo(&joint); }
 
 void Frame::printInfo() const
 {

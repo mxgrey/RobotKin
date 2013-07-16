@@ -336,7 +336,7 @@ void tutorial()
     
     cout << "For example, let's set the joint values of the " << rightArm->name() << " to the following:" << endl;
     
-    Isometry3d B0;
+    TRANSFORM B0;
     VectorXd q0(6), q1(6);
     q0 <<
     -.1,
@@ -400,12 +400,11 @@ void tutorial()
     cout << "-- Documentation has to be written" << endl;
     cout << "-- Add methods to add and remove joints" << endl;
     */
-#ifdef HAVE_URDF_PARSE
+
     Robot parseTest("../urdf/drchubo.urdf");
 
-    cout << "print info on joint Body_LHY" << endl;
-    parseTest.linkage("Body_LHY").printInfo();
-#endif
+//    cout << "print info on joint Body_LHY" << endl;
+//    parseTest.linkage("Body_LHY").printInfo();
 
 
 
@@ -432,15 +431,15 @@ void tutorial()
     jointVals.resize(jointNames.size());
     jointVals.setZero();
 
-////    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, Isometry3d::Identity());
+////    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, TRANSFORM::Identity());
 
-    Isometry3d target(Isometry3d::Identity());
+    TRANSFORM target(TRANSFORM::Identity());
     target.translate(Vector3d(0.1, -0.1, 0));
     target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
     target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
 
 ////    parseTest.setJointValue("REP", M_PI/2);
-//    Isometry3d target = parseTest.linkage("Body_RSP").tool().respectToRobot();
+//    TRANSFORM target = parseTest.linkage("Body_RSP").tool().respectToRobot();
     cout << "Target:" << endl << target.matrix() << endl;
 
 //    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
@@ -452,7 +451,7 @@ void tutorial()
 
 
 
-    Isometry3d start = parseTest.linkage("RightArm").tool().respectToRobot();
+    TRANSFORM start = parseTest.linkage("RightArm").tool().respectToRobot();
     cout << "Start:" << endl << start.matrix() << endl;
 
 //    cout << "Target:" << endl << target.matrix() << endl;
@@ -462,7 +461,7 @@ void tutorial()
     clock_t time;
     time = clock();
 
-    int count = 10000;
+    int count = 10;
     for(int i=0; i<count; i++)
     {
         parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);

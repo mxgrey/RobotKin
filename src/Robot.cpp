@@ -15,7 +15,7 @@
 // Includes
 //------------------------------------------------------------------------------
 #include "Robot.h"
-
+#include "urdf_parsing.h"
 
 
 //------------------------------------------------------------------------------
@@ -31,8 +31,8 @@ using namespace RobotKin;
 //------------------------------------------------------------------------------
 // Constructors
 Robot::Robot()
-        : Frame::Frame(Isometry3d::Identity()),
-          respectToWorld_(Isometry3d::Identity()),
+        : Frame::Frame(TRANSFORM::Identity()),
+          respectToWorld_(TRANSFORM::Identity()),
           initializing_(false)
 {
     linkages_.resize(0);
@@ -40,8 +40,8 @@ Robot::Robot()
 }
 
 Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
-        : Frame::Frame(Isometry3d::Identity()),
-          respectToWorld_(Isometry3d::Identity()),
+        : Frame::Frame(TRANSFORM::Identity()),
+          respectToWorld_(TRANSFORM::Identity()),
           initializing_(false)
 {
     frameType_ = ROBOT;
@@ -52,8 +52,8 @@ Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
 
 #ifdef HAVE_URDF_PARSE
 Robot::Robot(string filename, string name, size_t id)
-    : Frame::Frame(Isometry3d::Identity(), name, id, ROBOT),
-      respectToWorld_(Isometry3d::Identity()),
+    : Frame::Frame(TRANSFORM::Identity(), name, id, ROBOT),
+      respectToWorld_(TRANSFORM::Identity()),
       initializing_(false)
 {
     // TODO: Test to make sure filename ends with ".urdf"
@@ -64,6 +64,19 @@ Robot::Robot(string filename, string name, size_t id)
 bool Robot::loadURDF(string filename)
 {
     return RobotKinURDF::loadURDF(*this, filename);
+}
+#else  // HAVE_URDF_PARSE
+Robot::Robot(string filename, string name, size_t id)
+    : Frame::Frame(TRANSFORM::Identity(), name, id, ROBOT),
+      respectToWorld_(TRANSFORM::Identity()),
+      initializing_(false)
+{
+    std::cerr << "There was no URDF Parser installed when you compiled RobotKin!" << std::endl;
+}
+
+bool Robot::loadURDF(string filename)
+{
+    std::cerr << "There was no URDF Parser installed when you compiled RobotKin!" << std::endl;
 }
 
 #endif // HAVE_URDF_PARSE
@@ -212,24 +225,24 @@ void Robot::setJointValue(string jointName, double val){joint(jointName).value(v
 
 void Robot::setJointValue(size_t jointIndex, double val){joint(jointIndex).value(val);}
 
-const Isometry3d& Robot::respectToFixed() const { return respectToFixed_; }
-void Robot::respectToFixed(Isometry3d aCoordinate)
+const TRANSFORM& Robot::respectToFixed() const { return respectToFixed_; }
+void Robot::respectToFixed(TRANSFORM aCoordinate)
 {
     respectToFixed_ = aCoordinate;
     updateFrames();
 }
 
-Isometry3d Robot::respectToWorld() const
+TRANSFORM Robot::respectToWorld() const
 {
     return respectToWorld_;
 }
 
-void Robot::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const
+void Robot::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const
 { // location should be specified in respect to robot coordinates
     size_t nCols = jointFrames.size();
     J.resize(6, nCols);
     
-    Vector3d o_i, d_i, z_i; // Joint i location, offset, axis
+    TRANSLATION o_i, d_i; AXIS z_i; // Joint i location, offset, axis
     
     for (size_t i = 0; i < nCols; i++) {
 
@@ -245,10 +258,10 @@ void Robot::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, Vector3d lo
             J.block(3, i, 3, 1) = z_i;
         } else if(jointFrames[i]->jointType_ == PRISMATIC) {
             J.block(0, i, 3, 1) = z_i;
-            J.block(3, i, 3, 1) = Vector3d::Zero();
+            J.block(3, i, 3, 1) = AXIS::Zero();
         } else {
-            J.block(0, i, 3, 1) = Vector3d::Zero();
-            J.block(3, i, 3, 1) = Vector3d::Zero();
+            J.block(0, i, 3, 1) = AXIS::Zero();
+            J.block(3, i, 3, 1) = AXIS::Zero();
         }
         
     }

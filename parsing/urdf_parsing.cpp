@@ -1,3 +1,5 @@
+#ifdef HAVE_URDF_PARSE
+
 #include <urdf_parser/urdf_parser.h>
 #include <urdf_model/model.h>
 #include <urdf_model/link.h>
@@ -181,3 +183,5 @@ bool RobotKinURDF::addURDFJoint(RobotKin::Linkage &linkage, boost::shared_ptr<ur
     }
 
 }
+
+#endif

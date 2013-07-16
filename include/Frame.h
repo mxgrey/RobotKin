@@ -69,6 +69,8 @@
 namespace RobotKin {
 
     typedef Eigen::Isometry3d TRANSFORM;
+    typedef Eigen::Vector3d   TRANSLATION;
+    typedef Eigen::Vector3d   AXIS;
     
     class Robot;
     class Linkage;
