@@ -4,14 +4,14 @@ project(RobotKin)
 set(CMAKE_BUILD_TYPE "Release")
 #set( CMAKE_VERBOSE_MAKEFILE true )
 
-set(LIBRARY_INSTALL_PATH /usr/lib)
+set(LIBRARY_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 
 include_directories(include)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-option( HAVE_URDF_PARSE "add urdf parsing"  ON )
+option(HAVE_URDF_PARSE "add urdf parsing"  ON)
 
 file(GLOB lib_source "src/*.cpp" "include/*.h")
 list(SORT lib_source)
@@ -77,11 +77,11 @@ if( urdfdom_FOUND )
                  PROPERTY COMPILE_DEFINITIONS "HAVE_URDF_PARSE" )
 endif( urdfdom_FOUND )
 
-INSTALL(FILES   include/Robot.h
+install(FILES   include/Robot.h
                 include/Frame.h
                 include/Linkage.h
                 include/urdf_parsing.h
-        DESTINATION /usr/include/)
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/include/RobotKin)
 
 
 
