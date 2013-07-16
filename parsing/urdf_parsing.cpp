@@ -22,6 +22,7 @@ bool addURDFJoint(RobotKin::Linkage& linkage, boost::shared_ptr<urdf::Joint> ujo
 
 
 using namespace RobotKinURDF;
+using namespace Eigen;
 using namespace std;
 
 bool RobotKinURDF::loadURDF(RobotKin::Robot& robot, string filename)
