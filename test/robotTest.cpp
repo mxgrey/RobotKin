@@ -403,7 +403,7 @@ void tutorial()
 
     Robot parseTest("../urdf/drchubo.urdf");
 
-    parseTest.linkage("Body_LHY").printInfo();
+    parseTest.linkage("Body_LHY").name("RightArm");
 
 
 
@@ -441,31 +441,45 @@ void tutorial()
     target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
 
 ////    parseTest.setJointValue("REP", M_PI/2);
-////    Isometry3d target = parseTest.linkage("Body_RSP").tool().respectToRobot();
-//    Isometry3d start = parseTest.linkage("RightArm").tool().respectToRobot();
-//    cout << "Start:" << endl << start.matrix() << endl;
+//    Isometry3d target = parseTest.linkage("Body_RSP").tool().respectToRobot();
+    cout << "Target:" << endl << target.matrix() << endl;
+
+//    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
+//    cout << "End:" << endl << parseTest.linkage("Body_RSP").tool().respectToRobot().matrix() << endl;
+
+    parseTest.linkage("Body_RSP").name("RightArm");
+//    parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
+//    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
+
+
+
+    Isometry3d start = parseTest.linkage("RightArm").tool().respectToRobot();
+    cout << "Start:" << endl << start.matrix() << endl;
 
 //    cout << "Target:" << endl << target.matrix() << endl;
 
+    // TODO: Investigate Affine
 
 
-//    clock_t time;
-//    time = clock();
+    clock_t time;
+    time = clock();
 
-//    int count = 100;
-//    for(int i=0; i<count; i++)
-//    {
-//        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
-//        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, start);
-//    }
+    int count = 10000;
+    for(int i=0; i<count; i++)
+    {
+        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
+        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, start);
+    }
 
-//    clock_t endTime;
-//    endTime = clock();
-//    cout << (endTime - time)/(double)CLOCKS_PER_SEC/count/2 << " : " <<
-//            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
+    parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
 
+    clock_t endTime;
+    endTime = clock();
+    cout << (endTime - time)/((double)CLOCKS_PER_SEC/count/2+1) << " : " <<
+            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
 
-//    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
+    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
+
 
 //    parseTest.jacobianTransposeIK_linkage("Body_RSP", jointVals, target);
 

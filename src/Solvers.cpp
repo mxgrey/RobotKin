@@ -121,7 +121,7 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &j
     gammaMax = M_PI/4; // TODO: Put this in the constructor so the user can change it at a whim
 
 
-    vector<Linkage::Joint*> joints;
+    vector<Joint*> joints;
     joints.resize(jointIndices.size());
     // FIXME: Add in safety checks
     for(int i=0; i<joints.size(); i++)
@@ -280,7 +280,7 @@ rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, Vec
     // FIXME: Make this solver work
 
 
-    vector<Linkage::Joint*> joints;
+    vector<Joint*> joints;
     joints.resize(jointIndices.size());
     // FIXME: Add in safety checks
     for(int i=0; i<joints.size(); i++)
@@ -386,7 +386,7 @@ rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices,
     // FIXME: Make this solver work
 
 
-    vector<Linkage::Joint*> joints;
+    vector<Joint*> joints;
     joints.resize(jointIndices.size());
     // FIXME: Add in safety checks
     for(int i=0; i<joints.size(); i++)
@@ -483,7 +483,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 {
 
 
-    vector<Linkage::Joint*> joints;
+    vector<Joint*> joints;
     joints.resize(jointIndices.size());
     // FIXME: Add in safety checks
     for(int i=0; i<joints.size(); i++)
@@ -503,7 +503,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
 
     tolerance = 0.001;
-    maxIterations = 50; // TODO: Put this in the constructor so the user can set it arbitrarily
+    maxIterations = 100; // TODO: Put this in the constructor so the user can set it arbitrarily
     damp = 0.05;
 
     values(jointIndices, jointValues);
@@ -573,6 +573,9 @@ rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, Vector
 
     return dampedLeastSquaresIK_chain(jointIndices, jointValues, target, linkageFinalTF);
 }
+
+
+
 
 
 

@@ -124,49 +124,49 @@ size_t Robot::nJoints() const { return joints_.size(); }
 
 size_t Robot::jointIndex(string jointName) const { return jointNameToIndex_.at(jointName); }
 
-const Linkage::Joint& Robot::const_joint(size_t jointIndex) const
+const Joint& Robot::const_joint(size_t jointIndex) const
 {
     if(jointIndex < nJoints())
         return *joints_[jointIndex];
 
-    Linkage::Joint* invalidJoint = new Linkage::Joint;
+    Joint* invalidJoint = new Joint;
     invalidJoint->name("invalid");
     return *invalidJoint;
 }
-const Linkage::Joint& Robot::const_joint(string jointName) const
+const Joint& Robot::const_joint(string jointName) const
 {
     map<string,size_t>::const_iterator j = jointNameToIndex_.find(jointName);
     if( j != jointNameToIndex_.end() )
         return *joints_.at(j->second);
 
-    Linkage::Joint* invalidJoint = new Linkage::Joint;
+    Joint* invalidJoint = new Joint;
     invalidJoint->name("invalid");
     return *invalidJoint;
 }
 
-Linkage::Joint& Robot::joint(size_t jointIndex)
+Joint& Robot::joint(size_t jointIndex)
 {
     if(jointIndex < nJoints())
         return *joints_[jointIndex];
 
-    Linkage::Joint* invalidJoint = new Linkage::Joint;
+    Joint* invalidJoint = new Joint;
     invalidJoint->name("invalid");
     return *invalidJoint;
 }
-Linkage::Joint& Robot::joint(string jointName)
+Joint& Robot::joint(string jointName)
 {
     map<string,size_t>::const_iterator j = jointNameToIndex_.find(jointName);
     if( j != jointNameToIndex_.end() )
         return *joints_.at(j->second);
 
-    Linkage::Joint* invalidJoint = new Linkage::Joint;
+    Joint* invalidJoint = new Joint;
     invalidJoint->name("invalid");
     return *invalidJoint;
 }
 
-const vector<Linkage::Joint*>& Robot::const_joints() const { return joints_; }
+const vector<Joint*>& Robot::const_joints() const { return joints_; }
 
-vector<Linkage::Joint*>& Robot::joints() { return joints_; }
+vector<Joint*>& Robot::joints() { return joints_; }
 
 VectorXd Robot::values() const
 {
@@ -202,9 +202,9 @@ void Robot::values(const vector<size_t>& jointIndices, const VectorXd& jointValu
         updateFrames();
     }
     else
-        cerr << "Invalid number of joint values: " << jointIndices.size()
-             << "\n\t This should be equal to " << jointValues.size()
-             << "\n\t See line (" << __LINE__-8 << ") of Robot.cpp"
+        cerr << "Invalid number of joint values: " << jointValues.size()
+             << "\n\t This should be equal to " << jointIndices.size()
+             << "\n\t See line (" << __LINE__-9 << ") of Robot.cpp"
              << endl;
 }
 
@@ -224,7 +224,7 @@ Isometry3d Robot::respectToWorld() const
     return respectToWorld_;
 }
 
-void Robot::jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const
+void Robot::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const
 { // location should be specified in respect to robot coordinates
     size_t nCols = jointFrames.size();
     J.resize(6, nCols);
@@ -274,7 +274,7 @@ void Robot::printInfo() const
         }
     }
     cout << "Joints (ID, Name, Value): " << endl;
-    for (vector<Linkage::Joint*>::const_iterator jointIt = const_joints().begin();
+    for (vector<Joint*>::const_iterator jointIt = const_joints().begin();
          jointIt != const_joints().end(); ++jointIt) {
         cout << (*jointIt)->id() << ", " << (*jointIt)->name() << ", " << (*jointIt)->value() << endl;
     }

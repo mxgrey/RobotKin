@@ -67,9 +67,13 @@
 
 
 namespace RobotKin {
+
+    typedef Eigen::Isometry3d TRANSFORM;
     
     class Robot;
     class Linkage;
+    class Joint;
+    class Tool;
     
     //------------------------------------------------------------------------------
     // Typedefs
@@ -112,12 +116,17 @@ namespace RobotKin {
         FrameType frameType() const;
         std::string frameTypeString() const;
         
-        virtual const Eigen::Isometry3d& respectToFixed() const = 0;
-        virtual void respectToFixed(Eigen::Isometry3d aCoordinate) = 0;
+        virtual const TRANSFORM& respectToFixed() const = 0;
+        virtual void respectToFixed(TRANSFORM aCoordinate) = 0;
         
-        virtual Eigen::Isometry3d respectToWorld() const = 0;
+        virtual TRANSFORM respectToWorld() const = 0;
 
-        Eigen::Isometry3d respectTo(const Frame* aFrame) const;
+        TRANSFORM respectTo(const Frame* aFrame) const;
+        TRANSFORM withRespectTo(const Frame &frame) const;
+        TRANSFORM withRespectTo(const Robot &robot) const;
+        TRANSFORM withRespectTo(const Linkage &linkage) const;
+        TRANSFORM withRespectTo(const Joint &joint) const;
+        TRANSFORM withRespectTo(const Tool &tool) const;
         
         virtual void printInfo() const;
         
@@ -126,7 +135,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Frame Constructor
         //--------------------------------------------------------------------------
-        Frame(Eigen::Isometry3d respectToFixed = Eigen::Isometry3d::Identity(),
+        Frame(TRANSFORM respectToFixed = TRANSFORM::Identity(),
               std::string name = "",
               size_t id = 0,
               FrameType frameType = UNKNOWN);
@@ -137,7 +146,7 @@ namespace RobotKin {
         std::string name_;
         size_t id_;
         FrameType frameType_;
-        Eigen::Isometry3d respectToFixed_; // Coordinates with respect to some fixed frame in nominal position
+        TRANSFORM respectToFixed_; // Coordinates with respect to some fixed frame in nominal position
 
         Robot* robot_;
         Linkage* linkage_;

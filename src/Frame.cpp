@@ -111,6 +111,11 @@ Isometry3d Frame::respectTo(const Frame* aFrame) const
     return aFrame->respectToWorld().inverse() * respectToWorld();
 }
 
+Isometry3d Frame::withRespectTo(const Frame &frame) const { return respectTo(&frame); }
+Isometry3d Frame::withRespectTo(const Robot &robot) const { return respectTo(&robot); }
+Isometry3d Frame::withRespectTo(const Linkage &linkage) const { return respectTo(&linkage); }
+Isometry3d Frame::withRespectTo(const Joint &joint) const { return respectTo(&joint); }
+
 void Frame::printInfo() const
 {
     cout << frameTypeString() << " Frame Info: " << name() << " (ID: " << id() << ")" << endl;

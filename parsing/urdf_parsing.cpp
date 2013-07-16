@@ -172,12 +172,12 @@ bool RobotKinURDF::addURDFJoint(RobotKin::Linkage &linkage, boost::shared_ptr<ur
 
     if(ujoint->limits)
     {
-        RobotKin::Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis, ujoint->limits->lower, ujoint->limits->upper);
+        RobotKin::Joint joint(transform, ujoint->name, 0, jt, jointAxis, ujoint->limits->lower, ujoint->limits->upper);
         linkage.addJoint(joint);
     }
     else
     {
-        RobotKin::Linkage::Joint joint(transform, ujoint->name, 0, jt, jointAxis);
+        RobotKin::Joint joint(transform, ujoint->name, 0, jt, jointAxis);
         linkage.addJoint(joint);
     }
 

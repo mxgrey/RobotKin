@@ -90,19 +90,19 @@ namespace RobotKin {
         PRISMATIC
     };
     
-    
-    class Linkage : public Frame
+    class Joint : public Frame
     {
-        //--------------------------------------------------------------------------
-        // Linkage Friends
-        //--------------------------------------------------------------------------
-        friend class Joint;
-        friend class Tool;
+
+        //----------------------------------------------------------------------
+        // Joint Friends
+        //----------------------------------------------------------------------
+        friend class Linkage;
         friend class Robot;
-        
+        friend class Link;
+
     public:
         //--------------------------------------------------------------------------
-        // Linkage Nested Classes
+        // Link Nested Class
         //--------------------------------------------------------------------------
         class Link
         {
@@ -129,162 +129,171 @@ namespace RobotKin {
             Vector3d com_;
             Matrix3d tensor_;
 
-        };
-        class Joint : public Frame
-        {
-            
-            //----------------------------------------------------------------------
-            // Joint Friends
-            //----------------------------------------------------------------------
-            friend class Linkage;
-            friend class Robot;
-            friend class Link;
-            
-        public:
-            
-            //----------------------------------------------------------------------
-            // Joint Lifecycle
-            //----------------------------------------------------------------------
-            // Constructors
-            Joint(Isometry3d respectToFixed = Isometry3d::Identity(),
-                  string name = "",
-                  size_t id = 0,
-                  JointType jointType = REVOLUTE,
-                  Vector3d axis=Eigen::Vector3d::UnitZ(),
-                  double minValue = -M_PI,
-                  double maxValue = M_PI);
-            Joint(const Joint& joint);
-            
-            // Destructor
-            virtual ~Joint();
-            
-            //----------------------------------------------------------------------
-            // Joint Overloaded Operators
-            //----------------------------------------------------------------------
-            // Assignment operator
-            const Linkage::Joint& operator=(const double value);
-            Linkage::Joint& operator=(const Linkage::Joint& joint); // TODO: Test this
-            
-            //----------------------------------------------------------------------
-            // Joint Public Member Functions
-            //----------------------------------------------------------------------
-            double value() const;
-            void value(double value);
+        }; // Class Link
 
-            void setJointAxis(Eigen::Vector3d axis);
-            
-            const Isometry3d& respectToFixed() const;
-            void respectToFixed(Isometry3d aCoordinate);
-            
-            const Isometry3d& respectToFixedTransformed() const;
-            
-            const Isometry3d& respectToLinkage() const;
-            
-            Isometry3d respectToRobot() const;
-            
-            Isometry3d respectToWorld() const;
 
-            size_t getLinkageID();
-            string getLinkageName();
+        //----------------------------------------------------------------------
+        // Joint Lifecycle
+        //----------------------------------------------------------------------
+        // Constructors
+        Joint(Isometry3d respectToFixed = Isometry3d::Identity(),
+              string name = "",
+              size_t id = 0,
+              JointType jointType = REVOLUTE,
+              Vector3d axis=Eigen::Vector3d::UnitZ(),
+              double minValue = -M_PI,
+              double maxValue = M_PI);
+        Joint(const Joint& joint);
 
-            size_t getRobotID();
-            string getRobotName();
+        // Destructor
+        virtual ~Joint();
+
+        //----------------------------------------------------------------------
+        // Joint Overloaded Operators
+        //----------------------------------------------------------------------
+        // Assignment operator
+        const Joint& operator=(const double value);
+        Joint& operator=(const Joint& joint); // TODO: Test this
+
+        //----------------------------------------------------------------------
+        // Joint Public Member Functions
+        //----------------------------------------------------------------------
+        double value() const;
+        void value(double newValue);
+
+        double min() const;
+        double max() const;
+        void min(double newMin);
+        void max(double newMax);
+
+        void setJointAxis(Eigen::Vector3d axis);
+
+        const Isometry3d& respectToFixed() const;
+        void respectToFixed(Isometry3d aCoordinate);
+
+        const Isometry3d& respectToFixedTransformed() const;
+
+        const Isometry3d& respectToLinkage() const;
+
+        Isometry3d respectToRobot() const;
+
+        Isometry3d respectToWorld() const;
+
+        size_t getLinkageID();
+        string getLinkageName();
+
+        size_t getRobotID();
+        string getRobotName();
 
 //            size_t getParentJointID();
 //            string getParentJointName();
-            
-            void printInfo() const; 
-            
-        protected:
-            //----------------------------------------------------------------------
-            // Joint Protected Member Variables
-            //----------------------------------------------------------------------
-            double value_; // Current joint value (R type = joint angle, P type = joint length)
 
-            const Linkage* linkage() const;
+        void printInfo() const;
 
-            const Robot* parentRobot() const;
-            
-        private:
-            //----------------------------------------------------------------------
-            // Joint Private Member Variables
-            //----------------------------------------------------------------------
-            JointType jointType_; // Type of joint (REVOLUTE or PRISMATIC)
-            double min_; // Minimum joint value
-            double max_; // Maximum joint value
-            Vector3d jointAxis_;
-            Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
-            Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
+    protected:
+        //----------------------------------------------------------------------
+        // Joint Protected Member Variables
+        //----------------------------------------------------------------------
+        double value_; // Current joint value (R type = joint angle, P type = joint length)
+
+        const Linkage* linkage() const;
+
+        const Robot* parentRobot() const;
+
+    private:
+        //----------------------------------------------------------------------
+        // Joint Private Member Variables
+        //----------------------------------------------------------------------
+        JointType jointType_; // Type of joint (REVOLUTE or PRISMATIC)
+        double min_; // Minimum joint value
+        double max_; // Maximum joint value
+        Vector3d jointAxis_;
+        Isometry3d respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
+        Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
 
 
-            
-        }; // class Joint
+
+    }; // class Joint
+
+    class Tool : public Frame
+    {
+
+        //----------------------------------------------------------------------
+        // Tool Friends
+        //----------------------------------------------------------------------
+        friend class Linkage;
+        friend class Robot;
+        friend class Frame;
+
+    public:
+        //----------------------------------------------------------------------
+        // Tool Lifecycle
+        //----------------------------------------------------------------------
+        // Constructors
+        Tool(const Tool& tool);
+        Tool(Isometry3d respectToFixed = Isometry3d::Identity(),
+             string name = "",
+             size_t id = 0);
+
+        // Destructor
+        virtual ~Tool();
+
+        //----------------------------------------------------------------------
+        // Tool Public Member Functions
+        //----------------------------------------------------------------------
+        Tool& operator =(const Tool& tool);
+
+        const Isometry3d& respectToFixed() const;
+        void respectToFixed(Isometry3d aCoordinate);
+
+        const Isometry3d& respectToLinkage() const;
+
+        Isometry3d respectToRobot() const;
+
+        Isometry3d respectToWorld() const;
+
+        void printInfo() const;
+
+        static Tool Identity();
+
+        size_t getRobotID();
+        string getRobotName();
+
+        size_t getLinkageID();
+        string getLinkageName();
+
+        size_t getParentJointID();
+        string getParentJointName();
+
+
+    protected:
+
+        const Linkage* parentLinkage() const;
+
+        const Robot* parentRobot() const;
+
+
+    private:
+        //----------------------------------------------------------------------
+        // Tool Private Member Variables
+        //----------------------------------------------------------------------
+        Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
+
+    }; // class Tool
+
+    
+    class Linkage : public Frame
+    {
+        //--------------------------------------------------------------------------
+        // Linkage Friends
+        //--------------------------------------------------------------------------
+        friend class Joint;
+        friend class Tool;
+        friend class Robot;
         
-        class Tool : public Frame
-        {
-            
-            //----------------------------------------------------------------------
-            // Tool Friends
-            //----------------------------------------------------------------------
-            friend class Linkage;
-            friend class Robot;
-            friend class Frame;
-            
-        public:
-            //----------------------------------------------------------------------
-            // Tool Lifecycle
-            //----------------------------------------------------------------------
-            // Constructors
-            Tool(const Tool& tool);
-            Tool(Isometry3d respectToFixed = Isometry3d::Identity(),
-                 string name = "",
-                 size_t id = 0);
-            
-            // Destructor
-            virtual ~Tool();
-            
-            //----------------------------------------------------------------------
-            // Tool Public Member Functions
-            //----------------------------------------------------------------------
-            Tool& operator =(const Tool& tool);
-
-            const Isometry3d& respectToFixed() const;
-            void respectToFixed(Isometry3d aCoordinate);
-            
-            const Isometry3d& respectToLinkage() const;
-            
-            Isometry3d respectToRobot() const;
-            
-            Isometry3d respectToWorld() const;
-            
-            void printInfo() const;
-            
-            static Linkage::Tool Identity();
-
-            size_t getRobotID();
-            string getRobotName();
-
-            size_t getLinkageID();
-            string getLinkageName();
-
-            size_t getParentJointID();
-            string getParentJointName();
+    public:
 
 
-        protected:
-
-            const Linkage* parentLinkage() const;
-
-            const Robot* parentRobot() const;
-            
-            
-        private:
-            //----------------------------------------------------------------------
-            // Tool Private Member Variables
-            //----------------------------------------------------------------------
-            Isometry3d respectToLinkage_; // Coordinates with respect to linkage base frame
-            
-        }; // class Tool
         
         
         //--------------------------------------------------------------------------
@@ -296,13 +305,13 @@ namespace RobotKin {
         Linkage(Isometry3d respectToFixed, string name, size_t id);
         Linkage(Isometry3d respectToFixed,
                 string name, size_t id,
-                Linkage::Joint joint,
-                Linkage::Tool tool = Linkage::Tool::Identity());
+                Joint joint,
+                Tool tool = Tool::Identity());
         Linkage(Isometry3d respectToFixed,
                 string name,
                 size_t id,
-                vector<Linkage::Joint> joints,
-                Linkage::Tool tool = Linkage::Tool::Identity());
+                vector<Joint> joints,
+                Tool tool = Tool::Identity());
         
         // Destructor
         virtual ~Linkage();
@@ -328,25 +337,25 @@ namespace RobotKin {
         void setJointValue(string jointName, double val);
         
         size_t nJoints() const;
-        const Linkage::Joint& const_joint(size_t jointIndex) const;
-        const Linkage::Joint& const_joint(string jointName) const;
+        const Joint& const_joint(size_t jointIndex) const;
+        const Joint& const_joint(string jointName) const;
         
-        Linkage::Joint& joint(size_t jointIndex);
-        Linkage::Joint& joint(string jointName);
+        Joint& joint(size_t jointIndex);
+        Joint& joint(string jointName);
         
-        const vector<Linkage::Joint*>& const_joints() const;
-        vector<Linkage::Joint*>& joints();
+        const vector<Joint*>& const_joints() const;
+        vector<Joint*>& joints();
 
-        void addJoint(Linkage::Joint newJoint); // TODO
-        void insertJoint(Linkage::Joint newJoint, size_t jointIndex); // TODO
+        void addJoint(Joint newJoint); // TODO
+        void insertJoint(Joint newJoint, size_t jointIndex); // TODO
 
-        void setTool(Linkage::Tool newTool);        
+        void setTool(Tool newTool);
 //        void addTool(Linkage::Tool newTool); // TODO
 //        void chooseTool(size_t toolIndex); // TODO
 //        void chooseTool(string toolName); // TODO
         
-        const Linkage::Tool& const_tool() const;
-        Linkage::Tool& tool();
+        const Tool& const_tool() const;
+        Tool& tool();
         
         VectorXd values() const;
         bool values(const VectorXd &someValues);
@@ -358,7 +367,7 @@ namespace RobotKin {
         
         Isometry3d respectToWorld() const;
         
-        void jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
+        void jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
         
         void printInfo() const;
         
@@ -385,8 +394,8 @@ namespace RobotKin {
         Isometry3d respectToRobot_; // Coordinates with respect to robot base frame
         Linkage* parentLinkage_;
         vector<Linkage*> childLinkages_;
-        vector<Linkage::Joint*> joints_;
-        Linkage::Tool tool_;
+        vector<Joint*> joints_;
+        Tool tool_;
         // TODO: Consider allowing multiple switchable tools
         //vector<Linkage::Tool> tools_;
 //        size_t activeTool_;
@@ -398,7 +407,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Linkage Public Member Functions
         //--------------------------------------------------------------------------
-        void initialize(vector<Linkage::Joint> joints, Linkage::Tool tool);
+        void initialize(vector<Joint> joints, Tool tool);
         void updateFrames();
         void updateChildLinkage();
         static bool defaultAnalyticalIK(VectorXd& q, const Isometry3d& B, const VectorXd& qPrev);

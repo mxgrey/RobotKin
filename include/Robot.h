@@ -164,18 +164,18 @@ namespace RobotKin {
         size_t nJoints() const;
         size_t jointIndex(string jointName) const;
 
-        const Linkage::Joint& const_joint(size_t jointIndex) const;
-        const Linkage::Joint& const_joint(string jointName) const;
+        const Joint& const_joint(size_t jointIndex) const;
+        const Joint& const_joint(string jointName) const;
 
-        Linkage::Joint& joint(size_t jointIndex);
-        Linkage::Joint& joint(string jointName);
+        Joint& joint(size_t jointIndex);
+        Joint& joint(string jointName);
 
         // Convenience function
         void setJointValue(size_t jointIndex, double val);
         void setJointValue(string jointName, double val);
         
-        const vector<Linkage::Joint*>& const_joints() const;
-        vector<Linkage::Joint*>& joints();
+        const vector<Joint*>& const_joints() const;
+        vector<Joint*>& joints();
         
         VectorXd values() const;
         void values(const VectorXd& someValues);
@@ -186,7 +186,7 @@ namespace RobotKin {
         
         Isometry3d respectToWorld() const;
         
-        void jacobian(MatrixXd& J, const vector<Linkage::Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
+        void jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, Vector3d location, const Frame* refFrame) const;
         
         void updateFrames();
         void printInfo() const;
@@ -246,7 +246,7 @@ namespace RobotKin {
         Isometry3d respectToWorld_; // Coordinates with respect to robot base frame
         vector<Linkage*> linkages_;
         map<string, size_t> linkageNameToIndex_;
-        vector<Linkage::Joint*> joints_;
+        vector<Joint*> joints_;
         map<string, size_t> jointNameToIndex_;
         
         

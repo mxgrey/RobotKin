@@ -240,7 +240,7 @@ Linkage Hubo::initializeTorso()
     0.0,  0.0,  0.0,  1.0;
     jointFrame = T;
     
-    Linkage::Joint joint(jointFrame, "TOR");
+    Joint joint(jointFrame, "TOR");
     
     Linkage torso(Isometry3d::Identity(), "TORSO", 0, joint);
     
@@ -258,7 +258,7 @@ Linkage Hubo::initializeLeftArm()
     vector<string> jointNames;
     jointNames.resize(nJoints);
     
-    vector<Linkage::Joint> joints;
+    vector<Joint> joints;
     joints.resize(nJoints);
     
     
@@ -322,7 +322,7 @@ Linkage Hubo::initializeLeftArm()
     0.0,  0.0,  0.0,  1.0;
     
     Isometry3d toolFrame(T);
-    Linkage::Tool tool(toolFrame, "LEFT_HAND");
+    Tool tool(toolFrame, "LEFT_HAND");
     
     Linkage leftArm(Isometry3d::Identity(), "LEFT_ARM", 0, joints, tool);
     
@@ -340,7 +340,7 @@ Linkage Hubo::initializeRightArm()
     vector<string> jointNames;
     jointNames.resize(nJoints);
     
-    vector<Linkage::Joint> joints;
+    vector<Joint> joints;
     joints.resize(nJoints);
     
     
@@ -404,7 +404,7 @@ Linkage Hubo::initializeRightArm()
     0.0,  0.0,  0.0,  1.0;
     
     Isometry3d toolFrame(T);
-    Linkage::Tool tool(toolFrame, "RIGHT_HAND");
+    Tool tool(toolFrame, "RIGHT_HAND");
     
     Linkage rightArm(Isometry3d::Identity(), "RIGHT_ARM", 0, joints, tool);
     
@@ -422,7 +422,7 @@ Linkage Hubo::initializeLeftLeg()
     vector<string> jointNames;
     jointNames.resize(nJoints);
     
-    vector<Linkage::Joint> joints;
+    vector<Joint> joints;
     joints.resize(nJoints);
     
     
@@ -486,7 +486,7 @@ Linkage Hubo::initializeLeftLeg()
     0.0,  0.0,  0.0,  1.0;
     
     Isometry3d toolFrame(T);
-    Linkage::Tool tool(toolFrame, "LEFT_FOOT");
+    Tool tool(toolFrame, "LEFT_FOOT");
     
     Linkage leftLeg(Isometry3d::Identity(), "LEFT_LEG", 0, joints, tool);
     
@@ -504,7 +504,7 @@ Linkage Hubo::initializeRightLeg()
     vector<string> jointNames;
     jointNames.resize(nJoints);
     
-    vector<Linkage::Joint> joints;
+    vector<Joint> joints;
     joints.resize(nJoints);
     
     
@@ -568,7 +568,7 @@ Linkage Hubo::initializeRightLeg()
     0.0,  0.0,  0.0,  1.0;
     
     Isometry3d toolFrame(T);
-    Linkage::Tool tool(toolFrame, "RIGHT_FOOT");
+    Tool tool(toolFrame, "RIGHT_FOOT");
     
     Linkage rightLeg(Isometry3d::Identity(), "RIGHT_LEG", 0, joints, tool);
     
