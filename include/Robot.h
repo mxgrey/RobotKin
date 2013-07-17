@@ -82,6 +82,19 @@ namespace RobotKin {
         RK_TYPE_SIZE
     } rk_result_t;
 
+    static const char *rk_result_string[RK_TYPE_SIZE] =
+    {
+        "RK_SOLVED",
+        "RK_CONVERGED", // TODO: Is this really any different than RK_SOLVED?
+        "RK_DIVERGED",
+        "RK_NO_SOLUTION",
+        "RK_INVALID_JOINT",
+        "RK_INVALID_LINKAGE",
+
+        "RK_SOLVER_NOT_READY"
+    };
+
+    std::string rk_result_to_string(rk_result_t result);
     
     //------------------------------------------------------------------------------
     // Typedefs

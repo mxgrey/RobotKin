@@ -542,6 +542,10 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
     } while(err.norm() > tolerance && iterations < maxIterations);
 
+    if(iterations < maxIterations)
+        return RK_SOLVED;
+    else
+        return RK_DIVERGED;
 }
 
 rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
@@ -566,6 +570,9 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, 
 rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
                                                 const TRANSFORM &target, const TRANSFORM &finalTF)
 {
+    if(linkage(linkageName).name().compare("invalid")==0)
+        return RK_INVALID_LINKAGE;
+
     vector<size_t> jointIndices;
     jointIndices.resize(linkage(linkageName).joints_.size());
     for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)

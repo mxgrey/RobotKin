@@ -26,6 +26,14 @@ using namespace Eigen;
 using namespace RobotKin;
 
 
+string RobotKin::rk_result_to_string(rk_result_t result)
+{
+    if( 0 <= result && result < RK_TYPE_SIZE)
+        return rk_result_string[result];
+    else
+        return "Unknown Result";
+}
+
 //------------------------------------------------------------------------------
 // Robot Lifecycle
 //------------------------------------------------------------------------------
