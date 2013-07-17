@@ -46,6 +46,8 @@ Joint& Joint::operator =( const Joint& joint )
     max_ = joint.max_;
 
     value(joint.value_);
+
+    link = joint.link;
 }
 
 Joint::Joint(const Joint &joint)
@@ -54,7 +56,8 @@ Joint::Joint(const Joint &joint)
       jointType_(joint.jointType_),
       jointAxis_(joint.jointAxis_),
       min_(joint.min_),
-      max_(joint.max_)
+      max_(joint.max_),
+      link(joint.link)
 {
     value(joint.value_);
 }
@@ -83,6 +86,63 @@ Joint::~Joint()
 {
 
 }
+
+Link::Link()
+    : mass_(0),
+      com_(TRANSLATION::Zero()),
+      tensor_(Eigen::Matrix3d::Zero()),
+      massProvided(false),
+      tensorProvided(false)
+{
+
+}
+
+Link::Link(double newMass, TRANSLATION newCom)
+    : mass_(newMass),
+      com_(newCom),
+      massProvided(true),
+      tensor_(Eigen::Matrix3d::Zero()),
+      tensorProvided(false)
+{
+
+}
+
+Link::Link(double newMass, TRANSLATION newCom, Eigen::Matrix3d newInertiaTensor)
+    : mass_(newMass),
+      com_(newCom),
+      massProvided(true),
+      tensor_(newInertiaTensor),
+      tensorProvided(true)
+{
+
+}
+
+void Link::setMass(double newMass, TRANSLATION newCom)
+{
+    mass_ = newMass;
+    com_ = newCom;
+    massProvided = true;
+}
+
+double Link::mass() const { return mass_; }
+
+const TRANSLATION& Link::centerOfMass() const { return com_; }
+const TRANSLATION& Link::const_com() const { return com_; }
+TRANSLATION& Link::com() { return com_; }
+
+const Eigen::Matrix3d& Link::const_tensor() const { return tensor_; }
+Eigen::Matrix3d& Link::tensor() { return tensor_; }
+
+void Link::setInertiaTensor(Eigen::Matrix3d newInertiaTensor)
+{
+    tensor_ = newInertiaTensor;
+    tensorProvided = true;
+}
+
+
+bool Link::hasMass() const { return massProvided; }
+bool Link::hasTensor() const { return tensorProvided; }
+
 
 // Joint Overloaded Operators
 const Joint& Joint::operator=(const double aValue)
@@ -186,6 +246,14 @@ const Linkage* Joint::linkage() const
     return linkage_;
 }
 
+void Link::printInfo() const
+{
+    TRANSLATION tempCom = com_;
+    cout << "Mass: " << mass() << "\tCenter of Mass: " << tempCom.transpose() << endl;
+    cout << "Inertia Tensor:" << endl;
+    cout << const_tensor() << endl << endl;
+}
+
 void Joint::printInfo() const
 {
     cout << frameTypeString() << " Info: " << name() << " (ID: " << id()  << "), Joint Type:"
@@ -201,6 +269,8 @@ void Joint::printInfo() const
     cout << respectToRobot().matrix() << endl << endl;
     cout << "Respect to world frame:" << endl;
     cout << respectToWorld().matrix() << endl << endl;
+    cout << "Child Link mass properties:" << endl;
+    link.printInfo();
 }
 
 
@@ -212,12 +282,15 @@ Tool& Tool::operator =(const Tool& tool)
 
     name_ = tool.name_;
     frameType_ = tool.frameType_;
+
+    massProperties = tool.massProperties;
 }
 
 
 Tool::Tool(const Tool &tool)
     : Frame::Frame(tool.respectToFixed_, tool.name_, tool.id_, TOOL),
-      respectToLinkage_(tool.respectToLinkage_)
+      respectToLinkage_(tool.respectToLinkage_),
+      massProperties(tool.massProperties)
 {
 
 }

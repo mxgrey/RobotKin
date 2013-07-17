@@ -86,6 +86,48 @@ namespace RobotKin {
         REVOLUTE,
         PRISMATIC
     };
+
+    class Link
+    {
+        friend class Robot;
+        friend class Linkage;
+        friend class Joint;
+
+    public:
+        //----------------------------------------------------------------------
+        // Link Lifecycle
+        //----------------------------------------------------------------------
+        // Constructors
+        Link(); // TODO
+        Link(double newMass, TRANSLATION newCom); // TODO
+        Link(double newMass, TRANSLATION newCom, Eigen::Matrix3d newInertiaTensor); // TODO
+
+        double mass() const;
+        const TRANSLATION& centerOfMass() const;
+        const TRANSLATION& const_com() const;
+        TRANSLATION& com();
+        const Eigen::Matrix3d& const_tensor() const;
+        Eigen::Matrix3d& tensor();
+
+
+        void setMass(double newMass, TRANSLATION newCom); // TODO
+        void setInertiaTensor(Eigen::Matrix3d newInertiaTensor); // TODO
+
+        bool hasMass() const;
+        bool hasTensor() const;
+
+        void printInfo() const;
+
+    protected:
+        bool massProvided;
+        bool tensorProvided;
+
+        double mass_;
+        TRANSLATION com_;
+        Eigen::Matrix3d tensor_;
+
+    }; // Class Link
+
     
     class Joint : public Frame
     {
@@ -98,36 +140,6 @@ namespace RobotKin {
         friend class Link;
 
     public:
-        //--------------------------------------------------------------------------
-        // Link Nested Class
-        //--------------------------------------------------------------------------
-        class Link
-        {
-            friend class Linkage;
-            friend class Joint;
-
-        public:
-            //----------------------------------------------------------------------
-            // Link Lifecycle
-            //----------------------------------------------------------------------
-            // Constructors
-            Link(); // TODO
-            Link(double mass, TRANSLATION com, std::string name = ""); // TODO
-            Link(double mass, TRANSLATION com, Eigen::Matrix3d inertiaTensor, std::string name = ""); // TODO
-
-            void setMass(double mass, TRANSLATION com); // TODO
-            void setInertiaTensor(Eigen::Matrix3d inertiaTensor); // TODO
-
-        protected:
-            bool massProvided;
-            bool tensorProvided;
-
-            double mass_;
-            TRANSLATION com_;
-            Eigen::Matrix3d tensor_;
-
-        }; // Class Link
-
 
         //----------------------------------------------------------------------
         // Joint Lifecycle
@@ -145,6 +157,7 @@ namespace RobotKin {
         // Destructor
         virtual ~Joint();
 
+        Link link;
         //----------------------------------------------------------------------
         // Joint Overloaded Operators
         //----------------------------------------------------------------------
@@ -192,6 +205,7 @@ namespace RobotKin {
         // Joint Protected Member Variables
         //----------------------------------------------------------------------
         double value_; // Current joint value (R type = joint angle, P type = joint length)
+
 
         const Linkage* linkage() const;
 
@@ -268,6 +282,7 @@ namespace RobotKin {
 
         const Robot* parentRobot() const;
 
+        Link massProperties;
 
     private:
         //----------------------------------------------------------------------

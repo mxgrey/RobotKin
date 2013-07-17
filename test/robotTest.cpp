@@ -403,6 +403,8 @@ void tutorial()
 
     Robot parseTest("../urdf/drchubo.urdf");
 
+    parseTest.linkage("Body_RSP").printInfo();
+
 //    cout << "print info on joint Body_LHY" << endl;
 //    parseTest.linkage("Body_LHY").printInfo();
 
@@ -417,47 +419,47 @@ void tutorial()
 
 //    parseTest.updateFrames();
 
-    vector<string> jointNames;
-    jointNames.push_back("RSP");
-    jointNames.push_back("RSR");
-    jointNames.push_back("RSY");
-    jointNames.push_back("REP");
-    jointNames.push_back("RWY");
-    jointNames.push_back("RWP");
-    jointNames.push_back("RWR");
+//    vector<string> jointNames;
+//    jointNames.push_back("RSP");
+//    jointNames.push_back("RSR");
+//    jointNames.push_back("RSY");
+//    jointNames.push_back("REP");
+//    jointNames.push_back("RWY");
+//    jointNames.push_back("RWP");
+//    jointNames.push_back("RWR");
 
 
-    VectorXd jointVals;
-    jointVals.resize(jointNames.size());
-    jointVals.setZero();
+//    VectorXd jointVals;
+//    jointVals.resize(jointNames.size());
+//    jointVals.setZero();
 
 ////    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, TRANSFORM::Identity());
 
-    TRANSFORM target(TRANSFORM::Identity());
-    target.translate(Vector3d(0.1, -0.1, 0));
-    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
-    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
+//    TRANSFORM target(TRANSFORM::Identity());
+//    target.translate(Vector3d(0.1, -0.1, 0));
+//    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
+//    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
 
 ////    parseTest.setJointValue("REP", M_PI/2);
 //    TRANSFORM target = parseTest.linkage("Body_RSP").tool().respectToRobot();
-    cout << "Target:" << endl << target.matrix() << endl;
+//    cout << "Target:" << endl << target.matrix() << endl;
 
 //    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
 //    cout << "End:" << endl << parseTest.linkage("Body_RSP").tool().respectToRobot().matrix() << endl;
 
-    parseTest.linkage("Body_RSP").name("RightArm");
+//    parseTest.linkage("Body_RSP").name("RightArm");
 //    parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
 //    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
 
 
 
-    TRANSFORM start = parseTest.linkage("RightArm").tool().respectToRobot();
-    cout << "Start:" << endl << start.matrix() << endl;
+//    TRANSFORM start = parseTest.linkage("RightArm").tool().respectToRobot();
+//    cout << "Start:" << endl << start.matrix() << endl;
 
 //    cout << "Target:" << endl << target.matrix() << endl;
 
-    rk_result_t result = parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
-    std::cout << rk_result_to_string(result) << std::endl;
+//    rk_result_t result = parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
+//    std::cout << rk_result_to_string(result) << std::endl;
 
 
 //    clock_t time;
@@ -477,7 +479,7 @@ void tutorial()
 //    cout << (endTime - time)/((double)CLOCKS_PER_SEC/count/2+1) << " : " <<
 //            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
 
-    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
+//    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
 
 
 
