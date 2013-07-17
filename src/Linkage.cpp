@@ -321,6 +321,7 @@ const TRANSFORM& Tool::respectToLinkage() const
     return respectToLinkage_;
 }
 
+
 TRANSFORM Tool::respectToRobot() const
 {
     if(hasLinkage)

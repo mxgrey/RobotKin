@@ -187,6 +187,8 @@ namespace RobotKin {
 
         const TRANSFORM& respectToLinkage() const;
 
+
+
         TRANSFORM respectToRobot() const;
 
         TRANSFORM respectToWorld() const;
