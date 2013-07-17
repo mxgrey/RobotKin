@@ -19,6 +19,7 @@ bool exploreLink(RobotKin::Robot& robot, boost::shared_ptr<urdf::ModelInterface>
                  boost::shared_ptr<urdf::Link> link, int id, int pID);
 bool addURDFJoint(RobotKin::Linkage& linkage, boost::shared_ptr<urdf::ModelInterface> model,
                   boost::shared_ptr<urdf::Joint> ujoint);
+bool parseURDFLink(RobotKin::Link& link, boost::shared_ptr<urdf::Link> ulink);
 //int findRoot(urdf::ModelInterface model);
 
 }
@@ -60,36 +61,41 @@ bool RobotKinURDF::loadURDF(RobotKin::Robot& robot, string filename)
     std::vector< boost::shared_ptr<urdf::Link> > links;
     model->getLinks( links );
 
+    // TODO: Have this print out in verbose mode
+//    std::cout << "The robot has "<< links.size() << " links:" << std::endl;
 
-    std::cout << "The robot has "<< links.size() << " links:" << std::endl;
+//    for( int i = 0; i < links.size(); ++i ) {
+//        std::cout << " Link [" << i << "]: "<< links[i]->name << std::endl;
+//        if( links[i]->child_joints.size() > 0 ) {
+//            std::cout << "\t -- with child joints: " << links[i]->child_joints[0]->name;
+//            for(size_t c=1; c<links[i]->child_joints.size(); c++)
+//                std::cout << ", " << links[i]->child_joints[c]->name;
+//            std::cout << std::endl;
+//        } else {
+//            std::cout << "\t -- with NO child joint. Probably this is an end link" << std::endl;
+//        }
 
-    for( int i = 0; i < links.size(); ++i ) {
-        std::cout << " Link [" << i << "]: "<< links[i]->name << std::endl;
-        if( links[i]->child_joints.size() > 0 ) {
-            std::cout << "\t -- with child joints: " << links[i]->child_joints[0]->name;
-            for(size_t c=1; c<links[i]->child_joints.size(); c++)
-                std::cout << ", " << links[i]->child_joints[c]->name;
-            std::cout << std::endl;
-        } else {
-            std::cout << "\t -- with NO child joint. Probably this is an end link" << std::endl;
-        }
-
-        if( links[i]->inertial ) {
-            std::cout << "\t -- with mass: "<< links[i]->inertial->mass << std::endl;
-            std::cout << "\t -- and inertia moments:"<< links[i]->inertial->ixx<<
-            ", "<<links[i]->inertial->ixy <<
-            ", "<<links[i]->inertial->ixz <<
-            ", "<<links[i]->inertial->iyy <<
-            ", "<<links[i]->inertial->iyz <<
-            ", "<<links[i]->inertial->izz <<std::endl;
-        }
-    }
+//        if( links[i]->inertial ) {
+//            std::cout << "\t -- with mass: "<< links[i]->inertial->mass << std::endl;
+//            std::cout << "\t -- and inertia moments:"<< links[i]->inertial->ixx<<
+//            ", "<<links[i]->inertial->ixy <<
+//            ", "<<links[i]->inertial->ixz <<
+//            ", "<<links[i]->inertial->iyy <<
+//            ", "<<links[i]->inertial->iyz <<
+//            ", "<<links[i]->inertial->izz <<std::endl;
+//        }
+//    }
 
 
     boost::shared_ptr<urdf::Link> rootLink = model->root_link_;
+    RobotKin::Link link;
+    parseURDFLink(link, rootLink);
+    robot.rootLink = link;
 
     if(robot.name().compare("")==0)
         robot.name(model->getName());
+
+
 
     return exploreLink(robot, model, rootLink, 0, -1);
 }
@@ -180,31 +186,12 @@ bool RobotKinURDF::addURDFJoint(RobotKin::Linkage &linkage, boost::shared_ptr<ur
     RobotKin::Link link;
     boost::shared_ptr<urdf::Link> childLink;
     model->getLink(ujoint->child_link_name, childLink);
-    cout << "Parsing " << childLink->name << ": (" << childLink->inertial->mass << ") "
-         << childLink->inertial->origin.position.x << ", "
-         << childLink->inertial->origin.position.y << ", "
-         << childLink->inertial->origin.position.z << endl;
-//    if(childLink->inertial)
-//    {
-        RobotKin::TRANSLATION com(childLink->inertial->origin.position.x,
-                        childLink->inertial->origin.position.y,
-                        childLink->inertial->origin.position.z);
-        link.setMass(childLink->inertial->mass, com);
-        Eigen::Matrix3d tensor;
-        tensor << childLink->inertial->ixx, childLink->inertial->ixy, childLink->inertial->ixz,
-                           childLink->inertial->ixy, childLink->inertial->iyy, childLink->inertial->iyz,
-                           childLink->inertial->ixz, childLink->inertial->iyz, childLink->inertial->izz;
-        link.setInertiaTensor(tensor);
-
-        link.printInfo();
-//    }
+    parseURDFLink(link, childLink);
 
     if(ujoint->limits)
     {
         RobotKin::Joint joint(transform, ujoint->name, 0, jt, jointAxis, ujoint->limits->lower, ujoint->limits->upper);
-//        joint.link = link;
-        joint.link.setMass(childLink->inertial->mass, com);
-        joint.link.setInertiaTensor(tensor);
+        joint.link = link;
         linkage.addJoint(joint);
     }
     else
@@ -215,5 +202,26 @@ bool RobotKinURDF::addURDFJoint(RobotKin::Linkage &linkage, boost::shared_ptr<ur
     }
 
 }
+
+
+bool RobotKinURDF::parseURDFLink(RobotKin::Link& link, boost::shared_ptr<urdf::Link> ulink)
+{
+    RobotKin::TRANSLATION com;
+    Eigen::Matrix3d tensor;
+    if(ulink->inertial)
+    {
+        com  << ulink->inertial->origin.position.x,
+                ulink->inertial->origin.position.y,
+                ulink->inertial->origin.position.z;
+        link.setMass(ulink->inertial->mass, com);
+
+        tensor  << ulink->inertial->ixx, ulink->inertial->ixy, ulink->inertial->ixz,
+                   ulink->inertial->ixy, ulink->inertial->iyy, ulink->inertial->iyz,
+                   ulink->inertial->ixz, ulink->inertial->iyz, ulink->inertial->izz;
+        link.setInertiaTensor(tensor);
+    }
+}
+
+
 
 #endif

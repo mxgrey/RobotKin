@@ -135,6 +135,7 @@ namespace RobotKin {
         // Destructor
         virtual ~Robot();
 
+        Link rootLink;
 
         double errorClamp;
         double deltaClamp;
@@ -246,6 +247,11 @@ namespace RobotKin {
         rk_result_t dampedLeastSquaresIK_linkage(const std::string linkageName, Eigen::VectorXd &jointValues,
                                             const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
+        /////////////////
+
+//        TRANSLATION centerOfMass();
+//        TRANSLATION centerOfMass(const std::vector<size_t> &jointIndices);
+//        TRANSLATION centerOfMass(const std::vector<size_t> &jointIndices, const std::vector<Tool> &tools);
 
     protected:
         //--------------------------------------------------------------------------

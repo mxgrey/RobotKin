@@ -285,6 +285,9 @@ void Robot::printInfo() const
 {
     Frame::printInfo();
     
+    cout << "Root Link mass properties:" << endl;
+    rootLink.printInfo();
+
     cout << "Linkages (ID, Name <- Parent): " << endl;
     for (vector<Linkage*>::const_iterator linkageIt = const_linkages().begin();
          linkageIt != const_linkages().end(); ++linkageIt) {

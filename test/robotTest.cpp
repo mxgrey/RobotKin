@@ -403,7 +403,8 @@ void tutorial()
 
     Robot parseTest("../urdf/drchubo.urdf");
 
-    parseTest.linkage("Body_RSP").printInfo();
+    parseTest.printInfo();
+//    parseTest.linkage("Body_RSP").printInfo();
 
 //    cout << "print info on joint Body_LHY" << endl;
 //    parseTest.linkage("Body_LHY").printInfo();
