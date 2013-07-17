@@ -126,7 +126,6 @@ void Link::setMass(double newMass, TRANSLATION newCom)
 
 double Link::mass() const { return mass_; }
 
-const TRANSLATION& Link::centerOfMass() const { return com_; }
 const TRANSLATION& Link::const_com() const { return com_; }
 TRANSLATION& Link::com() { return com_; }
 
@@ -618,6 +617,32 @@ Linkage* Linkage::parentLinkage() { return parentLinkage_; }
 
 size_t Linkage::nChildren() const { return childLinkages_.size(); }
 
+rk_result_t Linkage::jointNamesToIndices(const vector<string> &jointNames, vector<size_t> &jointIndices)
+{
+    jointIndices.resize(jointNames.size());
+    map<string,size_t>::iterator j;
+    for(int i=0; i<jointNames.size(); i++)
+    {
+        j = jointNameToIndex_.find(jointNames[i]);
+        if( j == jointNameToIndex_.end() )
+            return RK_INVALID_JOINT;
+        jointIndices[i] = j->second;
+    }
+
+    return RK_SOLVED;
+}
+
+size_t Linkage::jointNameToIndex(string jointName)
+{
+    map<string,size_t>::iterator j;
+    j = jointNameToIndex_.find(jointName);
+    if( j == jointNameToIndex_.end() )
+        return j->second;
+    else
+        // TODO: Decide if this is a good idea
+        return nJoints();
+}
+
 size_t Linkage::nJoints() const { return joints_.size(); }
 
 const Joint& Linkage::const_joint(size_t jointIndex) const
@@ -630,10 +655,26 @@ const Joint& Linkage::const_joint(string jointName) const { return *joints_[join
 Joint& Linkage::joint(size_t jointIndex)
 {
     // FIXME: Remove assert
-    assert(jointIndex < nJoints());
-    return *joints_[jointIndex];
+//    assert(jointIndex < nJoints());
+    if(jointIndex < nJoints())
+        return *joints_[jointIndex];
+
+    cerr << "Invalid joint index: (" << jointIndex << ")" << endl;
+    Joint* invalidJoint = new Joint;
+    invalidJoint->name("invalid");
+    return *invalidJoint;
 }
-Joint& Linkage::joint(string jointName) { return *joints_[jointNameToIndex_.at(jointName)]; }
+Joint& Linkage::joint(string jointName)
+{
+    map<string,size_t>::const_iterator j = jointNameToIndex_.find(jointName);
+    if( j != jointNameToIndex_.end() )
+        return *joints_.at(j->second);
+
+    cerr << "Invalid joint name: (" << jointName << ")" << endl;
+    Joint* invalidJoint = new Joint;
+    invalidJoint->name("invalid");
+    return *invalidJoint;
+}
 
 const vector<Joint*>& Linkage::const_joints() const { return joints_; }
 vector<Joint*>& Linkage::joints() { return joints_; }
@@ -853,7 +894,37 @@ bool Linkage::defaultAnalyticalIK(VectorXd& q, const TRANSFORM& B, const VectorX
 }
 
 
+// Mass returns
 
+TRANSLATION Joint::centerOfMass(FrameType withRespectTo)
+{
+    if(WORLD == withRespectTo)
+        return respectToWorld()*link.com();
+    else if(ROBOT == withRespectTo)
+        return respectToRobot()*link.com();
+    else if(LINKAGE == withRespectTo)
+        return respectToLinkage()*link.com();
 
+    cerr << "Invalid Frame type for center of mass calculation: "
+            << FrameType_to_string(withRespectTo) << endl;
+    return TRANSLATION::Zero();
+}
+double Joint::mass() { return link.mass(); }
+
+TRANSLATION Tool::centerOfMass(FrameType withRespectTo)
+{
+    if(WORLD == withRespectTo)
+        return respectToWorld()*massProperties.com();
+    else if(ROBOT == withRespectTo)
+        return respectToRobot()*massProperties.com();
+    else if(LINKAGE == withRespectTo)
+        return respectToLinkage()*massProperties.com();
+
+    cerr << "Invalid index type for center of mass calculation: "
+            << FrameType_to_string(withRespectTo) << endl;
+    return TRANSLATION::Zero();
+}
+
+double Tool::mass() { return massProperties.mass(); }
 
 

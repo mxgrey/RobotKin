@@ -70,6 +70,9 @@ namespace RobotKin {
 
     typedef Eigen::Isometry3d TRANSFORM;
     typedef Eigen::Vector3d   TRANSLATION;
+    // TODO: Consider making these classes that inherit their respective EigenC++ types
+    // That way I can make .respectTo() and other such useful member functions
+
     typedef Eigen::Vector3d   AXIS;
     
     class Robot;
@@ -86,10 +89,55 @@ namespace RobotKin {
         JOINT,
         TOOL,
         LINKAGE,
-        ROBOT
+        ROBOT,
+        WORLD,
+
+        FRAME_TYPE_SIZE
     };
     
+    static const char *FrameType_string[FRAME_TYPE_SIZE] =
+    {
+        "UNKNOWN",
+        "JOINT",
+        "TOOL",
+        "LINKAGE",
+        "ROBOT",
+        "WORLD"
+    };
+
+    std::string FrameType_to_string(FrameType type);
     
+
+    typedef enum {
+        RK_SOLVED = 0,
+        RK_DIVERGED,
+        RK_CONVERGED,
+        RK_NO_SOLUTION,
+        RK_INVALID_JOINT,
+        RK_INVALID_LINKAGE,
+        RK_INVALID_FRAME_TYPE,
+
+        RK_SOLVER_NOT_READY,
+
+
+        RK_TYPE_SIZE
+    } rk_result_t;
+
+    static const char *rk_result_string[RK_TYPE_SIZE] =
+    {
+        "RK_SOLVED",
+        "RK_DIVERGED",
+        "RK_CONVERGED", // TODO: Is this really any different than RK_SOLVED?
+        "RK_NO_SOLUTION",
+        "RK_INVALID_JOINT",
+        "RK_INVALID_LINKAGE",
+        "RK_INVALID_FRAME_TYPE"
+
+        "RK_SOLVER_NOT_READY"
+    };
+
+    std::string rk_result_to_string(rk_result_t result);
+
     
     class Frame
     {

@@ -69,33 +69,7 @@
 
 namespace RobotKin {
 
-    typedef enum {
-        RK_SOLVED = 0,
-        RK_CONVERGED,
-        RK_DIVERGED,
-        RK_NO_SOLUTION,
-        RK_INVALID_JOINT,
-        RK_INVALID_LINKAGE,
 
-        RK_SOLVER_NOT_READY,
-
-        RK_TYPE_SIZE
-    } rk_result_t;
-
-    static const char *rk_result_string[RK_TYPE_SIZE] =
-    {
-        "RK_SOLVED",
-        "RK_CONVERGED", // TODO: Is this really any different than RK_SOLVED?
-        "RK_DIVERGED",
-        "RK_NO_SOLUTION",
-        "RK_INVALID_JOINT",
-        "RK_INVALID_LINKAGE",
-
-        "RK_SOLVER_NOT_READY"
-    };
-
-    std::string rk_result_to_string(rk_result_t result);
-    
     //------------------------------------------------------------------------------
     // Typedefs
     //------------------------------------------------------------------------------
@@ -151,6 +125,12 @@ namespace RobotKin {
         size_t nLinkages() const;
         
         size_t linkageIndex(std::string linkageName) const;
+
+        rk_result_t jointNamesToIndices(const std::vector<std::string> &jointNames,
+                                        std::vector<size_t> &jointIndices);
+
+        rk_result_t linkageNamesToIndices(const std::vector<std::string> &linkageNames,
+                                          std::vector<size_t> &linkageIndices);
         
         // Getting individual linkages
         const Linkage& const_linkage(size_t linkageIndex) const;
@@ -248,10 +228,18 @@ namespace RobotKin {
                                             const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         /////////////////
+        TRANSLATION centerOfMass(FrameType withRespectTo=ROBOT); // Center of mass for entire robot + tools
+        double mass();              // Mass of entire robot + tools
+        TRANSLATION centerOfMass(const std::vector<size_t> &indices, FrameType typeOfIndex=JOINT, FrameType withRespectTo=WORLD);
+        //^ Type Of Indices can be Joint or Linkage
+        TRANSLATION centerOfMass(const std::vector<std::string> &names, FrameType typeOfIndex=JOINT, FrameType withRespectTo=WORLD);
+        //^ Type of Indices can be Joint or Linkage
+        double mass(const std::vector<size_t> &indices, FrameType typeOfIndex=JOINT);
+        //^ Type of Indices can be Joint or Linkage
+        double mass(const std::vector<std::string> &names, FrameType typeOfIndex=JOINT);
+        //^ Type of Indices can be Joint or Linkage
 
-//        TRANSLATION centerOfMass();
-//        TRANSLATION centerOfMass(const std::vector<size_t> &jointIndices);
-//        TRANSLATION centerOfMass(const std::vector<size_t> &jointIndices, const std::vector<Tool> &tools);
+
 
     protected:
         //--------------------------------------------------------------------------

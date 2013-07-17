@@ -401,9 +401,43 @@ void tutorial()
     cout << "-- Add methods to add and remove joints" << endl;
     */
 
-    Robot parseTest("../urdf/drchubo.urdf");
+    Robot parseTest("../urdf/drchubo-v2.urdf");
 
-    parseTest.printInfo();
+    cout << "Mass:" << parseTest.mass() << endl;
+
+    cout << "Center of Mass (home config): " << parseTest.centerOfMass().transpose() << endl;
+
+    parseTest.setJointValue("RKP", M_PI/2);
+    parseTest.setJointValue("LKP", M_PI/2);
+
+    cout << "Center of Mass (bent knees): " << parseTest.centerOfMass().transpose() << endl;
+
+    parseTest.setJointValue("LHP", -M_PI/2);
+    parseTest.setJointValue("RHP", -M_PI/2);
+
+    cout << "Center of Mass (sitting config): " << parseTest.centerOfMass().transpose() << endl;
+
+    parseTest.setJointValue("RKP", 0);
+    parseTest.setJointValue("LKP", 0);
+
+    cout << "Center of Mass (legs forward): " << parseTest.centerOfMass().transpose() << endl;
+
+    parseTest.setJointValue("LSR", M_PI/2);
+
+    cout << "Center of Mass (left shoulder rolled): " << parseTest.centerOfMass().transpose() << endl;
+
+
+    parseTest.setJointValue("RSR", -M_PI/2);
+
+    cout << "Center of Mass (both shoulders rolled): " << parseTest.centerOfMass().transpose() << endl;
+//    parseTest.setJointValue("LEP", -M_PI/2);
+//    parseTest.setJointValue("REP", -M_PI/2);
+
+//    cout << "Center of Mass (bend elbows up): " << parseTest.centerOfMass().transpose() << endl;
+
+
+//    parseTest.printInfo();
+
 //    parseTest.linkage("Body_RSP").printInfo();
 
 //    cout << "print info on joint Body_LHY" << endl;

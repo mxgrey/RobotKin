@@ -76,33 +76,26 @@ void Frame::name(string newName)
     name_ = newName;
 }
 
+string RobotKin::FrameType_to_string(FrameType type)
+{
+    if( 0 <= type && type < FRAME_TYPE_SIZE )
+        return FrameType_string[type];
+    else
+        return "Unknown Type";
+}
+
+string RobotKin::rk_result_to_string(rk_result_t result)
+{
+    if( 0 <= result && result < RK_TYPE_SIZE)
+        return rk_result_string[result];
+    else
+        return "Unknown Result";
+}
+
 FrameType Frame::frameType() const { return frameType_; }
 string Frame::frameTypeString() const
 {
-    switch (frameType_) {
-        case UNKNOWN:
-            return string("Unknown");
-            break;
-            
-        case JOINT:
-            return string("Joint");
-            break;
-            
-        case TOOL:
-            return string("Tool");
-            break;
-            
-        case LINKAGE:
-            return string("Linkage");
-            break;
-            
-        case ROBOT:
-            return string("Robot");
-            break;
-            
-        default:
-            break;
-    }
+    return FrameType_to_string(frameType_);
 }
 
 TRANSFORM Frame::respectTo(const Frame* aFrame) const

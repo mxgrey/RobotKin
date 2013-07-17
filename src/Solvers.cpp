@@ -5,11 +5,11 @@
 
 using namespace std;
 using namespace Eigen;
+using namespace RobotKin;
 
 typedef Matrix<double, 6, 1> Vector6d;
 typedef Matrix<double, 6, 6> Matrix6d;
 
-namespace RobotKin {
 
 
 void clampMag(VectorXd& v, double clamp)
@@ -109,6 +109,259 @@ void pinv(const MatrixXd &b, MatrixXd &a_pinv)
         a_pinv = a_pinv.transpose();
     }
 }
+
+
+TRANSLATION Robot::centerOfMass(FrameType withRespectTo)
+{
+    TRANSLATION com; com.setZero();
+    for(int i=0; i<nLinkages(); i++)
+        com += linkage(i).centerOfMass(withRespectTo);
+
+    if(WORLD == withRespectTo)
+        com += respectToWorld()*rootLink.com();
+    else if(ROBOT == withRespectTo)
+        com += rootLink.com();
+    else
+    {
+        cerr << "Invalid reference frame type for center of mass calculation: "
+             << FrameType_to_string(withRespectTo) << endl;
+        cerr << " -- Must be WORLD or ROBOT" << endl;
+    }
+
+    com = com/mass();
+    // TODO: Put in NaN checking
+
+    return com;
+}
+
+TRANSLATION Robot::centerOfMass(const vector<size_t> &indices, FrameType typeOfIndex, FrameType withRespectTo)
+{
+    TRANSLATION com; com.setZero();
+    if( JOINT == typeOfIndex )
+        for(int i=0; i<indices.size(); i++)
+            com += joint(indices[i]).centerOfMass(withRespectTo);
+
+    else if( LINKAGE == typeOfIndex )
+        for(int i=0; i<indices.size(); i++)
+            com += linkage(indices[i]).centerOfMass(withRespectTo);
+
+    else
+    {
+        cerr << "Invalid index type for center of mass calculation: "
+                << FrameType_to_string(typeOfIndex) << endl;
+        cerr << " -- Must be JOINT or LINKAGE" << endl;
+        return TRANSLATION::Zero();
+    }
+
+    com = com/mass(indices, typeOfIndex);
+    // TODO: Put in NaN checking
+
+    return com;
+}
+
+TRANSLATION Robot::centerOfMass(const vector<string> &names, FrameType typeOfIndex, FrameType withRespectTo)
+{
+    vector<size_t> indices(names.size());
+    rk_result_t check;
+    if( JOINT == typeOfIndex )
+        check = jointNamesToIndices(names, indices);
+    else if( LINKAGE == typeOfIndex )
+        check = linkageNamesToIndices(names, indices);
+    else
+    {
+        cerr << "Invalid index type for center of mass calculation: "
+                << FrameType_to_string(typeOfIndex) << endl;
+        return TRANSLATION::Zero();
+    }
+
+    if(check != RK_SOLVED)
+    {
+        cerr << "Error finding indices: " << rk_result_to_string(check) << endl;
+        return TRANSLATION::Zero();
+    }
+
+    return centerOfMass(indices, typeOfIndex, withRespectTo);
+}
+
+double Robot::mass(const std::vector<size_t> &indices, FrameType typeOfIndex)
+{
+    double result = 0;
+
+    if( JOINT == typeOfIndex)
+        for(int i=0; i<indices.size(); i++)
+            result += joint(indices[i]).mass();
+
+    else if( LINKAGE == typeOfIndex )
+        for(int i=0; i<indices.size(); i++)
+            result += linkage(indices[i]).mass();
+
+    else
+    {
+        cerr << "Invalid index type for mass calculation: "
+                << FrameType_to_string(typeOfIndex) << endl;
+        cerr << " -- Must be JOINT or LINKAGE" << endl;
+        return 0;
+    }
+
+    result += rootLink.mass();
+
+    return result;
+}
+
+double Robot::mass(const std::vector<std::string> &names, FrameType typeOfIndex)
+{
+    vector<size_t> indices(names.size());
+    rk_result_t check;
+    if( JOINT == typeOfIndex )
+        check = jointNamesToIndices(names, indices);
+    else if( LINKAGE == typeOfIndex )
+        check = linkageNamesToIndices(names, indices);
+    else
+    {
+        cerr << "Invalid index type for mass calculation: "
+                << FrameType_to_string(typeOfIndex) << endl;
+        return 0;
+    }
+
+    if(check != RK_SOLVED)
+    {
+        cerr << "Error finding indices: " << rk_result_to_string(check) << endl;
+        return 0;
+    }
+
+    return mass(indices, typeOfIndex);
+}
+
+double Robot::mass()
+{
+    double result = 0;
+    for(int i=0; i<nLinkages(); i++)
+        result += linkage(i).mass();
+    result += rootLink.mass();
+
+    return result;
+}
+
+TRANSLATION Linkage::centerOfMass(FrameType withRespectTo)
+{
+    TRANSLATION com; com.setZero();
+    for(int i=0; i<nJoints(); i++)
+        com += joint(i).centerOfMass(withRespectTo);
+
+    com += tool().centerOfMass(withRespectTo);
+
+    return com;
+}
+
+TRANSLATION Linkage::centerOfMass(const std::vector<size_t> &indices, bool includeTool, FrameType withRespectTo)
+{
+    TRANSLATION com; com.setZero();
+    for(int i=0; i<indices.size(); i++)
+        com += joint(indices[i]).centerOfMass(withRespectTo);
+
+    if(includeTool)
+        com += tool().centerOfMass(withRespectTo);
+
+    com = com/mass(indices, includeTool);
+    // TODO: Put in NaN checking
+
+    return com;
+}
+
+TRANSLATION Linkage::centerOfMass(size_t fromJoint, bool includeTool, FrameType withRespectTo)
+{
+    if(fromJoint < nJoints())
+    {
+        TRANSLATION com; com.setZero();
+        for(int i=fromJoint; i<nJoints(); i++)
+            com += joint(i).centerOfMass(withRespectTo);
+
+        if(includeTool)
+            com += tool().centerOfMass(withRespectTo);
+
+        return com;
+    }
+
+    cerr << "Index (" << fromJoint << ") out of bounds for CoM calculation of " << name() << endl;
+    cerr << " -- Maximum index value is " << nJoints()-1 << endl;
+    return TRANSLATION::Zero();
+}
+
+TRANSLATION Linkage::centerOfMass(string fromJoint, bool includeTool, FrameType withRespectTo)
+{
+    return centerOfMass(jointNameToIndex(fromJoint), includeTool, withRespectTo);
+}
+
+TRANSLATION Linkage::centerOfMass(size_t fromJoint, size_t toJoint, FrameType withRespectTo)
+{
+    if( fromJoint >= nJoints() || toJoint >= nJoints() )
+    {
+        cerr << "Index range is invalid for center of mass calculation [" << fromJoint << " -> "
+             << toJoint << "]" << endl;
+        cerr << " -- Valid range must be within 0 to " << nJoints() << endl;
+        return TRANSLATION::Zero();
+    }
+
+    TRANSLATION com; com.setZero();
+
+    if(fromJoint <= toJoint)
+        for(int i=fromJoint; i<=toJoint; i++)
+            com += joint(i).centerOfMass(withRespectTo);
+
+    else if(toJoint < fromJoint)
+        for(int i=toJoint; i<=toJoint; i++)
+            com += joint(i).centerOfMass(withRespectTo);
+
+    return com;
+}
+
+TRANSLATION Linkage::centerOfMass(string fromJoint, string toJoint, FrameType withRespectTo)
+{
+    return centerOfMass(jointNameToIndex(fromJoint), jointNameToIndex(toJoint), withRespectTo);
+}
+
+TRANSLATION Linkage::centerOfMass(const std::vector<string> &names, bool includeTool, FrameType withRespectTo)
+{
+    vector<size_t> indices;
+    rk_result_t check = jointNamesToIndices(names, indices);
+    if( check != RK_SOLVED )
+    {
+        cerr << "Error finding indices: " << rk_result_to_string(check) << endl;
+        return TRANSLATION::Zero();
+    }
+
+    return centerOfMass(indices, includeTool, withRespectTo);
+}
+
+double Linkage::mass()
+{
+    double result = 0;
+    for(int i=0; i<nJoints(); i++)
+        result += joint(i).mass();
+
+    result += tool().mass();
+
+    return result;
+}
+
+double Linkage::mass(const vector<size_t> &indices, bool includeTool)
+{
+    double result = 0;
+    for(int i=0; i<indices.size(); i++)
+        result += joint(indices[i]).mass();
+
+    if(includeTool)
+        result += tool().mass();
+
+    return result;
+}
+
+
+
+
+
+
+
 
 
 
@@ -553,15 +806,19 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, 
 {
     // TODO: Make the conversion from vector<string> to vector<size_t> its own function
     vector<size_t> jointIndices;
-    jointIndices.resize(jointNames.size());
-    map<string,size_t>::iterator j;
-    for(int i=0; i<jointNames.size(); i++)
-    {
-        j = jointNameToIndex_.find(jointNames[i]);
-        if( j == jointNameToIndex_.end() )
-            return RK_INVALID_JOINT;
-        jointIndices[i] = j->second;
-    }
+
+    if( jointNamesToIndices(jointNames, jointIndices) == RK_INVALID_JOINT )
+        return RK_INVALID_JOINT;
+
+//    jointIndices.resize(jointNames.size());
+//    map<string,size_t>::iterator j;
+//    for(int i=0; i<jointNames.size(); i++)
+//    {
+//        j = jointNameToIndex_.find(jointNames[i]);
+//        if( j == jointNameToIndex_.end() )
+//            return RK_INVALID_JOINT;
+//        jointIndices[i] = j->second;
+//    }
 
     return dampedLeastSquaresIK_chain(jointIndices, jointValues, target);
 }
@@ -587,8 +844,4 @@ rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, Vector
 
 
 
-
-
-
-} // namespace RobotKin
 

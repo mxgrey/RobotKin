@@ -26,13 +26,6 @@ using namespace Eigen;
 using namespace RobotKin;
 
 
-string RobotKin::rk_result_to_string(rk_result_t result)
-{
-    if( 0 <= result && result < RK_TYPE_SIZE)
-        return rk_result_string[result];
-    else
-        return "Unknown Result";
-}
 
 //------------------------------------------------------------------------------
 // Robot Lifecycle
@@ -111,6 +104,37 @@ size_t Robot::linkageIndex(string linkageName) const
     return 0;
 }
 
+rk_result_t Robot::jointNamesToIndices(const vector<string> &jointNames, vector<size_t> &jointIndices)
+{
+    jointIndices.resize(jointNames.size());
+    map<string,size_t>::iterator j;
+    for(int i=0; i<jointNames.size(); i++)
+    {
+        j = jointNameToIndex_.find(jointNames[i]);
+        if( j == jointNameToIndex_.end() )
+            return RK_INVALID_JOINT;
+        jointIndices[i] = j->second;
+    }
+
+    return RK_SOLVED;
+}
+
+rk_result_t Robot::linkageNamesToIndices(const vector<string> &linkageNames, vector<size_t> &linkageIndices)
+{
+    linkageIndices.resize(linkageNames.size());
+    map<string,size_t>::iterator j;
+    for(int i=0; i<linkageNames.size(); i++)
+    {
+        j = linkageNameToIndex_.find(linkageNames[i]);
+        if( j == linkageNameToIndex_.end() )
+            return RK_INVALID_LINKAGE;
+        linkageIndices[i] = j->second;
+    }
+
+    return RK_SOLVED;
+}
+
+
 const Linkage& Robot::const_linkage(size_t linkageIndex) const
 { // FIXME: Remove assert
     return *linkages_[linkageIndex];
@@ -170,6 +194,7 @@ Joint& Robot::joint(size_t jointIndex)
     if(jointIndex < nJoints())
         return *joints_[jointIndex];
 
+    cerr << "Invalid joint index: (" << jointIndex << ")" << endl;
     Joint* invalidJoint = new Joint;
     invalidJoint->name("invalid");
     return *invalidJoint;
@@ -180,6 +205,7 @@ Joint& Robot::joint(string jointName)
     if( j != jointNameToIndex_.end() )
         return *joints_.at(j->second);
 
+    cerr << "Invalid joint name: (" << jointName << ")" << endl;
     Joint* invalidJoint = new Joint;
     invalidJoint->name("invalid");
     return *invalidJoint;
