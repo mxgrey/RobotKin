@@ -228,6 +228,7 @@ namespace RobotKin {
                                             const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         /////////////////
+
         TRANSLATION centerOfMass(FrameType withRespectTo=ROBOT); // Center of mass for entire robot + tools
         double mass();              // Mass of entire robot + tools
         TRANSLATION centerOfMass(const std::vector<size_t> &indices, FrameType typeOfIndex=JOINT, FrameType withRespectTo=WORLD);
@@ -239,7 +240,9 @@ namespace RobotKin {
         double mass(const std::vector<std::string> &names, FrameType typeOfIndex=JOINT);
         //^ Type of Indices can be Joint or Linkage
 
+        /////////////////
 
+        void gravityJointTorques(const std::vector<size_t> &jointIndices, Eigen::VectorXd &torques, bool downstream=true);
 
     protected:
         //--------------------------------------------------------------------------

@@ -387,9 +387,13 @@ void Robot::addLinkage(Linkage linkage, int parentIndex, string name)
         return;
     }
     else
+    {
         linkages_[newIndex]->parentLinkage_ = linkages_[parentIndex];
+        linkages_[newIndex]->hasParent = true;
+        // TODO: Decide if this should be true for root linkage or not
+    }
     
-    linkages_[newIndex]->hasParent = true; // TODO: Decide if this should be true for root linkage or not
+
     
 
     linkages_[newIndex]->robot_ = this;

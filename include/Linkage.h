@@ -160,6 +160,9 @@ namespace RobotKin {
         TRANSLATION centerOfMass(FrameType withRespectTo=ROBOT);
         double mass();
 
+
+        double gravityTorque(bool downstream=true);
+
         //----------------------------------------------------------------------
         // Joint Overloaded Operators
         //----------------------------------------------------------------------
@@ -199,8 +202,10 @@ namespace RobotKin {
         size_t getRobotID();
         std::string getRobotName();
 
-//            size_t getParentJointID();
-//            string getParentJointName();
+        size_t localID() const; // Joint ID inside its linkage
+
+        Linkage& linkage();
+        Robot& robot();
 
         void printInfo() const;
 
@@ -211,7 +216,6 @@ namespace RobotKin {
         double value_; // Current joint value (R type = joint angle, P type = joint length)
 
 
-        const Linkage* linkage() const;
 
         const Robot* parentRobot() const;
 
@@ -225,6 +229,7 @@ namespace RobotKin {
         AXIS jointAxis_;
         TRANSFORM respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
         TRANSFORM respectToLinkage_; // Coordinates with respect to linkage base frame
+        size_t localID_;
 
 
     }; // class Joint
@@ -280,8 +285,11 @@ namespace RobotKin {
         std::string getParentJointName();
 
         Link massProperties;
+
         TRANSLATION centerOfMass(FrameType withRespectTo=ROBOT);
         double mass();
+
+
 
     protected:
 
@@ -348,18 +356,26 @@ namespace RobotKin {
         TRANSLATION centerOfMass(FrameType withRespectTo=ROBOT);
         TRANSLATION centerOfMass(const std::vector<size_t> &indices, bool includeTool=true, FrameType withRespectTo=ROBOT);
         TRANSLATION centerOfMass(const std::vector<std::string> &names, bool includeTool=true, FrameType withRespectTo=ROBOT);
-
-        TRANSLATION centerOfMass(size_t fromJoint, bool includeTool=true, FrameType withRespectTo=ROBOT);
-        TRANSLATION centerOfMass(std::string fromJoint, bool includeTool=true, FrameType withRespectTo=ROBOT);
-
-        TRANSLATION centerOfMass(size_t fromJoint, size_t toJoint, FrameType withRespectTo=ROBOT);
-        TRANSLATION centerOfMass(std::string fromJoint, std::string toJoint, FrameType withRespectTo=ROBOT);
-
-
         double mass(const std::vector<size_t> &indices, bool includeTool=true);
         double mass(const std::vector<std::string> &names, bool includeTool=true);
 
-        Linkage* parentLinkage();
+        TRANSLATION centerOfMass(size_t fromJoint, bool downstream=true, bool includeTool=true, FrameType withRespectTo=ROBOT);
+        TRANSLATION centerOfMass(std::string fromJoint, bool downstream=true, bool includeTool=true, FrameType withRespectTo=ROBOT);
+        double mass(size_t fromJoint, bool downstream=true, bool includeTool=true);
+        double mass(std::string fromJoint, bool downstream=true, bool includeTool=true);
+
+        TRANSLATION centerOfMass(size_t fromJoint, size_t toJoint, FrameType withRespectTo=ROBOT);
+        TRANSLATION centerOfMass(std::string fromJoint, std::string toJoint, FrameType withRespectTo=ROBOT);
+        double mass(size_t fromJoint, size_t toJoint);
+        double mass(std::string fromJoint, std::string toJoint);
+
+        void gravityJointTorques(Eigen::VectorXd& torques, bool downstream=true);
+
+
+
+
+
+        Linkage& parentLinkage();
         
         size_t nChildren() const;
 
@@ -377,6 +393,10 @@ namespace RobotKin {
         
         Joint& joint(size_t jointIndex);
         Joint& joint(std::string jointName);
+
+        Linkage& childLinkage(size_t childIndex);
+        // TODO: Allow this to be called by name?
+        // Sounds pretty useless, actually
         
         const std::vector<Joint*>& const_joints() const;
         std::vector<Joint*>& joints();

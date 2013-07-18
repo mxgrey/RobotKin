@@ -38,7 +38,8 @@ Frame::Frame(TRANSFORM respectToFixed, string name, size_t id, FrameType frameTy
       linkage_(NULL),
       robot_(NULL),
       hasRobot(false),
-      hasLinkage(false)
+      hasLinkage(false),
+      gravity_constant(9.81)
 {
     
 }

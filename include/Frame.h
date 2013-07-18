@@ -180,6 +180,7 @@ namespace RobotKin {
         
         virtual void printInfo() const;
         
+        double gravity_constant; // TODO: Decide if there is a better place for this
         
     protected:
         //--------------------------------------------------------------------------

@@ -110,17 +110,26 @@ void pinv(const MatrixXd &b, MatrixXd &a_pinv)
     }
 }
 
+///////////////////////////////////////////////////
+//////////////// CENTER OF MASS ///////////////////
+///////////////////////////////////////////////////
 
 TRANSLATION Robot::centerOfMass(FrameType withRespectTo)
 {
     TRANSLATION com; com.setZero();
     for(int i=0; i<nLinkages(); i++)
-        com += linkage(i).centerOfMass(withRespectTo);
+    {
+        com += linkage(i).centerOfMass(withRespectTo)*linkage(i).mass();
+        if(com(0) != com(0)
+                || com(1) != com(1)
+                || com(2) != com(2))
+            cerr << "NaN at linkage " << linkage(i).name() << " (" << linkage(i).id() << ")" << endl;
+    }
 
     if(WORLD == withRespectTo)
-        com += respectToWorld()*rootLink.com();
+        com += respectToWorld()*rootLink.com()*rootLink.mass();
     else if(ROBOT == withRespectTo)
-        com += rootLink.com();
+        com += rootLink.com()*rootLink.mass();
     else
     {
         cerr << "Invalid reference frame type for center of mass calculation: "
@@ -128,10 +137,11 @@ TRANSLATION Robot::centerOfMass(FrameType withRespectTo)
         cerr << " -- Must be WORLD or ROBOT" << endl;
     }
 
-    com = com/mass();
-    // TODO: Put in NaN checking
-
-    return com;
+    double tempMass = mass();
+    if(tempMass>0)
+        return com/tempMass;
+    else
+        return TRANSLATION::Zero();
 }
 
 TRANSLATION Robot::centerOfMass(const vector<size_t> &indices, FrameType typeOfIndex, FrameType withRespectTo)
@@ -139,11 +149,11 @@ TRANSLATION Robot::centerOfMass(const vector<size_t> &indices, FrameType typeOfI
     TRANSLATION com; com.setZero();
     if( JOINT == typeOfIndex )
         for(int i=0; i<indices.size(); i++)
-            com += joint(indices[i]).centerOfMass(withRespectTo);
+            com += joint(indices[i]).centerOfMass(withRespectTo)*joint(indices[i]).mass();
 
     else if( LINKAGE == typeOfIndex )
         for(int i=0; i<indices.size(); i++)
-            com += linkage(indices[i]).centerOfMass(withRespectTo);
+            com += linkage(indices[i]).centerOfMass(withRespectTo)*joint(indices[i]).mass();
 
     else
     {
@@ -153,10 +163,11 @@ TRANSLATION Robot::centerOfMass(const vector<size_t> &indices, FrameType typeOfI
         return TRANSLATION::Zero();
     }
 
-    com = com/mass(indices, typeOfIndex);
-    // TODO: Put in NaN checking
-
-    return com;
+    double tempMass = mass(indices, typeOfIndex);
+    if(tempMass>0)
+        return com/tempMass;
+    else
+        return TRANSLATION::Zero();
 }
 
 TRANSLATION Robot::centerOfMass(const vector<string> &names, FrameType typeOfIndex, FrameType withRespectTo)
@@ -246,40 +257,71 @@ TRANSLATION Linkage::centerOfMass(FrameType withRespectTo)
 {
     TRANSLATION com; com.setZero();
     for(int i=0; i<nJoints(); i++)
-        com += joint(i).centerOfMass(withRespectTo);
+    {
+        com += joint(i).centerOfMass(withRespectTo)*joint(i).mass();
+        if(com(0) != com(0)
+                || com(1) != com(1)
+                || com(2) != com(2))
+            cerr << "NaN at joint " << joint(i).name() << " (" << joint(i).id() << ")" << endl;
+    }
 
-    com += tool().centerOfMass(withRespectTo);
 
-    return com;
+    com += tool().centerOfMass(withRespectTo)*tool().mass();
+
+    double tempMass = mass();
+    if(tempMass>0)
+        return com/tempMass;
+    else
+        return TRANSLATION::Zero();
 }
 
 TRANSLATION Linkage::centerOfMass(const std::vector<size_t> &indices, bool includeTool, FrameType withRespectTo)
 {
     TRANSLATION com; com.setZero();
     for(int i=0; i<indices.size(); i++)
-        com += joint(indices[i]).centerOfMass(withRespectTo);
+        com += joint(indices[i]).centerOfMass(withRespectTo)*joint(indices[i]).mass();
 
     if(includeTool)
-        com += tool().centerOfMass(withRespectTo);
+        com += tool().centerOfMass(withRespectTo)*tool().mass();
 
-    com = com/mass(indices, includeTool);
-    // TODO: Put in NaN checking
-
-    return com;
+    double tempMass = mass(indices, includeTool);
+    if(tempMass>0)
+        return com/tempMass;
+    else
+        return TRANSLATION::Zero();
 }
 
-TRANSLATION Linkage::centerOfMass(size_t fromJoint, bool includeTool, FrameType withRespectTo)
+TRANSLATION Linkage::centerOfMass(size_t fromJoint, bool downstream, bool includeTool, FrameType withRespectTo)
 {
     if(fromJoint < nJoints())
     {
-        TRANSLATION com; com.setZero();
-        for(int i=fromJoint; i<nJoints(); i++)
-            com += joint(i).centerOfMass(withRespectTo);
+        if(downstream)
+        {
+            TRANSLATION com; com.setZero();
+            for(int i=fromJoint; i<nJoints(); i++)
+                com += joint(i).centerOfMass(withRespectTo)*joint(i).mass();
 
-        if(includeTool)
-            com += tool().centerOfMass(withRespectTo);
+            if(includeTool)
+                com += tool().centerOfMass(withRespectTo)*tool().mass();
 
-        return com;
+            double tempMass = mass(fromJoint, downstream, includeTool);
+            if(tempMass>0)
+                return com/tempMass;
+            else
+                return TRANSLATION::Zero();
+        }
+        else
+        {
+            TRANSLATION com; com.setZero();
+            for(int i=fromJoint-1; i>=0; i--)
+                com += joint(i).centerOfMass(withRespectTo)*joint(i).mass();
+
+            double tempMass = mass(fromJoint, !downstream, includeTool);
+            if(tempMass>0)
+                return com/tempMass;
+            else
+                return TRANSLATION::Zero();
+        }
     }
 
     cerr << "Index (" << fromJoint << ") out of bounds for CoM calculation of " << name() << endl;
@@ -287,9 +329,43 @@ TRANSLATION Linkage::centerOfMass(size_t fromJoint, bool includeTool, FrameType 
     return TRANSLATION::Zero();
 }
 
-TRANSLATION Linkage::centerOfMass(string fromJoint, bool includeTool, FrameType withRespectTo)
+TRANSLATION Linkage::centerOfMass(string fromJoint, bool downstream, bool includeTool, FrameType withRespectTo)
 {
-    return centerOfMass(jointNameToIndex(fromJoint), includeTool, withRespectTo);
+    return centerOfMass(jointNameToIndex(fromJoint), downstream, includeTool, withRespectTo);
+}
+
+double Linkage::mass(size_t fromJoint, bool downstream, bool includeTool)
+{
+    if(fromJoint < nJoints())
+    {
+        if(downstream)
+        {
+            double mass = 0;
+            for(int i=fromJoint; i<nJoints(); i++)
+                mass += joint(i).mass();
+
+            if(includeTool)
+                mass += tool().mass();
+            return mass;
+        }
+        else
+        {
+            double mass = 0;
+            for(int i=fromJoint-1; i>=0; i--)
+                mass += joint(i).mass();
+
+            return mass;
+        }
+    }
+
+    cerr << "Index (" << fromJoint << ") out of bounds for mass calculation of " << name() << endl;
+    cerr << " -- Maximum index value is " << nJoints()-1 << endl;
+    return 0;
+}
+
+double Linkage::mass(string fromJoint, bool downstream, bool includeTool)
+{
+    return mass(jointNameToIndex(fromJoint), downstream, includeTool);
 }
 
 TRANSLATION Linkage::centerOfMass(size_t fromJoint, size_t toJoint, FrameType withRespectTo)
@@ -305,19 +381,51 @@ TRANSLATION Linkage::centerOfMass(size_t fromJoint, size_t toJoint, FrameType wi
     TRANSLATION com; com.setZero();
 
     if(fromJoint <= toJoint)
-        for(int i=fromJoint; i<=toJoint; i++)
-            com += joint(i).centerOfMass(withRespectTo);
+        for(int i=fromJoint; i<toJoint; i++)
+            com += joint(i).centerOfMass(withRespectTo)*joint(i).mass();
 
     else if(toJoint < fromJoint)
-        for(int i=toJoint; i<=toJoint; i++)
-            com += joint(i).centerOfMass(withRespectTo);
+        for(int i=toJoint; i<fromJoint; i++)
+            com += joint(i).centerOfMass(withRespectTo)*joint(i).mass();
 
-    return com;
+    double tempMass = mass(fromJoint, toJoint);
+    if(tempMass>0)
+        return com/tempMass;
+    else
+        return TRANSLATION::Zero();
 }
 
 TRANSLATION Linkage::centerOfMass(string fromJoint, string toJoint, FrameType withRespectTo)
 {
     return centerOfMass(jointNameToIndex(fromJoint), jointNameToIndex(toJoint), withRespectTo);
+}
+
+double Linkage::mass(size_t fromJoint, size_t toJoint)
+{
+    if( fromJoint >= nJoints() || toJoint >= nJoints() )
+    {
+        cerr << "Index range is invalid for mass calculation [" << fromJoint << " -> "
+             << toJoint << "]" << endl;
+        cerr << " -- Valid range must be within 0 to " << nJoints() << endl;
+        return 0;
+    }
+
+    double mass = 0;
+
+    if(fromJoint <= toJoint)
+        for(int i=fromJoint; i<toJoint; i++)
+            mass += joint(i).mass();
+
+    else if(toJoint < fromJoint)
+        for(int i=toJoint; i<fromJoint; i++)
+            mass += joint(i).mass();
+
+    return mass;
+}
+
+double Linkage::mass(string fromJoint, string toJoint)
+{
+    return mass(jointNameToIndex(fromJoint), jointNameToIndex(toJoint));
 }
 
 TRANSLATION Linkage::centerOfMass(const std::vector<string> &names, bool includeTool, FrameType withRespectTo)
@@ -356,10 +464,86 @@ double Linkage::mass(const vector<size_t> &indices, bool includeTool)
     return result;
 }
 
+void gravityTorqueHelper(Robot& robot, size_t startLinkage, size_t nextLinkage, TRANSLATION& com, double& mass)
+{
+    double newMass = robot.linkage(nextLinkage).mass();
+    com  += robot.linkage(nextLinkage).centerOfMass()*newMass;
+    mass += newMass;
+
+//    cout << "Mass of " << robot.linkage(nextLinkage).name() << " is " << robot.linkage(nextLinkage).mass() << endl;
+
+    for(int i=0; i<robot.linkage(nextLinkage).nChildren(); i++)
+        if(robot.linkage(nextLinkage).childLinkage(i).id() != startLinkage)
+            gravityTorqueHelper(robot, nextLinkage,
+                                robot.linkage(nextLinkage).childLinkage(i).id(),
+                                com, mass);
+
+    if(robot.linkage(nextLinkage).parentLinkage().id() != startLinkage)
+        gravityTorqueHelper(robot, nextLinkage,
+                            robot.linkage(nextLinkage).parentLinkage().id(),
+                            com, mass);
+}
+
+double Joint::gravityTorque(bool downstream)
+{
+    TRANSLATION com; com.setZero();
+    double m_mass=0;
+
+    m_mass += linkage().mass(localID(), downstream, true);
+    com  += linkage().centerOfMass(localID(), downstream, true)*m_mass;
+
+
+    if(downstream)
+        for(int i=0; i<linkage().nChildren(); i++)
+            gravityTorqueHelper(robot(), linkage().id(), linkage().childLinkage(i).id(), com, m_mass);
+
+    else
+        if(linkage().hasParent)
+            gravityTorqueHelper(robot(), linkage().id(), linkage().parentLinkage().id(), com, m_mass);
+
+
+    if(m_mass>0)
+        com = com/m_mass;
+    else
+        return 0;
+
+    TRANSLATION lever = com - respectToRobot().translation();
+    TRANSLATION Fz;
+    Fz = TRANSLATION::UnitZ()*gravity_constant*m_mass;
+
+    cout << "Lever downstream of " << name() << " is " << lever.norm() << "\t\t";
+    cout << "(" << lever.transpose() << ")\t\t";
+    cout << "Mass downstream of " << name() << " is " << m_mass << "\t\t";
+    cout << "(" << lever.norm()*m_mass << ")" << endl;
+
+
+    if(downstream)
+        return lever.cross(Fz).dot(respectToRobot().rotation()*jointAxis_);
+    else
+        return -lever.cross(Fz).dot(respectToRobot().rotation()*jointAxis_);
+}
 
 
 
+void Robot::gravityJointTorques(const vector<size_t> &jointIndices, Eigen::VectorXd &torques, bool downstream)
+{
+    // TODO: Perhaps make this more efficient by using something besides gravityTorque()
+    // If CoM and mass results were recycled, it could perhaps be made more efficient
+    // but it would require dynamic allocation
 
+    torques.resize(jointIndices.size());
+    for(int i=0; i<jointIndices.size(); i++)
+        torques[i] = joint(jointIndices[i]).gravityTorque(downstream);
+}
+
+void Linkage::gravityJointTorques(Eigen::VectorXd &torques, bool downstream)
+{
+    // TODO: Same todo as Robot::gravityJointTorques
+
+    torques.resize(nJoints());
+    for(int i=0; i<nJoints(); i++)
+        torques[i] = joint(i).gravityTorque(downstream);
+}
 
 
 

@@ -206,6 +206,11 @@ void Joint::max(double newMax)
 }
 
 
+size_t Joint::localID() const
+{
+    return localID_;
+}
+
 
 const TRANSFORM& Joint::respectToFixed() const { return respectToFixed_; }
 void Joint::respectToFixed(TRANSFORM aCoordinate)
@@ -240,9 +245,26 @@ TRANSFORM Joint::respectToWorld() const
         return TRANSFORM::Identity();
 }
 
-const Linkage* Joint::linkage() const
+Linkage& Joint::linkage()
 {
-    return linkage_;
+    if(hasLinkage)
+        return *linkage_;
+
+    cerr << "Joint " << name() << " does not have a linkage yet!" << endl;
+    Linkage* invalidLinkage = new Linkage;
+    invalidLinkage->name("invalid");
+    return *invalidLinkage;
+}
+
+Robot& Joint::robot()
+{
+    if(hasRobot)
+        return *robot_;
+
+    cerr << "Joint " << name() << " does not have a robot yet!" << endl;
+    Robot* invalidRobot = new Robot;
+    invalidRobot->name("invalid");
+    return *invalidRobot;
 }
 
 void Link::printInfo() const
@@ -614,7 +636,17 @@ const Linkage& Linkage::operator=(const VectorXd& someValues)
 // Linkage Public Member Functions
 //--------------------------------------------------------------------------
 
-Linkage* Linkage::parentLinkage() { return parentLinkage_; }
+Linkage &Linkage::parentLinkage()
+{
+    if(hasParent)
+        return *parentLinkage_;
+
+    cerr << "You requested the parent of Linkage " << name()
+         << ", but it does not have a parent!" << endl;
+    Linkage* invalidLinkage = new Linkage;
+    invalidLinkage->name("invalid");
+    return *invalidLinkage;
+}
 
 size_t Linkage::nChildren() const { return childLinkages_.size(); }
 
@@ -675,6 +707,18 @@ Joint& Linkage::joint(string jointName)
     Joint* invalidJoint = new Joint;
     invalidJoint->name("invalid");
     return *invalidJoint;
+}
+
+Linkage& Linkage::childLinkage(size_t childIndex)
+{
+    if(childIndex < nChildren())
+        return *childLinkages_[childIndex];
+
+    cerr << "Requested child linkage (" << childIndex << ") of "
+         << name() << " is out of bounds (" << nChildren() << ")" << endl;
+    Linkage* invalidLinkage = new Linkage;
+    invalidLinkage->name("invalid");
+    return *invalidLinkage;
 }
 
 const vector<Joint*>& Linkage::const_joints() const { return joints_; }
@@ -825,6 +869,7 @@ void Linkage::addJoint(Joint newJoint)
     size_t newIndex = joints_.size();
     joints_.push_back(tempJoint);
     joints_[newIndex]->id_ = newIndex;
+    joints_[newIndex]->localID_ = newIndex;
     joints_[newIndex]->linkage_ = this;
     joints_[newIndex]->hasLinkage = true;
     jointNameToIndex_[joints_[newIndex]->name()] = newIndex;

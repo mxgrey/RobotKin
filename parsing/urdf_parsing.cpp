@@ -1,5 +1,3 @@
-#define HAVE_URDF_PARSE
-
 #ifdef HAVE_URDF_PARSE
 
 #include <urdf_parser/urdf_parser.h>

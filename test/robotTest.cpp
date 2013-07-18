@@ -405,9 +405,50 @@ void tutorial()
 
 //    parseTest.printInfo();
 
-//    cout << "Mass:" << parseTest.mass() << endl;
+    VectorXd torques;
 
-//    cout << "Center of Mass (home config): " << parseTest.centerOfMass().transpose() << endl;
+
+//    clock_t time;
+//    time = clock();
+
+//    int count = 100000;
+//    for(int i=0; i<count; i++)
+//        parseTest.linkage("Body_RSP").gravityJointTorques(torques, false);
+
+//    clock_t endTime;
+//    endTime = clock();
+//    cout << (endTime - time)/((double)CLOCKS_PER_SEC/count/2+1) << " : " <<
+//            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
+
+
+
+
+    cout << "Mass:" << parseTest.mass() << endl;
+
+    cout << "Center of Mass (home config): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+
+    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+    cout << "RA torques: " << torques.transpose() << endl;
+
+    parseTest.setJointValue("RSP", -45*M_PI/180);
+    cout << "CoM (pitched 45): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+    cout << "RA torques: " << torques.transpose() << endl;
+
+    parseTest.setJointValue("RSP", -90*M_PI/180);
+    cout << "CoM (pitched 90): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+    cout << "RA torques: " << torques.transpose() << endl;
+
+    parseTest.setJointValue("RSR", -90*M_PI/180);
+    cout << "CoM (pointed right): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+    cout << "RA torques: " << torques.transpose() << endl;
+
+    parseTest.setJointValue("RSR", -140*M_PI/180);
+    cout << "CoM (pointed back a bit): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+    cout << "RA torques: " << torques.transpose() << endl;
 
 //    parseTest.setJointValue("", M_PI/8);
 
@@ -439,6 +480,7 @@ void tutorial()
 
 //    cout << "Center of Mass (bend elbows up): " << parseTest.centerOfMass().transpose() << endl;
 
+//    cout << "RSP Torque: " << parseTest.joint("RSP").gravityTorque() << endl;
 
 //    parseTest.printInfo();
 
@@ -454,85 +496,51 @@ void tutorial()
 
 
     // ________________________ IK Test Area __________________________
-//    parseTest.printInfo();
-
-//    parseTest.updateFrames();
-
-//    vector<string> jointNames;
-//    jointNames.push_back("RSP");
-//    jointNames.push_back("RSR");
-//    jointNames.push_back("RSY");
-//    jointNames.push_back("REP");
-//    jointNames.push_back("RWY");
-//    jointNames.push_back("RWP");
-//    jointNames.push_back("RWR");
 
 
-    VectorXd jointVals;
-    jointVals.resize(7);
-    jointVals.setZero();
 
-////    parseTest.dampedLeastSquaresIK_chain(jointNames, jointVals, TRANSFORM::Identity());
-
-    TRANSFORM target(TRANSFORM::Identity());
-    target.translate(Vector3d(0.1, -0.1, 0));
-    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
-    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
+//    TRANSFORM target(TRANSFORM::Identity());
+//    target.translate(Vector3d(0.1, -0.1, 0));
+//    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitZ()));
+//    target.rotate(AngleAxisd(M_PI/4, Vector3d::UnitY()));
 
 
-////    parseTest.setJointValue("REP", M_PI/2);
-//    TRANSFORM target = parseTest.linkage("Body_RSP").tool().respectToRobot();
+
+//    parseTest.linkage("Body_RSP").name("RightArm");
+
+
+//    VectorXd jointVals;
+//    jointVals.resize(parseTest.linkage("RightArm").nJoints());
+//    jointVals.setZero();
+
+
+//    TRANSFORM start = parseTest.linkage("RightArm").tool().respectToRobot();
+//    cout << "Start:" << endl << start.matrix() << endl;
+
 //    cout << "Target:" << endl << target.matrix() << endl;
 
-//    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
-//    cout << "End:" << endl << parseTest.linkage("Body_RSP").tool().respectToRobot().matrix() << endl;
 
-    parseTest.linkage("Body_RSP").name("RightArm");
+//    clock_t time;
+//    time = clock();
+
+//    int count = 1000;
+//    for(int i=0; i<count; i++)
+//    {
+//        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
+//        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, start);
+//    }
+
 //    parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
+
+
+//    clock_t endTime;
+//    endTime = clock();
+//    cout << (endTime - time)/((double)CLOCKS_PER_SEC/count/2+1) << " : " <<
+//            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
+
 //    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
 
 
-
-
-    TRANSFORM start = parseTest.linkage("RightArm").tool().respectToRobot();
-    cout << "Start:" << endl << start.matrix() << endl;
-
-    cout << "Target:" << endl << target.matrix() << endl;
-
-//    rk_result_t result = parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
-//    std::cout << rk_result_to_string(result) << std::endl;
-
-
-    clock_t time;
-    time = clock();
-
-    int count = 1000;
-    for(int i=0; i<count; i++)
-    {
-        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
-        parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, start);
-    }
-
-    parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
-
-
-
-//    parseTest.dampedLeastSquaresIK_linkage("RightArm", jointVals, target);
-
-    clock_t endTime;
-    endTime = clock();
-    cout << (endTime - time)/((double)CLOCKS_PER_SEC/count/2+1) << " : " <<
-            (double)CLOCKS_PER_SEC*count*2/(endTime-time) << endl;
-
-    cout << "End:" << endl << parseTest.linkage("RightArm").tool().respectToRobot().matrix() << endl;
-
-
-
-//    parseTest.jacobianTransposeIK_linkage("Body_RSP", jointVals, target);
-
-//    parseTest.pseudoinverseIK_linkage("Body_RSP", jointVals, target);
-
-//    parseTest.dampedLeastSquaresIK_linkage("Body_RSP", jointVals, target);
 
 }
 
