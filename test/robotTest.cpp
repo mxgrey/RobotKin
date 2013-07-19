@@ -411,29 +411,39 @@ void tutorial()
 
     string limb = "RightLeg";
 
-    VectorXd targetValues, jointValues, restValues;
+    VectorXd targetValues, jointValues, restValues, storedVals;
     targetValues.resize(parseTest.linkage(limb).nJoints());
     jointValues.resize(parseTest.linkage(limb).nJoints());
     restValues.resize(parseTest.linkage(limb).nJoints());
     restValues.setZero();
     // Leg rest values
+    restValues[0] = 0;
+    restValues[1] = 0;
     restValues[2] = -0.15;
     restValues[3] = 0.3;
     restValues[4] = -0.15;
+    restValues[5] = 0;
+    restValues[6] = 0;
 
     // Arm rest values
+
 //    restValues[3] = -30*M_PI/180;
+
+
+    Constraints constraints;
+    constraints.restingValues(restValues);
 
     TRANSFORM target;
 
     int wins = 0;
 
-    srand (time(NULL));
+    srand(time(NULL));
 
-    for(int k=0; k<10; k++)
+    int tests = 1000;
+    for(int k=0; k<tests; k++)
     {
         int resolution = 1000;
-        double scatterScale = 0.1;
+        double scatterScale = 0.5;
         for(int i=0; i<parseTest.linkage(limb).nJoints(); i++)
         {
             int randomVal = rand();
@@ -452,17 +462,17 @@ void tutorial()
                 jointValues(i) = ((double)(randomVal%resolution))/((double)resolution-1)
                         *(parseTest.linkage(limb).joint(i).max() - parseTest.linkage(limb).joint(i).min())
                         + parseTest.linkage(limb).joint(i).min();
+            ////////////////////// NOT COMPLETELY RANDOM TEST //////////////////////
             else
+//                jointValues(i) = targetValues(i) +
+//                        ((double)(2*rand()%resolution)/((double)resolution-1)-1)*scatterScale
+//                        *(parseTest.linkage(limb).joint(i).max() - parseTest.linkage(limb).joint(i).min());
                 jointValues(i) = targetValues(i) +
-                        ((double)(2*rand()%resolution)/((double)resolution-1)-1)*scatterScale
-                        *(parseTest.linkage(limb).joint(i).max() - parseTest.linkage(limb).joint(i).min());
+                        ((double)(2*rand()%resolution)/((double)resolution-1)-1)*scatterScale;
 
             parseTest.linkage(limb).joint(i).value(targetValues(i));
         }
 
-        cout << "Start values:  " << jointValues.transpose() << endl;
-        cout << "Target values: " << targetValues.transpose() << endl;
-        cout << "Norm: " << ( jointValues - targetValues ).norm() << endl;
 
         target = parseTest.linkage(limb).tool().respectToRobot();
 
@@ -473,22 +483,46 @@ void tutorial()
 //        cout << parseTest.linkage(limb).tool().respectToRobot().matrix() << endl;
 //        cout << "Target:" << endl;
 //        cout << target.matrix() << endl;
+        storedVals = jointValues;
 
-        if( parseTest.dampedLeastSquaresIK_linkage(limb, jointValues, target, restValues, 0.001)
-                == RK_SOLVED )
+        rk_result_t result = parseTest.dampedLeastSquaresIK_linkage(limb, jointValues, target, constraints);
+        if( result == RK_SOLVED )
             wins++;
 
 //        cout << "End:" << endl;
 //        cout << parseTest.linkage(limb).tool().respectToRobot().matrix() << endl;
 
 //        cout << "Target Joint Values: " << targetValues.transpose() << endl;
-        cout << "Final  Joint Values: " << jointValues.transpose() << endl;
 
-        cout << "Error: " << (parseTest.linkage(limb).tool().respectToRobot().translation()
-                              - target.translation()).norm() << endl;
+
+        if(result != RK_SOLVED)
+        {
+
+            cout << "Start values:       ";
+            for(int p=0; p<storedVals.size(); p++)
+                cout << storedVals[p] << "\t\t";
+            cout << endl;
+
+            cout << "Target values:      ";
+            for(int p=0; p<targetValues.size(); p++)
+                cout << targetValues[p] << "\t\t";
+            cout << endl;
+
+            cout << "Final Joint Values: ";
+            for(int p=0; p<jointValues.size(); p++)
+                cout << jointValues[p] << "\t\t";
+            cout << endl;
+
+
+            cout << "Norm: " << ( jointValues - targetValues ).norm() << endl;
+            cout << "Error: " << (parseTest.linkage(limb).tool().respectToRobot().translation()
+                                  - target.translation()).norm() << endl;
+        }
     }
 
-    cout << "Wins: " << wins << endl;
+    cout << "Win: " << ((double)wins)/((double)tests)*100 << "%" << endl;
+
+
 
 
 //    TRANSFORM target = parseTest.linkage("LeftLeg").tool().respectToRobot();

@@ -62,6 +62,7 @@
 #include <string>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
+#include "Constraints.h"
 
 
 
@@ -111,12 +112,12 @@ namespace RobotKin {
 
         Link rootLink;
 
-        double errorClamp;
-        double deltaClamp;
-        double gammaMax;
-        double transTolerance;
-        double damp;
-        size_t maxIterations;
+//        double errorClamp;
+//        double deltaClamp;
+//        double gammaMax;
+//        double transTolerance;
+//        double damp;
+//        size_t maxIterations;
         
         //--------------------------------------------------------------------------
         // Robot Public Member Functions
@@ -218,16 +219,13 @@ namespace RobotKin {
         /////////////////
 
         rk_result_t dampedLeastSquaresIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
-                                               const TRANSFORM &target, const Eigen::VectorXd& restValues,
-                                               double tolerance=0.001, const TRANSFORM &finalTF = TRANSFORM::Identity());
+                                               const TRANSFORM &target, RobotKin::Constraints& constraints=RobotKin::Constraints::Defaults());
 
         rk_result_t dampedLeastSquaresIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
-                                          const TRANSFORM& target, const Eigen::VectorXd& restValues,
-                                          double tolerance=0.001, const TRANSFORM &finalTF = TRANSFORM::Identity());
+                                               const TRANSFORM& target, RobotKin::Constraints& constraints=RobotKin::Constraints::Defaults());
 
         rk_result_t dampedLeastSquaresIK_linkage(const std::string linkageName, Eigen::VectorXd &jointValues,
-                                            const TRANSFORM& target, const Eigen::VectorXd& restValues,
-                                            double tolerance=0.001, const TRANSFORM &finalTF = TRANSFORM::Identity());
+                                                 const TRANSFORM& target, RobotKin::Constraints& constraints=RobotKin::Constraints::Defaults());
 
         /////////////////
 
@@ -245,6 +243,9 @@ namespace RobotKin {
         /////////////////
 
         void gravityJointTorques(const std::vector<size_t> &jointIndices, Eigen::VectorXd &torques, bool downstream=true);
+
+
+        static Robot& Default();
 
     protected:
         //--------------------------------------------------------------------------

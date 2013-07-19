@@ -90,6 +90,13 @@ Robot::~Robot()
 }
 
 
+Robot& Robot::Default()
+{
+    Robot* tempRobot = new Robot;
+    return *tempRobot;
+}
+
+
 //--------------------------------------------------------------------------
 // Robot Public Member Functions
 //--------------------------------------------------------------------------

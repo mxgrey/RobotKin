@@ -176,7 +176,7 @@ rk_result_t Joint::value(double newValue)
     }
     else
         value_ = newValue;
-    value_ = newValue;
+//    value_ = newValue;
 
     if (jointType_ == REVOLUTE) {
         respectToFixedTransformed_ = respectToFixed_ * Eigen::AngleAxisd(value_, jointAxis_);
