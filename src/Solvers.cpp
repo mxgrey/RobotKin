@@ -502,6 +502,7 @@ double Joint::gravityTorque(bool downstream)
     TRANSLATION Fz;
     Fz = TRANSLATION::UnitZ()*gravity_constant*m_mass;
 
+    // TODO: Generalize for PRISMATIC as well
     if(downstream)
         return lever.cross(Fz).dot(respectToRobot().rotation()*jointAxis_);
     else

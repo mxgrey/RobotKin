@@ -403,9 +403,31 @@ void tutorial()
 
     Robot parseTest("../urdf/drchubo.urdf");
 
+    parseTest.linkage("Body_LHY").name("LeftLeg");
+
+    VectorXd jointValues;
+    jointValues.resize(parseTest.linkage("LeftLeg").nJoints());
+
+    TRANSFORM target = parseTest.linkage("LeftLeg").tool().respectToRobot();
+    target.translate(Vector3d(0, 0, 0.15));
+
+    parseTest.dampedLeastSquaresIK_linkage("LeftLeg", jointValues, target);
+
+    cout << "Target:" << endl;
+    cout << target.matrix() << endl;
+
+    cout << "End:" << endl;
+    cout << parseTest.linkage("LeftLeg").tool().respectToRobot().matrix() << endl;
+
+    cout << "Joint Angles: " << jointValues.transpose() << endl;
+
+    cout << jointValues[2] + jointValues[3] + jointValues[4] << endl;
+
+//    parseTest.linkage("LeftLeg").printInfo();
+
 //    parseTest.printInfo();
 
-    VectorXd torques;
+//    VectorXd torques;
 
 
 //    clock_t time;
@@ -423,32 +445,32 @@ void tutorial()
 
 
 
-    cout << "Mass:" << parseTest.mass() << endl;
+//    cout << "Mass:" << parseTest.mass() << endl;
 
-    cout << "Center of Mass (home config): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+//    cout << "Center of Mass (home config): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
 
-    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
-    cout << "RA torques: " << torques.transpose() << endl;
+//    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+//    cout << "RA torques: " << torques.transpose() << endl;
 
-    parseTest.setJointValue("RSP", -45*M_PI/180);
-    cout << "CoM (pitched 45): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
-    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
-    cout << "RA torques: " << torques.transpose() << endl;
+//    parseTest.setJointValue("RSP", -45*M_PI/180);
+//    cout << "CoM (pitched 45): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+//    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+//    cout << "RA torques: " << torques.transpose() << endl;
 
-    parseTest.setJointValue("RSP", -90*M_PI/180);
-    cout << "CoM (pitched 90): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
-    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
-    cout << "RA torques: " << torques.transpose() << endl;
+//    parseTest.setJointValue("RSP", -90*M_PI/180);
+//    cout << "CoM (pitched 90): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+//    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+//    cout << "RA torques: " << torques.transpose() << endl;
 
-    parseTest.setJointValue("RSR", -90*M_PI/180);
-    cout << "CoM (pointed right): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
-    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
-    cout << "RA torques: " << torques.transpose() << endl;
+//    parseTest.setJointValue("RSR", -90*M_PI/180);
+//    cout << "CoM (pointed right): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+//    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+//    cout << "RA torques: " << torques.transpose() << endl;
 
-    parseTest.setJointValue("RSR", -140*M_PI/180);
-    cout << "CoM (pointed back a bit): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
-    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
-    cout << "RA torques: " << torques.transpose() << endl;
+//    parseTest.setJointValue("RSR", -140*M_PI/180);
+//    cout << "CoM (pointed back a bit): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
+//    parseTest.linkage("Body_RSP").gravityJointTorques(torques);
+//    cout << "RA torques: " << torques.transpose() << endl;
 
 
 

@@ -142,6 +142,25 @@ namespace RobotKin {
 
     std::string rk_result_to_string(rk_result_t result);
 
+
+
+    typedef enum {
+        ANCHOR = 0,
+        REVOLUTE,
+        PRISMATIC,
+
+        JOINT_TYPE_SIZE
+    } JointType;
+
+    static const char *JointType_string[JOINT_TYPE_SIZE] =
+    {
+        "ANCHOR",
+        "REVOLUTE",
+        "PRISMATIC"
+    };
+
+    std::string JointType_to_string(JointType type);
+
     
     class Frame
     {

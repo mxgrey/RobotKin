@@ -80,12 +80,7 @@ namespace RobotKin {
     // Typedefs and Enums
     //------------------------------------------------------------------------------
     typedef Eigen::Matrix<double, 6, Eigen::Dynamic> Matrix6Xd;
-    
-    enum JointType {
-        ANCHOR = 0,
-        REVOLUTE,
-        PRISMATIC
-    };
+
 
     class Link
     {

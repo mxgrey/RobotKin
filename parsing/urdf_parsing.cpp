@@ -1,3 +1,5 @@
+#define HAVE_URDF_PARSE
+
 #ifdef HAVE_URDF_PARSE
 
 #include <urdf_parser/urdf_parser.h>
@@ -28,10 +30,8 @@ using namespace RobotKinURDF;
 using namespace Eigen;
 using namespace std;
 
-bool RobotKinURDF::loadURDF(RobotKin::Robot& robot, string filename)
+bool RobotKinURDF::loadURDF(RobotKin::Robot &robot, string filename)
 {
-    boost::shared_ptr<urdf::ModelInterface> model;
-
     // Read the urdf into a string
     std::string xml_model_string;
     std::fstream xml_file( filename.c_str(),
@@ -44,6 +44,13 @@ bool RobotKinURDF::loadURDF(RobotKin::Robot& robot, string filename)
     }
 
     xml_file.close();
+
+    loadURDFstring(robot, xml_model_string);
+}
+
+bool RobotKinURDF::loadURDFstring(RobotKin::Robot& robot, string xml_model_string)
+{
+    boost::shared_ptr<urdf::ModelInterface> model;
 
     // Parse model using the urdf_parser
     // TODO: Make sure the file exists before we ask urdfdom to parse it

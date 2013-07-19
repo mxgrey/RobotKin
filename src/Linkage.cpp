@@ -174,7 +174,7 @@ rk_result_t Joint::value(double newValue)
     }
     else
         value_ = newValue;
-//    value_ = newValue;
+    value_ = newValue;
 
     if (jointType_ == REVOLUTE) {
         respectToFixedTransformed_ = respectToFixed_ * Eigen::AngleAxisd(value_, jointAxis_);
@@ -287,8 +287,8 @@ void Link::printInfo() const
 
 void Joint::printInfo() const
 {
-    cout << frameTypeString() << " Info: " << name() << " (ID: " << id()  << "), Joint Type:"
-         << jointType_ << endl;
+    cout << frameTypeString() << " Info: " << name() << " (ID: " << id()  << "), Joint Type: "
+         << JointType_to_string(jointType_) << endl;
     cout << "Joint value: " << value() << "\t Axis: " << jointAxis_.transpose() << endl;
     cout << "Respect to fixed frame:" << endl;
     cout << respectToFixed().matrix() << endl << endl;
@@ -792,8 +792,6 @@ void Linkage::jacobian(MatrixXd& J, TRANSLATION location, const Frame* refFrame)
     size_t nCols = nJoints();
     J.resize(6, nCols);
     
-
-
     TRANSLATION o_i, d_i, z_i; // Joint i location, offset, axis
     
     for (size_t i = 0; i < nCols; ++i) {
@@ -819,6 +817,44 @@ void Linkage::jacobian(MatrixXd& J, TRANSLATION location, const Frame* refFrame)
         
     }
     
+    // Jacobian transformation
+    Matrix3d r(refFrame->respectToWorld().rotation().inverse() * respectToWorld().rotation());
+    MatrixXd R(6,6);
+    R << r, Matrix3d::Zero(), Matrix3d::Zero(), r;
+    J = R * J;
+}
+
+void Linkage::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const
+{ // location should be specified respect to linkage coordinate frame
+
+    size_t nCols = jointFrames.size();
+    J.resize(6, nCols);
+
+    TRANSLATION o_i, d_i, z_i; // Joint i location, offset, axis
+
+    for (size_t i = 0; i < nCols; ++i) {
+
+        o_i = jointFrames[i]->respectToLinkage_.translation(); // Joint i location
+//        d_i = o_i - location; // Vector from location to joint i
+        d_i = location - o_i; // Changing convention so that the position vector points away from the joint axis
+//        z_i = jointFrames[i]->respectToLinkage_.rotation().col(2); // Joint i joint axis
+        z_i = jointFrames[i]->respectToLinkage_.rotation()*jointFrames[i]->jointAxis_;
+
+        // Set column i of Jocabian
+        if (jointFrames[i]->jointType_ == REVOLUTE) {
+//            J.block(0, i, 3, 1) = d_i.cross(z_i);
+            J.block(0, i, 3, 1) = z_i.cross(d_i); // Changing convention to (w x r)
+            J.block(3, i, 3, 1) = z_i;
+        } else if(jointFrames[i]->jointType_ == PRISMATIC) {
+            J.block(0, i, 3, 1) = z_i;
+            J.block(3, i, 3, 1) = TRANSLATION::Zero();
+        } else {
+            J.block(0, i, 3, 1) = TRANSLATION::Zero();
+            J.block(3, i, 3, 1) = TRANSLATION::Zero();
+        }
+
+    }
+
     // Jacobian transformation
     Matrix3d r(refFrame->respectToWorld().rotation().inverse() * respectToWorld().rotation());
     MatrixXd R(6,6);

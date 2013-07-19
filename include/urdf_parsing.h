@@ -7,7 +7,7 @@
 namespace RobotKinURDF{
 
 bool loadURDF(RobotKin::Robot& robot, std::string filename);
-
+bool loadURDFstring(RobotKin::Robot& robot, std::string xml_model_string);
 
 }
 
