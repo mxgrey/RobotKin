@@ -114,7 +114,6 @@ namespace RobotKin {
         double errorClamp;
         double deltaClamp;
         double gammaMax;
-        double tolerance;
         double transTolerance;
         double damp;
         size_t maxIterations;
@@ -219,13 +218,16 @@ namespace RobotKin {
         /////////////////
 
         rk_result_t dampedLeastSquaresIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
-                                          const TRANSFORM &target, const TRANSFORM &finalTF = TRANSFORM::Identity());
+                                               const TRANSFORM &target, const Eigen::VectorXd& restValues,
+                                               double tolerance=0.001, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t dampedLeastSquaresIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
-                                          const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
+                                          const TRANSFORM& target, const Eigen::VectorXd& restValues,
+                                          double tolerance=0.001, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t dampedLeastSquaresIK_linkage(const std::string linkageName, Eigen::VectorXd &jointValues,
-                                            const TRANSFORM& target, const TRANSFORM &finalTF = TRANSFORM::Identity());
+                                            const TRANSFORM& target, const Eigen::VectorXd& restValues,
+                                            double tolerance=0.001, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         /////////////////
 

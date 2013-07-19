@@ -166,15 +166,17 @@ rk_result_t Joint::value(double newValue)
     {
         value_ = min_;
         result = RK_HIT_LOWER_LIMIT;
+        cerr << "Joint " << name() << " hit a lower limit" << endl;
     }
     else if(newValue > max_)
     {
         value_ = max_;
         result = RK_HIT_UPPER_LIMIT;
+        cerr << "Joint " << name() << " hit an upper limit" << endl;
     }
     else
         value_ = newValue;
-    value_ = newValue;
+//    value_ = newValue;
 
     if (jointType_ == REVOLUTE) {
         respectToFixedTransformed_ = respectToFixed_ * Eigen::AngleAxisd(value_, jointAxis_);

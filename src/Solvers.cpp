@@ -572,7 +572,7 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &j
 
 //    cout << "\n\n" << endl;
 
-    tolerance = 1*M_PI/180; // TODO: Put this in the constructor so the user can set it arbitrarily
+    double tolerance = 1*M_PI/180; // TODO: Put this in the constructor so the user can set it arbitrarily
     maxIterations = 1000; // TODO: Put this in the constructor so the user can set it arbitrarily
 
     size_t iterations = 0;
@@ -727,7 +727,7 @@ rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, Vec
     aagoal = target.rotation();
     goal << target.translation(), aagoal.axis()*aagoal.angle();
 
-    tolerance = 1*M_PI/180; // TODO: Put this in the constructor so the user can set it arbitrarily
+    double tolerance = 1*M_PI/180; // TODO: Put this in the constructor so the user can set it arbitrarily
     maxIterations = 100; // TODO: Put this in the constructor so the user can set it arbitrarily
     errorClamp = 0.25; // TODO: Put this in the constructor
     deltaClamp = M_PI/4; // TODO: Put this in the constructor
@@ -835,7 +835,7 @@ rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices,
     double Tscale = 3; // TODO: Put these as a class member in the constructor
     double Rscale = 0;
 
-    tolerance = 1*M_PI/180; // TODO: Put this in the constructor so the user can set it arbitrarily
+    double tolerance = 1*M_PI/180; // TODO: Put this in the constructor so the user can set it arbitrarily
     maxIterations = 100; // TODO: Put this in the constructor so the user can set it arbitrarily
 
     size_t iterations = 0;
@@ -904,8 +904,9 @@ rk_result_t Robot::jacobianTransposeIK_linkage(const string linkageName, VectorX
 
 
 
-
-rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const TRANSFORM &target, const TRANSFORM &finalTF)
+// TODO: Make a constraint class instead of restValues
+rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const TRANSFORM &target,
+                                              const VectorXd &restValues, double tolerance, const TRANSFORM &finalTF)
 {
 
 
@@ -927,9 +928,10 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     VectorXd delta(jointValues.size());
     VectorXd f(jointValues.size());
 
+    VectorXd deltaNull(jointValues.size());
 
-    tolerance = 0.001;
-    maxIterations = 100; // TODO: Put this in the constructor so the user can set it arbitrarily
+//    tolerance = 0.001;
+    maxIterations = 1000; // TODO: Put this in the constructor so the user can set it arbitrarily
     damp = 0.05;
 
     values(jointIndices, jointValues);
@@ -946,12 +948,31 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
         jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
 
-        f = (J*J.transpose() + damp*damp*Matrix6d::Identity()).colPivHouseholderQr().solve(err);
-        delta = J.transpose()*f;
+        Jinv = (J*J.transpose() + damp*damp*Matrix6d::Identity()).inverse();
+
+//        f = (J*J.transpose() + damp*damp*Matrix6d::Identity()).colPivHouseholderQr().solve(err);
+//        delta = J.transpose()*f;
+
+
+        deltaNull = (Matrix6d::Identity() - Jinv*J)*(restValues - jointValues);
+        clampMag(deltaNull, tolerance/10); // FIXME: use a variable instead of 0.001
+                                           // probably make it scale to the tolerance
+//        deltaNull = 0.001*deltaNull.normalized();
+
+
+        delta = J.transpose()*Jinv*err/* + deltaNull*/;
+
+        cout << iterations << ") DeltaNull: " << deltaNull.transpose() << "\t" /*<< " phi: " << (restValues - jointValues).transpose()*/
+             << "\tDelta: " << delta.transpose() << endl;
+
+        delta += deltaNull;
 
         jointValues += delta;
 
         values(jointIndices, jointValues);
+
+        for(int k=0; k<jointIndices.size(); k++)
+            jointValues(k) = joint(jointIndices[k]).value();
 
         pose = joint(jointIndices.back()).respectToRobot()*finalTF;
         aastate = pose.rotation();
@@ -972,7 +993,8 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 }
 
 rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
-                                              const TRANSFORM &target, const TRANSFORM &finalTF)
+                                              const TRANSFORM &target, const VectorXd &restValues,
+                                              double tolerance, const TRANSFORM &finalTF)
 {
     // TODO: Make the conversion from vector<string> to vector<size_t> its own function
     vector<size_t> jointIndices;
@@ -990,12 +1012,13 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, 
 //        jointIndices[i] = j->second;
 //    }
 
-    return dampedLeastSquaresIK_chain(jointIndices, jointValues, target);
+    return dampedLeastSquaresIK_chain(jointIndices, jointValues, target, restValues, tolerance, finalTF);
 }
 
 
 rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, VectorXd &jointValues,
-                                                const TRANSFORM &target, const TRANSFORM &finalTF)
+                                                const TRANSFORM &target, const VectorXd &restValues,
+                                                double tolerance, const TRANSFORM &finalTF)
 {
     if(linkage(linkageName).name().compare("invalid")==0)
         return RK_INVALID_LINKAGE;
@@ -1008,7 +1031,7 @@ rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, Vector
     TRANSFORM linkageFinalTF;
     linkageFinalTF = linkage(linkageName).tool().respectToFixed()*finalTF;
 
-    return dampedLeastSquaresIK_chain(jointIndices, jointValues, target, linkageFinalTF);
+    return dampedLeastSquaresIK_chain(jointIndices, jointValues, target, restValues, tolerance, linkageFinalTF);
 }
 
 
