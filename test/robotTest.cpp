@@ -91,7 +91,7 @@
 #include "Robot.h"
 #include "Hubo.h"
 
-
+#include <time.h>
 
 //------------------------------------------------------------------------------
 // Namespaces
@@ -402,35 +402,119 @@ void tutorial()
     */
 
     Robot parseTest("../urdf/drchubo.urdf");
-
+    parseTest.linkage("Body_RSP").name("RightArm");
+    parseTest.linkage("Body_LSP").name("LeftArm");
+    parseTest.linkage("Body_RHY").name("RightLeg");
     parseTest.linkage("Body_LHY").name("LeftLeg");
 
-    VectorXd jointValues, restValues;
-    jointValues.resize(parseTest.linkage("LeftLeg").nJoints());
-    restValues.resize(parseTest.linkage("LeftLeg").nJoints());
+    bool totallyRandom = true;
 
+    string limb = "RightLeg";
+
+    VectorXd targetValues, jointValues, restValues;
+    targetValues.resize(parseTest.linkage(limb).nJoints());
+    jointValues.resize(parseTest.linkage(limb).nJoints());
+    restValues.resize(parseTest.linkage(limb).nJoints());
+    restValues.setZero();
+    // Leg rest values
     restValues[2] = -0.15;
     restValues[3] = 0.3;
     restValues[4] = -0.15;
 
+    // Arm rest values
+//    restValues[3] = -30*M_PI/180;
 
-    TRANSFORM target = parseTest.linkage("LeftLeg").tool().respectToRobot();
-    target.translate(Vector3d(0, 0, 0.15));
+    TRANSFORM target;
 
-    parseTest.dampedLeastSquaresIK_linkage("LeftLeg", jointValues, target, restValues);
+    int wins = 0;
 
-    cout << "Target:" << endl;
-    cout << target.matrix() << endl;
+    srand (time(NULL));
 
-    cout << "End:" << endl;
-    cout << parseTest.linkage("LeftLeg").tool().respectToRobot().matrix() << endl;
+    for(int k=0; k<10; k++)
+    {
+        int resolution = 1000;
+        double scatterScale = 0.1;
+        for(int i=0; i<parseTest.linkage(limb).nJoints(); i++)
+        {
+            int randomVal = rand();
+            targetValues(i) = ((double)(randomVal%resolution))/((double)resolution-1)
+                    *(parseTest.linkage(limb).joint(i).max() - parseTest.linkage(limb).joint(i).min())
+                    + parseTest.linkage(limb).joint(i).min();
 
-    cout << "Joint Angles: " << jointValues.transpose() << endl;
+    //        cout << "vals: " << randomVal;
 
-    cout << jointValues[2] + jointValues[3] + jointValues[4] << endl;
+            randomVal =  rand();
 
-    cout << "Error: " << (parseTest.linkage("LeftLeg").tool().respectToRobot().translation()
-                          - target.translation()).norm() << endl;
+    //        cout << "\t:\t" << randomVal << endl;
+
+            /////////////////////// TOTALLY RANDOM TEST ///////////////////////////
+            if(totallyRandom)
+                jointValues(i) = ((double)(randomVal%resolution))/((double)resolution-1)
+                        *(parseTest.linkage(limb).joint(i).max() - parseTest.linkage(limb).joint(i).min())
+                        + parseTest.linkage(limb).joint(i).min();
+            else
+                jointValues(i) = targetValues(i) +
+                        ((double)(2*rand()%resolution)/((double)resolution-1)-1)*scatterScale
+                        *(parseTest.linkage(limb).joint(i).max() - parseTest.linkage(limb).joint(i).min());
+
+            parseTest.linkage(limb).joint(i).value(targetValues(i));
+        }
+
+        cout << "Start values:  " << jointValues.transpose() << endl;
+        cout << "Target values: " << targetValues.transpose() << endl;
+        cout << "Norm: " << ( jointValues - targetValues ).norm() << endl;
+
+        target = parseTest.linkage(limb).tool().respectToRobot();
+
+
+        parseTest.linkage(limb).values(jointValues);
+
+//        cout << "Start:" << endl;
+//        cout << parseTest.linkage(limb).tool().respectToRobot().matrix() << endl;
+//        cout << "Target:" << endl;
+//        cout << target.matrix() << endl;
+
+        if( parseTest.dampedLeastSquaresIK_linkage(limb, jointValues, target, restValues, 0.001)
+                == RK_SOLVED )
+            wins++;
+
+//        cout << "End:" << endl;
+//        cout << parseTest.linkage(limb).tool().respectToRobot().matrix() << endl;
+
+//        cout << "Target Joint Values: " << targetValues.transpose() << endl;
+        cout << "Final  Joint Values: " << jointValues.transpose() << endl;
+
+        cout << "Error: " << (parseTest.linkage(limb).tool().respectToRobot().translation()
+                              - target.translation()).norm() << endl;
+    }
+
+    cout << "Wins: " << wins << endl;
+
+
+//    TRANSFORM target = parseTest.linkage("LeftLeg").tool().respectToRobot();
+//    target.translate(Vector3d(0, 0, 0.15));
+
+//    parseTest.dampedLeastSquaresIK_linkage("LeftLeg", jointValues, target, restValues);
+
+//    cout << "Target:" << endl;
+//    cout << target.matrix() << endl;
+
+//    cout << "End:" << endl;
+//    cout << parseTest.linkage("LeftLeg").tool().respectToRobot().matrix() << endl;
+
+//    cout << "Joint Angles: " << jointValues.transpose() << endl;
+
+//    cout << jointValues[2] + jointValues[3] + jointValues[4] << endl;
+
+//    cout << "Error: " << (parseTest.linkage("LeftLeg").tool().respectToRobot().translation()
+//                          - target.translation()).norm() << endl;
+
+
+
+
+
+
+
 
 //    parseTest.linkage("LeftLeg").printInfo();
 
@@ -529,7 +613,7 @@ void tutorial()
 
 
 
-    // ________________________ IK Test Area __________________________
+    // ________________________ IK Speed Test Area __________________________
 
 
 

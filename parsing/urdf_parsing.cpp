@@ -1,5 +1,3 @@
-#define HAVE_URDF_PARSE
-
 #ifdef HAVE_URDF_PARSE
 
 #include <urdf_parser/urdf_parser.h>
@@ -36,6 +34,8 @@ bool RobotKinURDF::loadURDF(RobotKin::Robot &robot, string filename)
     std::string xml_model_string;
     std::fstream xml_file( filename.c_str(),
                              std::fstream::in );
+
+
 
     while( xml_file.good() ) {
     std::string line;

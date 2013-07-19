@@ -925,13 +925,14 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     TRANSLATION Terr;
     TRANSLATION Rerr;
     Vector6d err;
+    VectorXd nullErr(jointValues.size());
     VectorXd delta(jointValues.size());
     VectorXd f(jointValues.size());
 
     VectorXd deltaNull(jointValues.size());
 
 //    tolerance = 0.001;
-    maxIterations = 1000; // TODO: Put this in the constructor so the user can set it arbitrarily
+    maxIterations = 100000; // TODO: Put this in the constructor so the user can set it arbitrarily
     damp = 0.05;
 
     values(jointIndices, jointValues);
@@ -948,24 +949,41 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
         jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
 
-        Jinv = (J*J.transpose() + damp*damp*Matrix6d::Identity()).inverse();
-
+        //////////////////////////////////////////////////////////////////////
+        ////////////////////////  STANDARD APPROACH  /////////////////////////
+        //////////////////////////////////////////////////////////////////////
 //        f = (J*J.transpose() + damp*damp*Matrix6d::Identity()).colPivHouseholderQr().solve(err);
 //        delta = J.transpose()*f;
 
-
-        deltaNull = (Matrix6d::Identity() - Jinv*J)*(restValues - jointValues);
-        clampMag(deltaNull, tolerance/10); // FIXME: use a variable instead of 0.001
-                                           // probably make it scale to the tolerance
-//        deltaNull = 0.001*deltaNull.normalized();
+        //////////////////////////////////////////////////////////////////////
 
 
-        delta = J.transpose()*Jinv*err/* + deltaNull*/;
 
-        cout << iterations << ") DeltaNull: " << deltaNull.transpose() << "\t" /*<< " phi: " << (restValues - jointValues).transpose()*/
-             << "\tDelta: " << delta.transpose() << endl;
+        ///////////////////////////////////////////////////////////////////
+        ///////////////////////  NULL SPACE APPROACH //////////////////////
+        ///////////////////////////////////////////////////////////////////
+        Jinv = J.transpose()*(J*J.transpose() + damp*damp*Matrix6d::Identity()).inverse();
+
+        delta = Jinv*err;
+//        clampMag(delta, tolerance*5);
+
+
+        nullErr = restValues - jointValues;
+        clampMag(nullErr, tolerance/10);
+        deltaNull = (Matrix6d::Identity() - Jinv*J)*nullErr;
 
         delta += deltaNull;
+
+//        clampMag(deltaNull, tolerance/10); // FIXME: use a variable
+                                           // probably make it scale to the tolerance
+
+//        cout << iterations << ") DeltaNull: " << deltaNull.transpose() << "\t" /*<< " phi: " << (restValues - jointValues).transpose()*/
+//             << "\tDelta: " << delta.transpose() << endl;
+
+
+        ///////////////////////////////////////////////////////////////////
+
+
 
         jointValues += delta;
 
@@ -978,7 +996,9 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
         aastate = pose.rotation();
 
         Terr = target.translation()-pose.translation();
+        clampMag(Terr, tolerance*10);
         Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
+        clampMag(Rerr, Terr.norm()/10);
         err << Terr, Rerr;
 
         iterations++;
@@ -986,10 +1006,13 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
     } while(err.norm() > tolerance && iterations < maxIterations);
 
+    cout << "Iterations: -- " << iterations << endl;
+
     if(iterations < maxIterations)
         return RK_SOLVED;
     else
         return RK_DIVERGED;
+
 }
 
 rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
