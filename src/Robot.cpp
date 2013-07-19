@@ -255,9 +255,9 @@ void Robot::values(const vector<size_t>& jointIndices, const VectorXd& jointValu
              << endl;
 }
 
-void Robot::setJointValue(string jointName, double val){joint(jointName).value(val);}
+rk_result_t Robot::setJointValue(string jointName, double val){ return joint(jointName).value(val); }
 
-void Robot::setJointValue(size_t jointIndex, double val){joint(jointIndex).value(val);}
+rk_result_t Robot::setJointValue(size_t jointIndex, double val){ return joint(jointIndex).value(val); }
 
 const TRANSFORM& Robot::respectToFixed() const { return respectToFixed_; }
 void Robot::respectToFixed(TRANSFORM aCoordinate)

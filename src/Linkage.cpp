@@ -158,15 +158,23 @@ void Joint::setJointAxis(AXIS axis)
 
 // Joint Methods
 double Joint::value() const { return value_; }
-void Joint::value(double newValue)
+rk_result_t Joint::value(double newValue)
 {
+    rk_result_t result = RK_SOLVED;
+
     if(newValue < min_)
+    {
         value_ = min_;
+        result = RK_HIT_LOWER_LIMIT;
+    }
     else if(newValue > max_)
+    {
         value_ = max_;
+        result = RK_HIT_UPPER_LIMIT;
+    }
     else
         value_ = newValue;
-    value_ = newValue;
+//    value_ = newValue;
 
     if (jointType_ == REVOLUTE) {
         respectToFixedTransformed_ = respectToFixed_ * Eigen::AngleAxisd(value_, jointAxis_);
@@ -179,6 +187,8 @@ void Joint::value(double newValue)
     // TODO: Decide if it is efficient to have this here
     if ( hasLinkage )
         linkage_->updateFrames();
+
+    return result;
 }
 
 double Joint::min() const { return min_; }
@@ -776,28 +786,30 @@ TRANSFORM Linkage::respectToWorld() const
         return TRANSFORM::Identity();
 }
 
-void Linkage::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const
+void Linkage::jacobian(MatrixXd& J, TRANSLATION location, const Frame* refFrame) const
 { // location should be specified respect to linkage coordinate frame
     
-    size_t nCols = jointFrames.size();
+    size_t nCols = nJoints();
     J.resize(6, nCols);
     
+
+
     TRANSLATION o_i, d_i, z_i; // Joint i location, offset, axis
     
     for (size_t i = 0; i < nCols; ++i) {
         
-        o_i = jointFrames[i]->respectToLinkage_.translation(); // Joint i location
+        o_i = joints_[i]->respectToLinkage_.translation(); // Joint i location
 //        d_i = o_i - location; // Vector from location to joint i
         d_i = location - o_i; // Changing convention so that the position vector points away from the joint axis
-//        z_i = jointFrames[i]->respectToLinkage_.rotation().col(2); // Joint i joint axis
-        z_i = jointFrames[i]->respectToLinkage_.rotation()*jointFrames[i]->jointAxis_;
+//        z_i = joints_[i]->respectToLinkage_.rotation().col(2); // Joint i joint axis
+        z_i = joints_[i]->respectToLinkage_.rotation()*joints_[i]->jointAxis_;
 
         // Set column i of Jocabian
-        if (jointFrames[i]->jointType_ == REVOLUTE) {
+        if (joints_[i]->jointType_ == REVOLUTE) {
 //            J.block(0, i, 3, 1) = d_i.cross(z_i);
             J.block(0, i, 3, 1) = z_i.cross(d_i); // Changing convention to (w x r)
             J.block(3, i, 3, 1) = z_i;
-        } else if(jointFrames[i]->jointType_ == PRISMATIC) {
+        } else if(joints_[i]->jointType_ == PRISMATIC) {
             J.block(0, i, 3, 1) = z_i;
             J.block(3, i, 3, 1) = TRANSLATION::Zero();
         } else {
@@ -839,7 +851,7 @@ void Linkage::printInfo() const
     const_tool().printInfo();
     
     MatrixXd J;
-    jacobian(J, const_joints(), const_tool().respectToLinkage().translation(), this);
+    jacobian(J, const_tool().respectToLinkage().translation(), this);
     
     cout << "Jacobian for " << name() << ":" << endl;
     cout << J.matrix() << endl;
@@ -897,9 +909,9 @@ void Linkage::setTool(Tool newTool)
     tool_.Tool::hasRobot = hasRobot;
 }
 
-void Linkage::setJointValue(size_t jointIndex, double val){joint(jointIndex).value(val);}
+rk_result_t Linkage::setJointValue(size_t jointIndex, double val){ return joint(jointIndex).value(val); }
 
-void Linkage::setJointValue(string jointName, double val){joint(jointName).value(val);}
+rk_result_t Linkage::setJointValue(string jointName, double val){ return joint(jointName).value(val); }
 
 
 void Linkage::updateFrames()

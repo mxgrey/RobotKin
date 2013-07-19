@@ -115,6 +115,8 @@ namespace RobotKin {
         RK_NO_SOLUTION,
         RK_INVALID_JOINT,
         RK_INVALID_LINKAGE,
+        RK_HIT_LOWER_LIMIT,
+        RK_HIT_UPPER_LIMIT,
         RK_INVALID_FRAME_TYPE,
 
         RK_SOLVER_NOT_READY,
@@ -131,7 +133,9 @@ namespace RobotKin {
         "RK_NO_SOLUTION",
         "RK_INVALID_JOINT",
         "RK_INVALID_LINKAGE",
-        "RK_INVALID_FRAME_TYPE"
+        "RK_HIT_LOWER_LIMIT",
+        "RK_HIT_UPPER_LIMIT",
+        "RK_INVALID_FRAME_TYPE",
 
         "RK_SOLVER_NOT_READY"
     };

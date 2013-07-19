@@ -257,13 +257,7 @@ TRANSLATION Linkage::centerOfMass(FrameType withRespectTo)
 {
     TRANSLATION com; com.setZero();
     for(int i=0; i<nJoints(); i++)
-    {
         com += joint(i).centerOfMass(withRespectTo)*joint(i).mass();
-        if(com(0) != com(0)
-                || com(1) != com(1)
-                || com(2) != com(2))
-            cerr << "NaN at joint " << joint(i).name() << " (" << joint(i).id() << ")" << endl;
-    }
 
 
     com += tool().centerOfMass(withRespectTo)*tool().mass();
@@ -470,8 +464,6 @@ void gravityTorqueHelper(Robot& robot, size_t startLinkage, size_t nextLinkage, 
     com  += robot.linkage(nextLinkage).centerOfMass()*newMass;
     mass += newMass;
 
-//    cout << "Mass of " << robot.linkage(nextLinkage).name() << " is " << robot.linkage(nextLinkage).mass() << endl;
-
     for(int i=0; i<robot.linkage(nextLinkage).nChildren(); i++)
         if(robot.linkage(nextLinkage).childLinkage(i).id() != startLinkage)
             gravityTorqueHelper(robot, nextLinkage,
@@ -492,7 +484,6 @@ double Joint::gravityTorque(bool downstream)
     m_mass += linkage().mass(localID(), downstream, true);
     com  += linkage().centerOfMass(localID(), downstream, true)*m_mass;
 
-
     if(downstream)
         for(int i=0; i<linkage().nChildren(); i++)
             gravityTorqueHelper(robot(), linkage().id(), linkage().childLinkage(i).id(), com, m_mass);
@@ -510,12 +501,6 @@ double Joint::gravityTorque(bool downstream)
     TRANSLATION lever = com - respectToRobot().translation();
     TRANSLATION Fz;
     Fz = TRANSLATION::UnitZ()*gravity_constant*m_mass;
-
-    cout << "Lever downstream of " << name() << " is " << lever.norm() << "\t\t";
-    cout << "(" << lever.transpose() << ")\t\t";
-    cout << "Mass downstream of " << name() << " is " << m_mass << "\t\t";
-    cout << "(" << lever.norm()*m_mass << ")" << endl;
-
 
     if(downstream)
         return lever.cross(Fz).dot(respectToRobot().rotation()*jointAxis_);

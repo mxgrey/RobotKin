@@ -160,8 +160,8 @@ namespace RobotKin {
         Joint& joint(std::string jointName);
 
         // Convenience function
-        void setJointValue(size_t jointIndex, double val);
-        void setJointValue(std::string jointName, double val);
+        rk_result_t setJointValue(size_t jointIndex, double val);
+        rk_result_t setJointValue(std::string jointName, double val);
         
         const std::vector<Joint*>& const_joints() const;
         std::vector<Joint*>& joints();

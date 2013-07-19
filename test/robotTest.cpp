@@ -401,7 +401,7 @@ void tutorial()
     cout << "-- Add methods to add and remove joints" << endl;
     */
 
-    Robot parseTest("../urdf/drchubo-v2.urdf");
+    Robot parseTest("../urdf/drchubo.urdf");
 
 //    parseTest.printInfo();
 
@@ -449,6 +449,9 @@ void tutorial()
     cout << "CoM (pointed back a bit): " << parseTest.linkage("Body_RSP").centerOfMass().transpose() << endl;
     parseTest.linkage("Body_RSP").gravityJointTorques(torques);
     cout << "RA torques: " << torques.transpose() << endl;
+
+
+
 
 //    parseTest.setJointValue("", M_PI/8);
 

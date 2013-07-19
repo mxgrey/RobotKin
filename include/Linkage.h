@@ -174,7 +174,7 @@ namespace RobotKin {
         // Joint Public Member Functions
         //----------------------------------------------------------------------
         double value() const;
-        void value(double newValue);
+        rk_result_t value(double newValue);
 
         double min() const;
         double max() const;
@@ -384,8 +384,8 @@ namespace RobotKin {
 
         size_t jointNameToIndex(std::string jointName);
         
-        void setJointValue(size_t jointIndex, double val);
-        void setJointValue(std::string jointName, double val);
+        rk_result_t setJointValue(size_t jointIndex, double val);
+        rk_result_t setJointValue(std::string jointName, double val);
         
         size_t nJoints() const;
         const Joint& const_joint(size_t jointIndex) const;
@@ -422,6 +422,7 @@ namespace RobotKin {
         
         TRANSFORM respectToWorld() const;
         
+        void jacobian(Eigen::MatrixXd& J, TRANSLATION location, const Frame *refFrame) const;
         void jacobian(Eigen::MatrixXd& J, const std::vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const;
         
         void printInfo() const;
