@@ -106,6 +106,7 @@ namespace RobotKin {
 
         Robot(std::string filename, std::string name="", size_t id=0);
         bool loadURDF(std::string filename);
+        bool loadURDFString(std::string filename);
         
         // Destructor
         virtual ~Robot();

@@ -45,10 +45,10 @@ bool RobotKinURDF::loadURDF(RobotKin::Robot &robot, string filename)
 
     xml_file.close();
 
-    loadURDFstring(robot, xml_model_string);
+    loadURDFString(robot, xml_model_string);
 }
 
-bool RobotKinURDF::loadURDFstring(RobotKin::Robot& robot, string xml_model_string)
+bool RobotKinURDF::loadURDFString(RobotKin::Robot& robot, string xml_model_string)
 {
     boost::shared_ptr<urdf::ModelInterface> model;
 
