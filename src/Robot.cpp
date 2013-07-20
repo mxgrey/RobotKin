@@ -66,6 +66,11 @@ bool Robot::loadURDF(string filename)
 {
     return RobotKinURDF::loadURDF(*this, filename);
 }
+
+bool Robot::loadURDFString(string filename)
+{
+    return RobotKinURDF::loadURDFString(*this, filename);
+}
 #else  // HAVE_URDF_PARSE
 Robot::Robot(string filename, string name, size_t id)
     : Frame::Frame(TRANSFORM::Identity(), name, id, ROBOT),
@@ -76,6 +81,11 @@ Robot::Robot(string filename, string name, size_t id)
 }
 
 bool Robot::loadURDF(string filename)
+{
+    std::cerr << "There was no URDF Parser installed when you compiled RobotKin!" << std::endl;
+}
+
+bool Robot::loadURDFString(string filename)
 {
     std::cerr << "There was no URDF Parser installed when you compiled RobotKin!" << std::endl;
 }
