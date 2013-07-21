@@ -457,7 +457,7 @@ void Robot::addLinkage(int parentIndex, string name)
 //------------------------------------------------------------------------------
 void Robot::updateFrames()
 {
-    if (~initializing_) {
+//    if (~initializing_) { // TODO: Decide if this is necessary
         for (vector<Linkage*>::iterator linkageIt = linkages_.begin();
              linkageIt != linkages_.end(); ++linkageIt) {
             
@@ -467,7 +467,7 @@ void Robot::updateFrames()
                 (*linkageIt)->respectToRobot_ = (*linkageIt)->parentLinkage_->tool_.respectToRobot() * (*linkageIt)->respectToFixed_;
             }
         }
-    }
+//    }
 }
 
 

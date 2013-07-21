@@ -12,16 +12,20 @@ using namespace std;
 
 Constraints::Constraints()
     : performNullSpaceTask(false),
+      hasRestingValues(false),
       maxIterations(250),
       dampingConstant(0.05),
       finalTransform(TRANSFORM::Identity()),
-      convergenceTolerance(0.001),
+      convergenceTolerance(0.0001),
       performErrorClamp(true),
-      translationClamp(20*convergenceTolerance),
-      rotationClamp(translationClamp/10),
+      translationClamp(0.2),
+      rotationClamp(0.15),
       customErrorClamp(false),
       useIterativeJacobianSeed(true),
-      maxAttempts(5)
+      maxAttempts(5),
+      rotationScale(0.01),
+      performDeltaClamp(true),
+      deltaClamp(5*M_PI/180)
 {
 
 }
@@ -38,6 +42,7 @@ Constraints &Constraints::Defaults()
 void Constraints::restingValues(VectorXd newRestingValues)
 {
     performNullSpaceTask = true;
+    hasRestingValues = true;
     restingValues_ = newRestingValues;
 }
 
@@ -46,10 +51,11 @@ VectorXd& Constraints::restingValues() { return restingValues_; }
 VectorXd Constraints::nullSpaceTask(Robot& robot, const std::vector<size_t> &indices,
                                     const VectorXd& values, VectorXd& nullTask)
 {
-    nullTask = restingValues_ - values;
-    clampMag(nullTask, convergenceTolerance/10.0);
-//    clampMag(nullErr, 0.01);
-
+    if(hasRestingValues)
+    {
+        nullTask = restingValues_ - values;
+        clampMag(nullTask, 0.1);
+    }
     return nullTask;
 }
 
@@ -65,9 +71,15 @@ void Constraints::iterativeJacobianSeed(Robot& robot, size_t attemptNumber,
     {
         return;
     }
-    else if( attemptNumber == 1 && values.size() == restingValues_.size() )
+    else if( attemptNumber == 1 && hasRestingValues
+             && values.size() == restingValues_.size() )
         for(int i=0; i<values.size(); i++)
             values(i) = restingValues_(i);
+    else if( attemptNumber == 2 )
+    {
+        for(int i=0; i<values.size(); i++)
+            values(i) = 0;
+    }
     else
     {
         int resolution = 1000;
@@ -76,7 +88,6 @@ void Constraints::iterativeJacobianSeed(Robot& robot, size_t attemptNumber,
             values(i) = ((double)(randVal%resolution))/((double)resolution-1)
                     *(robot.joint(indices[i]).max() - robot.joint(indices[i]).min())
                     + robot.joint(indices[i]).min();
-//        cout << randVal << endl;
     }
 }
 

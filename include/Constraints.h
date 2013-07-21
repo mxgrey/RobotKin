@@ -22,6 +22,10 @@ namespace RobotKin {
         bool performErrorClamp;
         double translationClamp;
         double rotationClamp;
+        double rotationScale;
+
+        bool performDeltaClamp;
+        double deltaClamp;
 
         bool customErrorClamp;
         virtual void errorClamp(Robot& robot, const std::vector<size_t>& indices, SCREW& error);
@@ -44,7 +48,7 @@ namespace RobotKin {
     protected:
 
         Eigen::VectorXd restingValues_;
-
+        bool hasRestingValues;
 
 
     private:

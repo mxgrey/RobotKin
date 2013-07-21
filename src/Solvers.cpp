@@ -906,13 +906,13 @@ rk_result_t Robot::jacobianTransposeIK_linkage(const string linkageName, VectorX
 rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const TRANSFORM &target,
                                               Constraints& constraints )
 {
+    bool verbose = false;
 
-
-    vector<Joint*> joints;
-    joints.resize(jointIndices.size());
+    vector<Joint*> pJoints;
+    pJoints.resize(jointIndices.size());
     // FIXME: Add in safety checks
-    for(int i=0; i<joints.size(); i++)
-        joints[i] = joints_[jointIndices[i]];
+    for(int i=0; i<pJoints.size(); i++)
+        pJoints[i] = joints_[jointIndices[i]];
 
     // ~~ Declarations ~~
     MatrixXd J;
@@ -920,27 +920,24 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     TRANSFORM pose;
     AngleAxisd aagoal(target.rotation());
     AngleAxisd aastate;
+    AngleAxisd aaerr;
     TRANSLATION Terr;
     TRANSLATION Rerr;
     SCREW err;
     VectorXd nullErr(jointValues.size());
     VectorXd delta(jointValues.size());
+    VectorXd stored(jointValues.size());
     VectorXd f(jointValues.size());
 
     VectorXd deltaNull(jointValues.size());
+
+
+    stored = jointValues;
 
     double tolerance = constraints.convergenceTolerance;
     int maxIterations = constraints.maxIterations; // TODO: Put this in the constructor so the user can set it arbitrarily
     double damp = constraints.dampingConstant;
 
-    values(jointIndices, jointValues);
-
-    pose = joint(jointIndices.back()).respectToRobot()*constraints.finalTransform;
-    aastate = pose.rotation();
-
-    Terr = target.translation()-pose.translation();
-    Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
-    err << Terr, Rerr;
 
     size_t maxAttempts = 1;
     if(constraints.useIterativeJacobianSeed)
@@ -951,17 +948,51 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
         if(constraints.useIterativeJacobianSeed)
             constraints.iterativeJacobianSeed(*this, attempt, jointIndices, jointValues);
 
+        values(jointIndices, jointValues);
+
+        pose = joint(jointIndices.back()).respectToRobot()*constraints.finalTransform;
+        aastate = pose.rotation();
+
+//        aaerr = pose.rotation().transpose()*target.rotation(); // FAILED
+//        aaerr = target.rotation().transpose()*pose.rotation(); // FAILED
+        aaerr = pose.rotation()*target.rotation().transpose();
+    //    aaerr = target.rotation()*pose.rotation().transpose();
+
+        Terr = target.translation()-pose.translation();
+        Rerr = aaerr.angle()*aaerr.axis();
+        //    Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
+
+    //    Rerr.setZero();
+        err << Terr, Rerr;//*constraints.rotationScale;
+
         size_t iterations = 0;
         do {
 
-            jacobian(J, joints, joints.back()->respectToRobot().translation()+constraints.finalTransform.translation(), this);
+            if(constraints.performErrorClamp)
+            {
+                clampMag(Terr, constraints.translationClamp);
+                clampMag(Rerr, constraints.rotationClamp);
+            }
+            err << Terr, Rerr;//*constraints.rotationScale;
+
+            if(constraints.customErrorClamp)
+                constraints.errorClamp(*this, jointIndices, err);
+
+            if(verbose)
+            {
+                cout << "Clamped Error: " << err.transpose() << endl;
+
+                cout << "-----------------------------------" << endl;
+            }
+
+            jacobian(J, pJoints, pJoints.back()->respectToRobot().translation()+constraints.finalTransform.translation(), this);
 
             /////////////////////////////////////////////////////////////////////////
             /////////////////////////  STANDARD APPROACH  ///////////////////////////
             /////////////////////////////////////////////////////////////////////////
 
-    //        f = (J*J.transpose() + damp*damp*Matrix6d::Identity()).colPivHouseholderQr().solve(err);
-    //        delta = J.transpose()*f;
+//            f = (J*J.transpose() + damp*damp*Matrix6d::Identity()).colPivHouseholderQr().solve(err);
+//            delta = J.transpose()*f;
 
             /////////////////////////////////////////////////////////////////////////
             /////////////////////////////////////////////////////////////////////////
@@ -977,56 +1008,93 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
             delta = Jinv*err;
 
+            if(constraints.performDeltaClamp)
+                clampMaxAbs(delta, constraints.deltaClamp);
+
 
             if(constraints.performNullSpaceTask)
                 constraints.nullSpaceTask(*this, jointIndices, jointValues, nullErr);
             else
                 nullErr.setZero();
 
+//            deltaNull = (Matrix6d::Identity() - J.transpose()*(J*J.transpose()).inverse()*J)*nullErr;
 
-
-
-            deltaNull = (Matrix6d::Identity() - Jinv*J)*nullErr;
+            // The damped nullspace is much better for avoiding NaNs
+            for(int n=0; n<deltaNull.size(); n++)
+            {
+                if(deltaNull[n] != deltaNull[n])
+                {
+                    deltaNull = (Matrix6d::Identity() - Jinv*J)*nullErr;
+                    cout << "NaN in the Nullspace!!" << endl;
+                    break;
+                }
+            }
 
             delta += deltaNull;
 
             ///////////////////////////////////////////////////////////////////
 
 
-
             jointValues += delta;
 
             values(jointIndices, jointValues);
 
+            // Catch any joint limits
             for(int k=0; k<jointIndices.size(); k++)
                 jointValues(k) = joint(jointIndices[k]).value();
 
             pose = joint(jointIndices.back()).respectToRobot()*constraints.finalTransform;
-            aastate = pose.rotation();
 
-            Terr = target.translation()-pose.translation();
-            Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
-            if(constraints.performErrorClamp)
+            if(verbose)
             {
-                clampMag(Terr, tolerance*20);
-                clampMag(Rerr, Terr.norm()/10);
+                cout << "req delta: " << delta.transpose() << endl;
+                cout << "act delta: " << (jointValues-stored).transpose() << endl;
+                cout << "angles: " << jointValues.transpose() << endl;
+                cout << "Limits: ";
+                for(int k=0; k<jointIndices.size(); k++)
+                    cout << "(" << joint(jointIndices[k]).min() << ", "
+                         << joint(jointIndices[k]).max() << ")\t";
+                cout << endl;
+                cout << pose.matrix() << endl;
+                cout << "Rotation needed: " << endl;
+                cout << (pose.rotation().transpose()*target.rotation()).matrix() << endl;
             }
 
+//            aaerr = pose.rotation().transpose()*target.rotation(); // FAILED
+//            aaerr = target.rotation().transpose()*pose.rotation(); // FAILED
+            aaerr = pose.rotation()*target.rotation().transpose();
+//            aaerr = target.rotation()*pose.rotation().transpose();
+
+//            cout << "Angle-Axis: (" << aaerr.angle()/M_PI*180 << ")\t" << aaerr.axis().transpose() << endl;
+
+            Terr = target.translation()-pose.translation();
+            if(fabs(aaerr.angle()) >= M_PI)
+                Rerr = aaerr.angle()*aaerr.axis();
+            else
+                Rerr = -aaerr.angle()*aaerr.axis();
             err << Terr, Rerr;
 
-            if(constraints.customErrorClamp)
-                constraints.errorClamp(*this, jointIndices, err);
+            if(verbose)
+            {
+                cout << "Error: " << err.transpose() << endl;
+            }
 
             iterations++;
 
 
         } while(err.norm() > tolerance && iterations < maxIterations);
 
-        cout << "Iterations: -- " << iterations << endl;
+        if(verbose)
+        {
+            cout << "Iterations: -- " << iterations << endl;
+        }
 
         if(iterations < maxIterations)
             return RK_SOLVED;
+//            break;
     }
+
+
 
 
     return RK_DIVERGED;
@@ -1056,8 +1124,8 @@ rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, Vector
     for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)
         jointIndices[i] = linkage(linkageName).joints_[i]->id();
 
-    TRANSFORM linkageFinalTF;
-    linkageFinalTF = linkage(linkageName).tool().respectToFixed()*constraints.finalTransform;
+
+    constraints.finalTransform = linkage(linkageName).tool().respectToFixed();
 
     return dampedLeastSquaresIK_chain(jointIndices, jointValues, target, constraints);
 }
