@@ -41,6 +41,8 @@ namespace RobotKin {
                                            const std::vector<size_t>& indices, Eigen::VectorXd& values);
         size_t maxAttempts;
 
+        bool wrapToJointLimits;
+        bool wrapSolutionToJointLimits;
 
         // Allow the user to call some default constraints
         static Constraints& Defaults();

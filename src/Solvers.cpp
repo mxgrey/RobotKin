@@ -8,6 +8,18 @@ using namespace Eigen;
 using namespace RobotKin;
 
 
+double RobotKin::mod(double x, double y)
+{
+    if (0 == y)
+        return x;
+
+    return x - y * floor(x/y);
+}
+
+double RobotKin::wrapToPi(double angle)
+{
+    return mod(angle + M_PI, 2*M_PI) - M_PI;
+}
 
 
 void RobotKin::clampMag(VectorXd& v, double clamp)
@@ -43,6 +55,40 @@ void RobotKin::clampMaxAbs(VectorXd& v, double clamp)
 }
 
 double RobotKin::minimum(double a, double b) { return a<b ? a : b; }
+
+
+void RobotKin::wrapToJointLimits(Robot& robot, const vector<size_t>& jointIndices, VectorXd& jointValues)
+{
+    for(int i=0; i<jointIndices.size(); i++)
+    {
+        if(robot.joint(jointIndices[i]).getJointType()==RobotKin::REVOLUTE)
+        {
+            if( !(robot.joint(jointIndices[i]).min() <= jointValues[i]
+                    && jointValues[i] <= robot.joint(jointIndices[i]).max()) )
+            {
+                double tempValue = jointValues[i];
+                while(tempValue > robot.joint(jointIndices[i]).max())
+                    tempValue -= 2*M_PI;
+
+                while(tempValue < robot.joint(jointIndices[i]).min())
+                    tempValue += 2*M_PI;
+
+                if(robot.joint(jointIndices[i]).min() <= tempValue
+                        && tempValue <= robot.joint(jointIndices[i]).max())
+                    jointValues[i] = tempValue;
+                else
+                {
+                    if( fabs(wrapToPi(jointValues[i]-robot.joint(jointIndices[i]).min())) <
+                            fabs(wrapToPi(jointValues[i]-robot.joint(jointIndices[i]).max())) )
+                        jointValues[i] = robot.joint(jointIndices[i]).min();
+                    else
+                        jointValues[i] = robot.joint(jointIndices[i]).max();
+                }
+            }
+        }
+    }
+}
+
 
 
 // Derived from code by Yohann Solaro ( http://listengine.tuxfamily.org/lists.tuxfamily.org/eigen/2010/01/msg00187.html )
@@ -907,6 +953,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
                                               Constraints& constraints )
 {
     bool verbose = false;
+    bool storedImposeLimits = imposeLimits;
 
     vector<Joint*> pJoints;
     pJoints.resize(jointIndices.size());
@@ -928,6 +975,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     VectorXd delta(jointValues.size());
     VectorXd stored(jointValues.size());
     VectorXd f(jointValues.size());
+    double rotAngle=0;
 
     VectorXd deltaNull(jointValues.size());
 
@@ -1017,7 +1065,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
             else
                 nullErr.setZero();
 
-//            deltaNull = (Matrix6d::Identity() - J.transpose()*(J*J.transpose()).inverse()*J)*nullErr;
+            deltaNull = (Matrix6d::Identity() - J.transpose()*(J*J.transpose()).inverse()*J)*nullErr;
 
             // The damped nullspace is much better for avoiding NaNs
             for(int n=0; n<deltaNull.size(); n++)
@@ -1036,6 +1084,10 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
 
             jointValues += delta;
+
+            if(constraints.wrapToJointLimits)
+                wrapToJointLimits(*this, jointIndices, jointValues);
+
 
             values(jointIndices, jointValues);
 
@@ -1072,6 +1124,10 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
                 Rerr = aaerr.angle()*aaerr.axis();
             else
                 Rerr = -aaerr.angle()*aaerr.axis();
+
+//            rotAngle = wrapToPi(aaerr.angle()); // This failed badly
+//            Rerr = rotAngle*aaerr.axis();
+
             err << Terr, Rerr;
 
             if(verbose)
@@ -1084,6 +1140,13 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
         } while(err.norm() > tolerance && iterations < maxIterations);
 
+        if(constraints.wrapSolutionToJointLimits)
+            wrapToJointLimits(*this, jointIndices, jointValues);
+
+        imposeLimits = storedImposeLimits;
+        values(jointIndices, jointValues);
+
+
         if(verbose)
         {
             cout << "Iterations: -- " << iterations << endl;
@@ -1091,7 +1154,6 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
         if(iterations < maxIterations)
             return RK_SOLVED;
-//            break;
     }
 
 

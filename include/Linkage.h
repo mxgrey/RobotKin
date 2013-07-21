@@ -176,6 +176,8 @@ namespace RobotKin {
         void min(double newMin);
         void max(double newMax);
 
+        JointType getJointType();
+
         void setJointAxis(AXIS axis);
 
         const TRANSFORM& respectToFixed() const;

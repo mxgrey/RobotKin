@@ -56,6 +56,7 @@
 // Includes
 //------------------------------------------------------------------------------
 #include <string>
+#include <vector>
 #include <iostream>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
@@ -171,6 +172,9 @@ namespace RobotKin {
     void clampMag(TRANSLATION& v, double clamp);
     void clampMaxAbs(Eigen::VectorXd& v, double clamp);
     double minimum(double a, double b);
+    double mod(double x, double y);
+    double wrapToPi(double angle);
+    void wrapToJointLimits(Robot& robot, const std::vector<size_t>& jointIndices, Eigen::VectorXd& jointValues);
     
     class Frame
     {
@@ -206,10 +210,6 @@ namespace RobotKin {
 
         TRANSFORM respectTo(const Frame* aFrame) const;
         TRANSFORM withRespectTo(const Frame &frame) const;
-        TRANSFORM withRespectTo(const Robot &robot) const;
-        TRANSFORM withRespectTo(const Linkage &linkage) const;
-        TRANSFORM withRespectTo(const Joint &joint) const;
-        TRANSFORM withRespectTo(const Tool &tool) const;
         
         virtual void printInfo() const;
         

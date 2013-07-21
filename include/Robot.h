@@ -113,12 +113,7 @@ namespace RobotKin {
 
         Link rootLink;
 
-//        double errorClamp;
-//        double deltaClamp;
-//        double gammaMax;
-//        double transTolerance;
-//        double damp;
-//        size_t maxIterations;
+        bool imposeLimits;
         
         //--------------------------------------------------------------------------
         // Robot Public Member Functions

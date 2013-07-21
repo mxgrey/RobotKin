@@ -57,27 +57,40 @@ void ikTest()
     parseTest.linkage("Body_LHY").name("LeftLeg");
 
 
-    bool totallyRandom = true;
+    bool totallyRandom = false;
 
-    string limb = "RightLeg";
+    string limb = "LeftArm";
 
     VectorXd targetValues, jointValues, restValues, storedVals;
     targetValues.resize(parseTest.linkage(limb).nJoints());
     jointValues.resize(parseTest.linkage(limb).nJoints());
     restValues.resize(parseTest.linkage(limb).nJoints());
     restValues.setZero();
-    // Leg rest values
-    restValues[0] = 0;
-    restValues[1] = 0;
-    restValues[2] = -0.15;
-    restValues[3] = 0.3;
-    restValues[4] = -0.15;
-    restValues[5] = 0;
-    restValues[6] = 0;
 
-    // Arm rest values
+    if(limb == "RightLeg" || limb == "LeftLeg")
+    {
+        restValues[0] = 0;
+        restValues[1] = 0;
+        restValues[2] = -0.15;
+        restValues[3] = 0.3;
+        restValues[4] = -0.15;
+        restValues[5] = 0;
+        restValues[6] = 0;
+    }
+    else if(limb == "RightArm" || limb == "LeftArm")
+    {
+        if(limb=="RightArm")
+            restValues[0] = -30*M_PI/180;
+        else
+            restValues[0] =  30*M_PI/180;
+        restValues[1] = 0;
+        restValues[2] = 0;
+        restValues[3] = -30*M_PI/180;
+        restValues[4] = 0;
+        restValues[5] = 0;
+        restValues[6] = 0;
+    }
 
-//    restValues[3] = -30*M_PI/180;
 
 
     Constraints constraints;
@@ -115,11 +128,11 @@ void ikTest()
                         + parseTest.linkage(limb).joint(i).min();
             ////////////////////// NOT COMPLETELY RANDOM TEST //////////////////////
             else
-//                jointValues(i) = targetValues(i) +
-//                        ((double)(2*rand()%resolution)/((double)resolution-1)-1)*scatterScale
-//                        *(parseTest.linkage(limb).joint(i).max() - parseTest.linkage(limb).joint(i).min());
                 jointValues(i) = targetValues(i) +
-                        ((double)(2*rand()%resolution)/((double)resolution-1)-1)*scatterScale;
+                        ((double)(2*rand()%resolution)/((double)resolution-1)-1)*scatterScale
+                        *(parseTest.linkage(limb).joint(i).max() - parseTest.linkage(limb).joint(i).min());
+//                jointValues(i) = targetValues(i) +
+//                        ((double)(2*rand()%resolution)/((double)resolution-1)-1)*scatterScale;
 
             parseTest.linkage(limb).joint(i).value(targetValues(i));
         }
@@ -146,7 +159,8 @@ void ikTest()
 //        cout << "Target Joint Values: " << targetValues.transpose() << endl;
 
 
-        if(result != RK_SOLVED)
+//        if(result != RK_SOLVED)
+        if(false)
         {
 
             cout << "Start values:       ";
