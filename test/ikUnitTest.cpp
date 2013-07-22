@@ -57,7 +57,7 @@ void ikTest()
     parseTest.linkage("Body_LHY").name("LeftLeg");
 
 
-    bool totallyRandom = false;
+    bool totallyRandom = true;
 
     string limb = "LeftArm";
 
@@ -95,7 +95,7 @@ void ikTest()
 
     Constraints constraints;
     constraints.restingValues(restValues);
-    constraints.performNullSpaceTask = true;
+    constraints.performNullSpaceTask = false;
 
     TRANSFORM target;
 

@@ -1,5 +1,5 @@
 
-//#define HAVE_URDF_PARSE // Uncomment this to get Qt to autocomplete below
+#define HAVE_URDF_PARSE // Uncomment this to get Qt to autocomplete below
 #ifdef HAVE_URDF_PARSE
 
 #include <urdf_parser/urdf_parser.h>
@@ -196,6 +196,7 @@ bool RobotKinURDF::addURDFJoint(RobotKin::Linkage &linkage, boost::shared_ptr<ur
 
     RobotKin::Link link;
     boost::shared_ptr<urdf::Link> childLink;
+
     model->getLink(ujoint->child_link_name, childLink);
     parseURDFLink(link, childLink);
 

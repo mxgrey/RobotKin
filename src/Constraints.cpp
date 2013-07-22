@@ -13,10 +13,10 @@ using namespace std;
 Constraints::Constraints()
     : performNullSpaceTask(false),
       hasRestingValues(false),
-      maxIterations(250),
+      maxIterations(500),
       dampingConstant(0.05),
       finalTransform(TRANSFORM::Identity()),
-      convergenceTolerance(0.001),
+      convergenceTolerance(0.0001),
       performErrorClamp(true),
       translationClamp(0.2),
       rotationClamp(0.15),

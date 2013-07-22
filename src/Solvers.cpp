@@ -949,8 +949,8 @@ rk_result_t Robot::jacobianTransposeIK_linkage(const string linkageName, VectorX
 
 
 // TODO: Make a constraint class instead of restValues
-rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const TRANSFORM &target,
-                                              Constraints& constraints )
+rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
+                                              const TRANSFORM &target, Constraints& constraints )
 {
     bool verbose = false;
     bool storedImposeLimits = imposeLimits;
@@ -999,6 +999,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
         values(jointIndices, jointValues);
 
         pose = joint(jointIndices.back()).respectToRobot()*constraints.finalTransform;
+//        pose = constraints.finalTransform*joint(jointIndices.back()).respectToRobot();
         aastate = pose.rotation();
 
 //        aaerr = pose.rotation().transpose()*target.rotation(); // FAILED
@@ -1033,7 +1034,8 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
                 cout << "-----------------------------------" << endl;
             }
 
-            jacobian(J, pJoints, pJoints.back()->respectToRobot().translation()+constraints.finalTransform.translation(), this);
+//            jacobian(J, pJoints, pJoints.back()->respectToRobot().translation()+constraints.finalTransform.translation(), this);
+            jacobian(J, pJoints, pose.translation(), this);
 
             /////////////////////////////////////////////////////////////////////////
             /////////////////////////  STANDARD APPROACH  ///////////////////////////
@@ -1065,6 +1067,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
             else
                 nullErr.setZero();
 
+            // Try pure nullspace first
             deltaNull = (Matrix6d::Identity() - J.transpose()*(J*J.transpose()).inverse()*J)*nullErr;
 
             // The damped nullspace is much better for avoiding NaNs
@@ -1096,6 +1099,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
                 jointValues(k) = joint(jointIndices[k]).value();
 
             pose = joint(jointIndices.back()).respectToRobot()*constraints.finalTransform;
+//            pose = constraints.finalTransform*joint(jointIndices.back()).respectToRobot();
 
             if(verbose)
             {
@@ -1138,7 +1142,14 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
             iterations++;
 
 
-        } while(err.norm() > tolerance && iterations < maxIterations);
+//        } while(err.norm() > tolerance && iterations < maxIterations);
+        } while( (Terr.norm() > tolerance || Rerr.norm() > tolerance) && iterations < maxIterations);
+
+        if(verbose)
+        {
+            cout << "Iterations: -- " << iterations << endl;
+        }
+
 
         if(constraints.wrapSolutionToJointLimits)
             wrapToJointLimits(*this, jointIndices, jointValues);
@@ -1147,12 +1158,19 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
         values(jointIndices, jointValues);
 
 
-        if(verbose)
-        {
-            cout << "Iterations: -- " << iterations << endl;
-        }
+        pose = joint(jointIndices.back()).respectToRobot()*constraints.finalTransform;
+//        pose = constraints.finalTransform*joint(jointIndices.back()).respectToRobot();
+        aaerr = pose.rotation()*target.rotation().transpose();
+        Terr = target.translation()-pose.translation();
+        if(fabs(aaerr.angle()) >= M_PI)
+            Rerr = aaerr.angle()*aaerr.axis();
+        else
+            Rerr = -aaerr.angle()*aaerr.axis();
 
-        if(iterations < maxIterations)
+        err << Terr, Rerr;
+
+
+        if(Terr.norm() <= tolerance && Rerr.norm() <= tolerance)
             return RK_SOLVED;
     }
 
@@ -1185,7 +1203,6 @@ rk_result_t Robot::dampedLeastSquaresIK_linkage(const string linkageName, Vector
     jointIndices.resize(linkage(linkageName).joints_.size());
     for(size_t i=0; i<linkage(linkageName).joints_.size(); i++)
         jointIndices[i] = linkage(linkageName).joints_[i]->id();
-
 
     constraints.finalTransform = linkage(linkageName).tool().respectToFixed();
 

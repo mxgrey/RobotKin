@@ -409,6 +409,8 @@ void tutorial()
     parseTest.linkage("Body_LHY").name("LeftLeg");
 
 
+
+
     VectorXd jointValues(parseTest.linkage("LeftLeg").nJoints());
 
     jointValues <<  1.79315, 0.490851, -1.26039, 1.38938, 0.503333, 0.0365566, -2.97178;
@@ -426,16 +428,18 @@ void tutorial()
 
     cout << "Goal:" << endl << target.matrix() << endl;
 
-    parseTest.dampedLeastSquaresIK_linkage("LeftLeg", jointValues, target);
+    rk_result_t result = parseTest.dampedLeastSquaresIK_linkage("LeftLeg", jointValues, target);
 
     cout << "End:" << endl << parseTest.linkage("LeftLeg").tool().respectToRobot().matrix() << endl;
 
+    cout << "Result: " << rk_result_to_string(result) << endl;
 
 //    parseTest.joint("RSR").value(-90*M_PI/180);
 //    parseTest.linkage("RightArm").printInfo();
 
 
-
+    parseTest.linkage("RightArm").tool().respectToFixed(parseTest.joint("RWR_dummy").respectToFixed());
+    parseTest.linkage("RightArm").printInfo();
 
 
 //    TRANSFORM target = parseTest.linkage("LeftLeg").tool().respectToRobot();
