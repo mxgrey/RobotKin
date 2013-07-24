@@ -194,6 +194,8 @@ namespace RobotKin {
 
         TRANSFORM respectToWorld() const;
 
+        Joint& parentJoint();
+
         size_t getLinkageID();
         std::string getLinkageName();
 
@@ -427,7 +429,8 @@ namespace RobotKin {
         
         size_t getParentLinkageID();
         std::string getParentLinkageName();
-        
+
+
         size_t getRobotID();
         std::string getRobotName();
         

@@ -493,6 +493,21 @@ string Linkage::getParentLinkageName()
         return "";
 }
 
+Joint& Joint::parentJoint()
+{
+    if(hasLinkage)
+    {
+        if(localID()>0)
+            return linkage().joint(localID()-1);
+        else if(linkage().hasParent)
+            return linkage().parentLinkage().joint(linkage().parentLinkage().nJoints()-1);
+    }
+
+    Joint* invalidJoint = new Joint;
+    invalidJoint->name("invalid");
+    return *invalidJoint;
+}
+
 size_t Linkage::getRobotID()
 {
     if(hasRobot)
