@@ -156,6 +156,8 @@ void Joint::setJointAxis(AXIS axis)
     jointAxis_.normalize();
 }
 
+AXIS Joint::getJointAxis() { return jointAxis_; }
+
 // Joint Methods
 double Joint::value() const { return value_; }
 rk_result_t Joint::value(double newValue)

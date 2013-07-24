@@ -179,6 +179,7 @@ namespace RobotKin {
         JointType getJointType();
 
         void setJointAxis(AXIS axis);
+        AXIS getJointAxis();
 
         const TRANSFORM& respectToFixed() const;
         void respectToFixed(TRANSFORM aCoordinate);
