@@ -540,17 +540,32 @@ double Joint::gravityTorque(bool downstream)
     if(m_mass>0)
         com = com/m_mass;
     else
-        return 0;
+        return 0; // TODO: Put assertive warning
+
 
     TRANSLATION lever = com - respectToRobot().translation();
     TRANSLATION Fz;
     Fz = TRANSLATION::UnitZ()*gravity_constant*m_mass;
 
-    // TODO: Generalize for PRISMATIC as well
+
     if(downstream)
-        return lever.cross(Fz).dot(respectToRobot().rotation()*jointAxis_);
+    {
+        if(jointType_ == REVOLUTE)
+            return lever.cross(Fz).dot(respectToRobot().rotation()*jointAxis_);
+        else if(jointType_ == PRISMATIC)
+            return Fz.dot(respectToRobot().rotation()*jointAxis_);
+        else
+            return 0;
+    }
     else
-        return -lever.cross(Fz).dot(respectToRobot().rotation()*jointAxis_);
+    {
+        if(jointType_ == REVOLUTE)
+            return -lever.cross(Fz).dot(respectToRobot().rotation()*jointAxis_);
+        else if(jointType_ == PRISMATIC)
+            return -Fz.dot(respectToRobot().rotation()*jointAxis_);
+        else
+            return 0;
+    }
 }
 
 
