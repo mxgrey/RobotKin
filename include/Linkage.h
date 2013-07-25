@@ -129,6 +129,7 @@ namespace RobotKin {
         //----------------------------------------------------------------------
         // Joint Friends
         //----------------------------------------------------------------------
+        friend class Frame;
         friend class Linkage;
         friend class Robot;
         friend class Link;
@@ -311,6 +312,7 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         // Linkage Friends
         //--------------------------------------------------------------------------
+        friend class Frame;
         friend class Joint;
         friend class Tool;
         friend class Robot;

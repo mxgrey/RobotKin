@@ -101,6 +101,15 @@ void Frame::name(string newName)
             robot_->jointNameToIndex_.erase(name_);
         }
     }
+
+    if(hasLinkage)
+    {
+        if(frameType()==JOINT)
+        {
+            linkage_->jointNameToIndex_[newName] = linkage_->jointNameToIndex_[name_];
+            linkage_->jointNameToIndex_.erase(name_);
+        }
+    }
     name_ = newName;
 }
 

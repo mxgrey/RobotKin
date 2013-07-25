@@ -703,7 +703,7 @@ size_t Linkage::jointNameToIndex(string jointName)
 {
     map<string,size_t>::iterator j;
     j = jointNameToIndex_.find(jointName);
-    if( j == jointNameToIndex_.end() )
+    if( j != jointNameToIndex_.end() )
         return j->second;
     else
         // TODO: Decide if this is a good idea
