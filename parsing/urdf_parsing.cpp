@@ -53,6 +53,10 @@ bool RobotKinURDF::loadURDF(RobotKin::Robot &robot, string filename)
     xml_file.close();
 
     loadURDFString(robot, xml_model_string);
+    
+    robot.updateFrames();
+    
+    return true;
 }
 
 bool RobotKinURDF::loadURDFString(RobotKin::Robot& robot, string xml_model_string)
