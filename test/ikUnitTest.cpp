@@ -50,7 +50,7 @@ void ikTest()
     cout << "--------------------------------------------" << endl;
 
 
-    Robot parseTest("../urdf/drchubo_v2.urdf");
+    Robot parseTest("../urdf/huboplus.urdf");
     parseTest.linkage("Body_RSP").name("RightArm");
     parseTest.linkage("Body_LSP").name("LeftArm");
     parseTest.linkage("Body_RHY").name("RightLeg");
