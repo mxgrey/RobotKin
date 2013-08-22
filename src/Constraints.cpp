@@ -71,7 +71,7 @@ void Constraints::iterativeJacobianSeed(Robot& robot, size_t attemptNumber,
 {
     if( attemptNumber == 0 )
     {
-        wrapToJointLimits = true;
+//        wrapToJointLimits = true;
         return;
     }
     else if( attemptNumber == 1 && hasRestingValues

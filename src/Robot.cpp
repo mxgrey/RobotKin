@@ -294,6 +294,11 @@ TRANSFORM Robot::respectToWorld() const
     return respectToWorld_;
 }
 
+void Robot::respectToWorld( TRANSFORM _Tworld )
+{
+    respectToWorld_ = _Tworld;
+}
+
 void Robot::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const
 { // location should be specified in respect to robot coordinates
     size_t nCols = jointFrames.size();

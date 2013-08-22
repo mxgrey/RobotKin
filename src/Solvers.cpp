@@ -66,24 +66,30 @@ void RobotKin::wrapToJointLimits(Robot& robot, const vector<size_t>& jointIndice
             if( !(robot.joint(jointIndices[i]).min() <= jointValues[i]
                     && jointValues[i] <= robot.joint(jointIndices[i]).max()) )
             {
-                double tempValue = jointValues[i];
-                while(tempValue > robot.joint(jointIndices[i]).max())
-                    tempValue -= 2*M_PI;
+//                double tempValue = jointValues[i];
+//                while(tempValue > robot.joint(jointIndices[i]).max())
+//                    tempValue -= 2*M_PI;
 
-                while(tempValue < robot.joint(jointIndices[i]).min())
-                    tempValue += 2*M_PI;
+//                while(tempValue < robot.joint(jointIndices[i]).min())
+//                    tempValue += 2*M_PI;
 
-                if(robot.joint(jointIndices[i]).min() <= tempValue
-                        && tempValue <= robot.joint(jointIndices[i]).max())
-                    jointValues[i] = tempValue;
+//                if(robot.joint(jointIndices[i]).min() <= tempValue
+//                        && tempValue <= robot.joint(jointIndices[i]).max())
+//                    jointValues[i] = tempValue;
+//                else
+//                {
+//                    if( fabs(wrapToPi(jointValues[i]-robot.joint(jointIndices[i]).min())) <
+//                            fabs(wrapToPi(jointValues[i]-robot.joint(jointIndices[i]).max())) )
+//                        jointValues[i] = robot.joint(jointIndices[i]).min();
+//                    else
+//                        jointValues[i] = robot.joint(jointIndices[i]).max();
+//                }
+                
+                if( fabs(wrapToPi(jointValues[i]-robot.joint(jointIndices[i]).min())) <
+                        fabs(wrapToPi(jointValues[i]-robot.joint(jointIndices[i]).max())) )
+                    jointValues[i] = robot.joint(jointIndices[i]).min();
                 else
-                {
-                    if( fabs(wrapToPi(jointValues[i]-robot.joint(jointIndices[i]).min())) <
-                            fabs(wrapToPi(jointValues[i]-robot.joint(jointIndices[i]).max())) )
-                        jointValues[i] = robot.joint(jointIndices[i]).min();
-                    else
-                        jointValues[i] = robot.joint(jointIndices[i]).max();
-                }
+                    jointValues[i] = robot.joint(jointIndices[i]).max();
             }
         }
     }
@@ -1019,12 +1025,14 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
 //        aaerr = pose.rotation().transpose()*target.rotation(); // FAILED
 //        aaerr = target.rotation().transpose()*pose.rotation(); // FAILED
-        aaerr = pose.rotation()*target.rotation().transpose();
-    //    aaerr = target.rotation()*pose.rotation().transpose();
+//        aaerr = pose.rotation()*target.rotation().transpose(); // FAILED
+        aaerr = target.rotation()*pose.rotation().transpose();
+        if(fabs(aaerr.angle()) <= M_PI)
+            Rerr = aaerr.angle()*aaerr.axis();
+        else
+            Rerr = (aaerr.angle()-2*M_PI)*aaerr.axis();
 
         Terr = target.translation()-pose.translation();
-        Rerr = aaerr.angle()*aaerr.axis();
-        //    Rerr = aagoal.angle()*aagoal.axis()-aastate.angle()*aastate.axis();
 
     //    Rerr.setZero();
         err << Terr, Rerr;//*constraints.rotationScale;
@@ -1130,19 +1138,25 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
                 cout << "Rotation needed: " << endl;
                 cout << (pose.rotation().transpose()*target.rotation()).matrix() << endl;
             }
+            
+            
+            Terr = target.translation()-pose.translation();
 
 //            aaerr = pose.rotation().transpose()*target.rotation(); // FAILED
 //            aaerr = target.rotation().transpose()*pose.rotation(); // FAILED
-            aaerr = pose.rotation()*target.rotation().transpose();
-//            aaerr = target.rotation()*pose.rotation().transpose();
+//            aaerr = pose.rotation()*target.rotation().transpose();
+            aaerr = target.rotation()*pose.rotation().transpose();
 
 //            cout << "Angle-Axis: (" << aaerr.angle()/M_PI*180 << ")\t" << aaerr.axis().transpose() << endl;
 
-            Terr = target.translation()-pose.translation();
-            if(fabs(aaerr.angle()) >= M_PI)
+            if(aaerr.angle() > 2*M_PI || aaerr.angle() < 0)
+                cout << "BROKEN ANGLE AXIS: " << aaerr.angle() << endl
+                     << " -- Please contact mxgrey@gatech.edu and report this." << endl;
+                
+            if(fabs(aaerr.angle()) <= M_PI)
                 Rerr = aaerr.angle()*aaerr.axis();
             else
-                Rerr = -aaerr.angle()*aaerr.axis();
+                Rerr = (aaerr.angle()-2*M_PI)*aaerr.axis();
 
 //            rotAngle = wrapToPi(aaerr.angle()); // This failed badly
 //            Rerr = rotAngle*aaerr.axis();
@@ -1175,12 +1189,19 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
         pose = joint(jointIndices.back()).respectToRobot()*constraints.finalTransform;
 //        pose = constraints.finalTransform*joint(jointIndices.back()).respectToRobot();
-        aaerr = pose.rotation()*target.rotation().transpose();
-        Terr = target.translation()-pose.translation();
-        if(fabs(aaerr.angle()) >= M_PI)
+        
+        
+//        aaerr = pose.rotation().transpose()*target.rotation(); // FAILED
+//        aaerr = target.rotation().transpose()*pose.rotation(); // FAILED
+//        aaerr = pose.rotation()*target.rotation().transpose(); // FAILED
+        aaerr = target.rotation()*pose.rotation().transpose();
+        if(fabs(aaerr.angle()) <= M_PI)
             Rerr = aaerr.angle()*aaerr.axis();
         else
-            Rerr = -aaerr.angle()*aaerr.axis();
+            Rerr = (aaerr.angle()-2*M_PI)*aaerr.axis();
+        
+        Terr = target.translation()-pose.translation();
+//            Rerr = -aaerr.angle()*aaerr.axis();
 
         err << Terr, Rerr;
 

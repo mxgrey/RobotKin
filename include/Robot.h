@@ -170,6 +170,7 @@ namespace RobotKin {
         void respectToFixed(TRANSFORM aCoordinate);
         
         TRANSFORM respectToWorld() const;
+	void respectToWorld(TRANSFORM Tworld );
         
         void jacobian(Eigen::MatrixXd& J, const std::vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const;
         
