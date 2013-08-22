@@ -81,16 +81,19 @@ Robot::Robot(string filename, string name, size_t id)
       imposeLimits(true)
 {
     std::cerr << "There was no URDF Parser installed when you compiled RobotKin!" << std::endl;
+    return false;
 }
 
 bool Robot::loadURDF(string filename)
 {
     std::cerr << "There was no URDF Parser installed when you compiled RobotKin!" << std::endl;
+    return false;
 }
 
 bool Robot::loadURDFString(string filename)
 {
     std::cerr << "There was no URDF Parser installed when you compiled RobotKin!" << std::endl;
+    return false;
 }
 
 #endif // HAVE_URDF_PARSE

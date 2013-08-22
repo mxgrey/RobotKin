@@ -52,7 +52,7 @@ bool RobotKinURDF::loadURDF(RobotKin::Robot &robot, string filename)
 
     xml_file.close();
 
-    loadURDFString(robot, xml_model_string);
+    return RobotKinURDF::loadURDFString(robot, xml_model_string);
 }
 
 bool RobotKinURDF::loadURDFString(RobotKin::Robot& robot, string xml_model_string)
@@ -108,7 +108,9 @@ bool RobotKinURDF::loadURDFString(RobotKin::Robot& robot, string xml_model_strin
 
 
 
-    return exploreLink(robot, model, rootLink, 0, -1);
+    exploreLink(robot, model, rootLink, 0, -1);
+
+    return true;
 }
 
 
