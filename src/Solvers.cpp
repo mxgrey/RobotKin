@@ -1004,7 +1004,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
     stored = jointValues;
 
     double tolerance = constraints.convergenceTolerance;
-    int maxIterations = constraints.maxIterations; // TODO: Put this in the constructor so the user can set it arbitrarily
+    int maxIterations = constraints.maxIterations;
     double damp = constraints.dampingConstant;
 
 
@@ -1064,8 +1064,8 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
             /////////////////////////  STANDARD APPROACH  ///////////////////////////
             /////////////////////////////////////////////////////////////////////////
 
-//            f = (J*J.transpose() + damp*damp*Matrix6d::Identity()).colPivHouseholderQr().solve(err);
-//            delta = J.transpose()*f;
+            f = (J*J.transpose() + damp*damp*Matrix6d::Identity()).colPivHouseholderQr().solve(err);
+            delta = J.transpose()*f;
 
             /////////////////////////////////////////////////////////////////////////
             /////////////////////////////////////////////////////////////////////////
@@ -1076,7 +1076,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
             ///////////////////////////////////////////////////////////////////
             ///////////////////////  NULL SPACE APPROACH //////////////////////
             ///////////////////////////////////////////////////////////////////
-
+/*
             Jinv = J.transpose()*(J*J.transpose() + damp*damp*Matrix6d::Identity()).inverse();
 
             delta = Jinv*err;
@@ -1105,7 +1105,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
             }
 
             delta += deltaNull;
-
+*/
             ///////////////////////////////////////////////////////////////////
 
 

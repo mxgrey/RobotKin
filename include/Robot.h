@@ -114,6 +114,8 @@ namespace RobotKin {
         Link rootLink;
 
         bool imposeLimits;
+
+        bool verbose;
         
         //--------------------------------------------------------------------------
         // Robot Public Member Functions

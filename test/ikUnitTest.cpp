@@ -73,7 +73,6 @@ void ikTest()
         restValues[3] = 0.3;
         restValues[4] = -0.15;
         restValues[5] = 0;
-        restValues[6] = 0;
     }
     else if(limb == "RightArm" || limb == "LeftArm")
     {
@@ -86,10 +85,8 @@ void ikTest()
         restValues[3] = -30*M_PI/180;
         restValues[4] = 0;
         restValues[5] = 0;
-        restValues[6] = 0;
     }
-    
-    
+
     bool totallyRandom = false;
     int resolution = 1000;
     double scatterScale = 0.045;
@@ -117,9 +114,7 @@ void ikTest()
     clock_t time;
     time = clock();
     
-    
-    
-    
+
     for(int k=0; k<tests; k++)
     {
         for(int i=0; i<parseTest.linkage(limb).nJoints(); i++)

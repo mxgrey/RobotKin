@@ -35,7 +35,8 @@ Robot::Robot()
         : Frame::Frame(TRANSFORM::Identity()),
           respectToWorld_(TRANSFORM::Identity()),
           initializing_(false),
-          imposeLimits(true)
+          imposeLimits(true),
+          verbose(false)
 {
     linkages_.resize(0);
     frameType_ = ROBOT;
@@ -45,7 +46,8 @@ Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
         : Frame::Frame(TRANSFORM::Identity()),
           respectToWorld_(TRANSFORM::Identity()),
           initializing_(false),
-          imposeLimits(true)
+          imposeLimits(true),
+          verbose(false)
 {
     frameType_ = ROBOT;
     
@@ -78,7 +80,8 @@ Robot::Robot(string filename, string name, size_t id)
     : Frame::Frame(TRANSFORM::Identity(), name, id, ROBOT),
       respectToWorld_(TRANSFORM::Identity()),
       initializing_(false),
-      imposeLimits(true)
+      imposeLimits(true),
+      verbose(false)
 {
     std::cerr << "There was no URDF Parser installed when you compiled RobotKin!" << std::endl;
     return false;
