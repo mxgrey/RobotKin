@@ -170,7 +170,7 @@ namespace RobotKin {
         // Joint Public Member Functions
         //----------------------------------------------------------------------
         double value() const;
-        rk_result_t value(double newValue);
+        rk_result_t value(double newValue, bool update=true);
 
         double min() const;
         double max() const;

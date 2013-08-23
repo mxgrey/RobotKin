@@ -160,7 +160,7 @@ AXIS Joint::getJointAxis() { return jointAxis_; }
 
 // Joint Methods
 double Joint::value() const { return value_; }
-rk_result_t Joint::value(double newValue)
+rk_result_t Joint::value(double newValue, bool update)
 {
     rk_result_t result = RK_SOLVED;
 
@@ -192,7 +192,7 @@ rk_result_t Joint::value(double newValue)
     }
 
     // TODO: Decide if it is efficient to have this here
-    if ( hasLinkage )
+    if ( hasLinkage && update )
         linkage_->updateFrames();
 
     return result;

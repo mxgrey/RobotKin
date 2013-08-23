@@ -255,7 +255,7 @@ void Robot::values(const VectorXd& someValues) {
     if(someValues.size() == nJoints())
     {
         for (size_t i = 0; i < nJoints(); ++i) {
-            joints_[i]->value(someValues(i));
+            joints_[i]->value(someValues(i), true);
         }
         updateFrames();
     }
@@ -271,7 +271,7 @@ void Robot::values(const vector<size_t>& jointIndices, const VectorXd& jointValu
     if( jointIndices.size() == jointValues.size() )
     {
         for(size_t i=0; i<jointIndices.size(); i++)
-            joints_[jointIndices[i]]->value(jointValues[i]);
+            joints_[jointIndices[i]]->value(jointValues[i], true);
         updateFrames();
     }
     else
@@ -474,6 +474,8 @@ void Robot::updateFrames()
 //    if (~initializing_) { // TODO: Decide if this is necessary
         for (vector<Linkage*>::iterator linkageIt = linkages_.begin();
              linkageIt != linkages_.end(); ++linkageIt) {
+
+//            (*linkageIt)->updateFrames();
             
             if ((*linkageIt)->parentLinkage_ == 0) {
                 (*linkageIt)->respectToRobot_ = (*linkageIt)->respectToFixed_;
