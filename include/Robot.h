@@ -165,7 +165,7 @@ namespace RobotKin {
         std::vector<Joint*>& joints();
         
         Eigen::VectorXd values() const;
-        void values(const Eigen::VectorXd& someValues);
+        void values(const Eigen::VectorXd& allValues);
         void values(const std::vector<size_t> &jointIndices, const Eigen::VectorXd& jointValues);
         
         const TRANSFORM& respectToFixed() const;

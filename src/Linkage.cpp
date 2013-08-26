@@ -190,6 +190,9 @@ rk_result_t Joint::value(double newValue, bool update)
     } else {
         respectToFixedTransformed_ = respectToFixed_;
     }
+    
+    if( hasLinkage )
+        linkage_->needsUpdate_ = true;
 
     // TODO: Decide if it is efficient to have this here
     if ( hasLinkage && update )
@@ -772,18 +775,18 @@ VectorXd Linkage::values() const
     return theValues;
 }
 
-bool Linkage::values(const VectorXd& someValues)
+bool Linkage::values(const VectorXd& allValues)
 {    
-    if(someValues.size() == nJoints())
+    if(allValues.size() == nJoints())
     {
         for (size_t i = 0; i < nJoints(); ++i) {
-            joints_[i]->value(someValues(i));
+            joints_[i]->value(allValues(i), false);
         }
         updateFrames();
         return true;
     }
     
-    std::cerr << "ERROR! Number of values (" << someValues.size() << ") does not match "
+    std::cerr << "ERROR! Number of values (" << allValues.size() << ") does not match "
               << "the number of joints (" << nJoints() << ")!" << std::endl;
     return false;
 }
@@ -992,6 +995,8 @@ void Linkage::updateFrames()
         
         if(hasChildren)
             updateChildLinkage();
+        
+        needsUpdate_ = false;
     }
 }
 

@@ -415,7 +415,7 @@ namespace RobotKin {
         Tool& tool();
         
         Eigen::VectorXd values() const;
-        bool values(const Eigen::VectorXd &someValues);
+        bool values(const Eigen::VectorXd &allValues);
         
         const TRANSFORM& respectToFixed() const;
         void respectToFixed(TRANSFORM aCoordinate);
@@ -472,10 +472,12 @@ namespace RobotKin {
         static bool defaultAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Eigen::VectorXd& qPrev);
         
         
+        
         //--------------------------------------------------------------------------
         // Linkage Private Member Variables
         //--------------------------------------------------------------------------
         bool initializing_;
+        bool needsUpdate_;
         std::map<std::string, size_t> jointNameToIndex_;
         
         

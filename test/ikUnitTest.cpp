@@ -89,7 +89,7 @@ void ikTest()
 
     bool totallyRandom = false;
     int resolution = 1000;
-    double scatterScale = 0.045;
+    double scatterScale = 0.05;
     
     int tests = 10000;
 
@@ -98,7 +98,7 @@ void ikTest()
     constraints.restingValues(restValues);
     constraints.performNullSpaceTask = false;
     constraints.maxAttempts = 1;
-    constraints.maxIterations = 200;
+    constraints.maxIterations = 50;
     constraints.convergenceTolerance = 0.001;
 //    constraints.wrapToJointLimits = true;
 //    constraints.wrapSolutionToJointLimits = true;
