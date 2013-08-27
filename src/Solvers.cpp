@@ -973,7 +973,6 @@ rk_result_t Robot::jacobianTransposeIK_linkage(const string linkageName, VectorX
 rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
                                               const TRANSFORM &target, Constraints& constraints )
 {
-    bool verbose = false;
     bool storedImposeLimits = imposeLimits;
 
     vector<Joint*> pJoints;

@@ -59,7 +59,8 @@ Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
 Robot::Robot(string filename, string name, size_t id)
     : Frame::Frame(TRANSFORM::Identity(), name, id, ROBOT),
       respectToWorld_(TRANSFORM::Identity()),
-      initializing_(false)
+      initializing_(false),
+      verbose(false)
 {
     // TODO: Test to make sure filename ends with ".urdf"
     linkages_.resize(0);
@@ -478,6 +479,7 @@ void Robot::updateFrames()
         if((*linkageIt)->needsUpdate_)
             (*linkageIt)->updateFrames();
         
+        // TODO: Consider using if((*linkageIt)->hasParent_) instead to avoid use of pointers
         if ((*linkageIt)->parentLinkage_ == 0)
 //        {
             (*linkageIt)->respectToRobot_ = (*linkageIt)->respectToFixed_;
