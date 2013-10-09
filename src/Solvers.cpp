@@ -48,12 +48,12 @@ void RobotKin::clampMaxAbs(VectorXd& v, double clamp)
     int max=0;
     for(int i=0; i<v.size(); i++)
     {
-        if(v[i] > v[max])
+        if(fabs(v[i]) > fabs(v[max]))
             max = i;
     }
 
-    if(v[max]>clamp)
-        v *= clamp/v[max];
+    if(fabs(v[max])>fabs(clamp))
+        v *= fabs(clamp)/fabs(v[max]);
 }
 
 double RobotKin::minimum(double a, double b) { return a<b ? a : b; }
@@ -1176,7 +1176,8 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 
 
 //        } while(err.norm() > tolerance && iterations < maxIterations);
-        } while( (Terr.norm() > tolerance || Rerr.norm() > tolerance) && iterations < maxIterations);
+        } while( (Terr.norm() > tolerance || Rerr.norm() > tolerance || !constraints.nullComplete())
+                 && iterations < maxIterations);
 
         if(verbose)
         {

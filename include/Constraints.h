@@ -16,6 +16,7 @@ namespace RobotKin {
         bool performNullSpaceTask;
         virtual Eigen::VectorXd nullSpaceTask(Robot& robot, const Eigen::MatrixXd& J, const std::vector<size_t>& indices,
                                               const Eigen::VectorXd& values);
+        virtual bool nullComplete();
         void restingValues(Eigen::VectorXd newRestingValues);
         Eigen::VectorXd& restingValues();
 
@@ -44,6 +45,7 @@ namespace RobotKin {
         bool wrapToJointLimits;
         bool wrapSolutionToJointLimits;
 
+
         // Allow the user to call some default constraints
         static Constraints& Defaults();
 
@@ -51,6 +53,7 @@ namespace RobotKin {
 
         Eigen::VectorXd restingValues_;
         bool hasRestingValues;
+        bool nullComplete_;
 
 
     private:
