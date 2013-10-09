@@ -7,6 +7,8 @@ using namespace std;
 using namespace Eigen;
 using namespace RobotKin;
 
+// TODO: Add sign function
+
 
 double RobotKin::mod(double x, double y)
 {
@@ -1069,6 +1071,9 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
             /////////////////////////////////////////////////////////////////////////
             /////////////////////////////////////////////////////////////////////////
 
+
+            if(constraints.performNullSpaceTask)
+                delta += constraints.nullSpaceTask(*this, J, jointIndices, jointValues);
 
 
 

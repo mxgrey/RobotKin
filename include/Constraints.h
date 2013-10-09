@@ -14,8 +14,8 @@ namespace RobotKin {
         Constraints();
 
         bool performNullSpaceTask;
-        virtual Eigen::VectorXd nullSpaceTask(Robot& robot, const std::vector<size_t>& indices,
-                                              const Eigen::VectorXd& values, Eigen::VectorXd& nullTask);
+        virtual Eigen::VectorXd nullSpaceTask(Robot& robot, const Eigen::MatrixXd& J, const std::vector<size_t>& indices,
+                                              const Eigen::VectorXd& values);
         void restingValues(Eigen::VectorXd newRestingValues);
         Eigen::VectorXd& restingValues();
 

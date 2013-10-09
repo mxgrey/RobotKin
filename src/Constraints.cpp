@@ -50,14 +50,11 @@ void Constraints::restingValues(VectorXd newRestingValues)
 
 VectorXd& Constraints::restingValues() { return restingValues_; }
 
-VectorXd Constraints::nullSpaceTask(Robot& robot, const std::vector<size_t> &indices,
-                                    const VectorXd& values, VectorXd& nullTask)
+VectorXd Constraints::nullSpaceTask(Robot& robot, const MatrixXd& J, const std::vector<size_t> &indices,
+                                    const VectorXd& values)
 {
-    if(hasRestingValues)
-    {
-        nullTask = restingValues_ - values;
-        clampMag(nullTask, 0.1);
-    }
+    VectorXd nullTask; nullTask.setZero();
+
     return nullTask;
 }
 
