@@ -61,7 +61,8 @@ bool Constraints::nullComplete()
 VectorXd Constraints::nullSpaceTask(Robot& robot, const MatrixXd& J, const std::vector<size_t> &indices,
                                     const VectorXd& values)
 {
-    VectorXd nullTask; nullTask.setZero();
+    VectorXd nullTask = values;
+    nullTask.setZero();
     nullComplete_ = true;
     return nullTask;
 }
