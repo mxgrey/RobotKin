@@ -81,7 +81,7 @@ void ikTest(bool totallyRandom)
     int resolution = 1000;
     double scatterScale = 0.05;
     
-    int tests = 5000;
+    int tests = 10;
 
 
     Constraints constraints;

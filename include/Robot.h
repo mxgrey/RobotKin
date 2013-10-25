@@ -111,8 +111,6 @@ namespace RobotKin {
         // Destructor
         virtual ~Robot();
 
-        Link rootLink; // TODO: replace this with dummy joint + link
-
         bool imposeLimits;
 
         bool verbose;

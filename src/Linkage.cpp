@@ -50,6 +50,8 @@ Joint& Joint::operator =( const Joint& joint )
     stream_ = joint.stream_;
 
     link = joint.link;
+    
+    needsUpdate_ = true;
 }
 
 Joint::Joint(const Joint &joint)
@@ -179,7 +181,8 @@ void Joint::crawlUpstream()
     {
         for(int i=0; i<linkage().parentLinkage().nChildren(); i++)
         {
-            if(linkage().parentLinkage().childLinkage(i).stream()==UPSTREAM)
+            if(linkage().parentLinkage().childLinkage(i).stream()==UPSTREAM
+                    || linkage().parentLinkage().childLinkage(i).stream()==ANCHOR)
             {
                 linkage().parentLinkage().upstreamParent_ = i;
                 break;
@@ -282,7 +285,12 @@ void Linkage::updateFrames()
     if(stream()==DOWNSTREAM)
     {
         if(hasParent)
-            respectToRobot_ = parentLinkage().lastJoint().respectToRobot() * respectToFixed_;
+        {
+            if(parentLinkage().nJoints() > 0)
+                respectToRobot_ = parentLinkage().lastJoint().respectToRobot() * respectToFixed_;
+            else
+                respectToRobot_ = parentLinkage().respectToRobot() * respectToFixed_;
+        }
     }
     else if(stream()==UPSTREAM)
     {
@@ -453,7 +461,7 @@ void Link::printInfo() const
 void Joint::printInfo() const
 {
     cout << frameTypeString() << " Info: " << name() << " (ID: " << id()  << "), Joint Type: "
-         << JointType_to_string(jointType_) << endl;
+         << jointType_ << ", Tree Direction: " << stream_ << endl;
     cout << "Joint value: " << value() << "\t Axis: " << jointAxis_.transpose() << endl;
     cout << "Respect to fixed frame:" << endl;
     cout << respectToFixed().matrix() << endl << endl;
@@ -744,6 +752,8 @@ Linkage& Linkage::operator =( const Linkage& linkage )
     setTool(linkage.tool_);
     
     updateFrames();
+    
+    needsUpdate_ = true;
 }
 
 Linkage::Linkage(const Linkage &linkage)
@@ -754,6 +764,7 @@ Linkage::Linkage(const Linkage &linkage)
       hasParent(false),
       hasChildren(false),
       stream_(DOWNSTREAM),
+      needsUpdate_(true),
       upstreamParent_(0)
 {
     for(size_t i=0; i<linkage.joints_.size(); i++)
@@ -770,6 +781,7 @@ Linkage::Linkage()
       hasParent(false),
       hasChildren(false),
       stream_(DOWNSTREAM),
+      needsUpdate_(true),
       upstreamParent_(0)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
@@ -781,6 +793,7 @@ Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id)
       hasParent(false),
       hasChildren(false),
       stream_(DOWNSTREAM),
+      needsUpdate_(true),
       upstreamParent_(0)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
@@ -793,6 +806,7 @@ Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id, Joint joint, 
       hasParent(false),
       hasChildren(false),
       stream_(DOWNSTREAM),
+      needsUpdate_(true),
       upstreamParent_(0)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
@@ -807,6 +821,7 @@ Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id, vector<Joint>
       hasParent(false),
       hasChildren(false),
       stream_(DOWNSTREAM),
+      needsUpdate_(true),
       upstreamParent_(0)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
@@ -1053,7 +1068,8 @@ void Linkage::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATI
 
 void Linkage::printInfo() const
 {
-    cout << frameTypeString() << " Info: " << name() << " (ID: " << id() << ")" << endl;
+    cout << frameTypeString() << " Info: " << name() << " (ID: " << id() << ")"
+         << ", Tree Direction: " << stream_ << endl;
     
     cout << "Respect to fixed frame:" << endl;
     cout << respectToFixed().matrix() << endl << endl;

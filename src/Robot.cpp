@@ -39,11 +39,15 @@ Robot::Robot()
           verbose(false)
 {
     linkages_.resize(0);
-    Joint rootJoint;
+    Joint rootJoint(TRANSFORM::Identity(), "RootJoint");
     Linkage rootLinkage(TRANSFORM::Identity(), "RootLinkage", 0, rootJoint);
     addLinkage(rootLinkage, -1, rootLinkage.name());
     anchorJoint_ = 0;
     anchorLinkage_ = 0;
+    joint(0).stream_ = ANCHOR;
+    joint(0).respectToLinkage_ = TRANSFORM::Identity();
+    linkage(0).stream_ = ANCHOR;
+//    anchorJoint(0);
     frameType_ = ROBOT;
 }
 
@@ -56,11 +60,15 @@ Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
 {
     frameType_ = ROBOT;
     linkages_.resize(0);
-    Joint rootJoint;
+    Joint rootJoint(TRANSFORM::Identity(), "RootJoint");
     Linkage rootLinkage(TRANSFORM::Identity(), "RootLinkage", 0, rootJoint);
     addLinkage(rootLinkage, -1, rootLinkage.name());
     anchorJoint_ = 0;
     anchorLinkage_ = 0;
+    joint(0).stream_ = ANCHOR;
+    joint(0).respectToLinkage_ = TRANSFORM::Identity();
+    linkage(0).stream_ = ANCHOR;
+//    anchorJoint(0);
     initialize(linkageObjs, parentIndices);
 }
 
@@ -73,11 +81,17 @@ Robot::Robot(string filename, string name, size_t id)
 {
     // TODO: Test to make sure filename ends with ".urdf"
     linkages_.resize(0);
-    Joint rootJoint;
+    Joint rootJoint(TRANSFORM::Identity(), "RootJoint");
     Linkage rootLinkage(TRANSFORM::Identity(), "RootLinkage", 0, rootJoint);
     addLinkage(rootLinkage, -1, rootLinkage.name());
     anchorJoint_ = 0;
+    anchorLinkage_ = 0;
+    joint(0).stream_ = ANCHOR;
+    joint(0).respectToLinkage_ = TRANSFORM::Identity();
+    linkage(0).stream_ = ANCHOR;
+//    anchorJoint(0);
     loadURDF(filename);
+    
 }
 
 bool Robot::loadURDF(string filename) // TODO: Add the ability to pick a parent linkage to branch from
@@ -384,9 +398,6 @@ void Robot::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION
 void Robot::printInfo() const
 {
     Frame::printInfo();
-    
-    cout << "Root Link mass properties:" << endl;
-    rootLink.printInfo();
 
     cout << "Linkages (ID, Name <- Parent): " << endl;
     for (vector<Linkage*>::const_iterator linkageIt = const_linkages().begin();
@@ -515,20 +526,21 @@ void Robot::addLinkage(int parentIndex, string name)
 void Robot::updateFrames()
 {
 
-    for (vector<Linkage*>::iterator linkageIt = linkages_.begin();
-         linkageIt != linkages_.end(); ++linkageIt) {
+    linkage(anchorLinkageID()).updateFrames();
+//    for (vector<Linkage*>::iterator linkageIt = linkages_.begin();
+//         linkageIt != linkages_.end(); ++linkageIt) {
 
-        if((*linkageIt)->needsUpdate_)
-            (*linkageIt)->updateFrames();
+//        if((*linkageIt)->needsUpdate_)
+//            (*linkageIt)->updateFrames();
         
-        // TODO: Consider using if((*linkageIt)->hasParent_) instead to avoid use of pointers
-        if ((*linkageIt)->parentLinkage_ == 0)
-//        {
-            (*linkageIt)->respectToRobot_ = (*linkageIt)->respectToFixed_;
-//        } else {
-//            (*linkageIt)->respectToRobot_ = (*linkageIt)->parentLinkage_->tool_.respectToRobot() * (*linkageIt)->respectToFixed_;
-//        }
-    }
+//        // TODO: Consider using if((*linkageIt)->hasParent_) instead to avoid use of pointers
+//        if ((*linkageIt)->parentLinkage_ == 0)
+////        {
+//            (*linkageIt)->respectToRobot_ = (*linkageIt)->respectToFixed_;
+////        } else {
+////            (*linkageIt)->respectToRobot_ = (*linkageIt)->parentLinkage_->tool_.respectToRobot() * (*linkageIt)->respectToFixed_;
+////        }
+//    }
 
 }
 

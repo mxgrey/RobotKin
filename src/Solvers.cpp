@@ -178,16 +178,17 @@ TRANSLATION Robot::centerOfMass(FrameType withRespectTo)
             cerr << "NaN at linkage " << linkage(i).name() << " (" << linkage(i).id() << ")" << endl;
     }
 
-    if(WORLD == withRespectTo)
-        com += respectToWorld()*rootLink.com()*rootLink.mass();
-    else if(ROBOT == withRespectTo)
-        com += rootLink.com()*rootLink.mass();
-    else
-    {
-        cerr << "Invalid reference frame type for center of mass calculation: "
-             << FrameType_to_string(withRespectTo) << endl;
-        cerr << " -- Must be WORLD or ROBOT" << endl;
-    }
+    // FIXME TODO : CHECK THIS CAREFULLY TO SEE IF IT SHOULD STILL EXIST
+//    if(WORLD == withRespectTo)
+//        com += respectToWorld()*rootLink.com()*rootLink.mass();
+//    else if(ROBOT == withRespectTo)
+//        com += rootLink.com()*rootLink.mass();
+//    else
+//    {
+//        cerr << "Invalid reference frame type for center of mass calculation: "
+//             << FrameType_to_string(withRespectTo) << endl;
+//        cerr << " -- Must be WORLD or ROBOT" << endl;
+//    }
 
     double tempMass = mass();
     if(tempMass>0)
@@ -266,7 +267,8 @@ double Robot::mass(const std::vector<size_t> &indices, FrameType typeOfIndex)
         return 0;
     }
 
-    result += rootLink.mass();
+    // FIXME TODO : CHECK THIS CAREFULLY TO SEE IF IT SHOULD STILL EXIST
+//    result += rootLink.mass();
 
     return result;
 }
@@ -300,7 +302,9 @@ double Robot::mass()
     double result = 0;
     for(int i=0; i<nLinkages(); i++)
         result += linkage(i).mass();
-    result += rootLink.mass();
+    
+    // FIXME TODO : CHECK THIS CAREFULLY TO SEE IF IT SHOULD STILL EXIST
+//    result += rootLink.mass();
 
     return result;
 }

@@ -133,8 +133,14 @@ void tutorial()
     cout << "|  Creating A Hubo Robot  |" << endl;
     cout << "---------------------------" << endl << endl;
     
+    Robot hubo("../urdf/huboplus.urdf");
+    
+    hubo.updateFrames();
+    
+    hubo.printInfo();
+    
     // Create an instance of a Hubo
-    Hubo hubo;
+//    Hubo hubo;
     
 /*
     

@@ -1,5 +1,5 @@
 
-#define HAVE_URDF_PARSE // Uncomment this to get Qt to autocomplete below
+//#define HAVE_URDF_PARSE // Uncomment this to get Qt to autocomplete below
 
 
 #ifdef HAVE_URDF_PARSE
