@@ -46,7 +46,6 @@ void ikTest(bool totallyRandom)
     parseTest.linkage("Body_RHY").name("RightLeg");
     parseTest.linkage("Body_LHY").name("LeftLeg");
 
-
     string limb = "LeftArm";
 
     VectorXd targetValues, jointValues, restValues, storedVals;

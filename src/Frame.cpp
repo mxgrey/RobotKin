@@ -95,14 +95,14 @@ string Frame::frameTypeString() const
     return FrameType_to_string(frameType_);
 }
 
-TRANSFORM Frame::respectTo(const Frame* pFrame) const
+TRANSFORM Frame::respectTo(Frame* pFrame)
 {
     return pFrame->respectToWorld().inverse() * respectToWorld();
 }
 
-TRANSFORM Frame::withRespectTo(const Frame &frame) const { return respectTo(&frame); }
+TRANSFORM Frame::withRespectTo(Frame &frame) { return respectTo(&frame); }
 
-void Frame::printInfo() const
+void Frame::printInfo()
 {
     cout << frameTypeString() << " Frame Info: " << name() << " (ID: " << id() << ")" << endl;
     cout << "Respect to fixed frame:" << endl;

@@ -78,6 +78,8 @@ namespace RobotKin {
 
     typedef Eigen::Matrix<double, 6, 1> SCREW;
     typedef Eigen::Matrix<double, 6, 6> Matrix6d;
+    typedef Eigen::Matrix<double, 6, Eigen::Dynamic> Matrix6Xd;
+    typedef Matrix6Xd JACOBIAN;
     
     class Robot;
     class Linkage;
@@ -277,12 +279,12 @@ namespace RobotKin {
         virtual const TRANSFORM& respectToFixed() const = 0;
         virtual void respectToFixed(TRANSFORM aCoordinate) = 0;
         
-        virtual TRANSFORM respectToWorld() const = 0;
+        virtual TRANSFORM respectToWorld() = 0;
 
-        TRANSFORM respectTo(const Frame* pFrame) const;
-        TRANSFORM withRespectTo(const Frame &frame) const;
+        TRANSFORM respectTo(Frame *pFrame);
+        TRANSFORM withRespectTo(Frame &frame);
         
-        virtual void printInfo() const;
+        virtual void printInfo();
         
         double gravity_constant; // TODO: Decide if there is a better place for this
         

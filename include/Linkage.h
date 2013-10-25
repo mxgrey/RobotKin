@@ -79,7 +79,6 @@ namespace RobotKin {
     //------------------------------------------------------------------------------
     // Typedefs and Enums
     //------------------------------------------------------------------------------
-    typedef Eigen::Matrix<double, 6, Eigen::Dynamic> Matrix6Xd;
 
 
     class Link
@@ -181,19 +180,22 @@ namespace RobotKin {
 
         void setJointAxis(AXIS axis);
         AXIS getJointAxis();
+        
+        SCREW Jacobian(TRANSLATION location);
+        SCREW Jacobian(TRANSLATION location, Frame& refFrame);
 
         const TRANSFORM& respectToFixed() const;
         void respectToFixed(TRANSFORM aCoordinate);
 
         const TRANSFORM& respectToFixedTransformed() const;
 
-        const TRANSFORM& respectToLinkage() const;
+        const TRANSFORM& respectToLinkage();
 
 
 
-        TRANSFORM respectToRobot() const;
+        TRANSFORM respectToRobot();
 
-        TRANSFORM respectToWorld() const;
+        TRANSFORM respectToWorld();
 
         Joint& parentJoint();
 
@@ -216,7 +218,7 @@ namespace RobotKin {
         
         StreamType stream();
 
-        void printInfo() const;
+        void printInfo();
 
     protected:
         //----------------------------------------------------------------------
@@ -279,11 +281,11 @@ namespace RobotKin {
 
         const TRANSFORM& respectToLinkage() const;
 
-        TRANSFORM respectToRobot() const;
+        TRANSFORM respectToRobot();
 
-        TRANSFORM respectToWorld() const;
+        TRANSFORM respectToWorld();
 
-        void printInfo() const;
+        void printInfo();
 
         static Tool Identity();
 
@@ -432,14 +434,16 @@ namespace RobotKin {
         const TRANSFORM& respectToFixed() const;
         void respectToFixed(TRANSFORM aCoordinate);
         
-        const TRANSFORM& respectToRobot() const;
+        const TRANSFORM& respectToRobot();
         
-        TRANSFORM respectToWorld() const;
+        TRANSFORM respectToWorld();
         
-        void jacobian(Eigen::MatrixXd& J, TRANSLATION location, const Frame *refFrame) const;
-        void jacobian(Eigen::MatrixXd& J, const std::vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const;
+        JACOBIAN Jacobian(TRANSLATION location, Frame& refFrame);
         
-        void printInfo() const;
+        void jacobian(Eigen::MatrixXd& J, TRANSLATION location, Frame *refFrame)__attribute__((deprecated));
+        void jacobian(Eigen::MatrixXd& J, std::vector<Joint *> &jointFrames, TRANSLATION location, Frame* refFrame)__attribute__((deprecated));
+        
+        void printInfo();
         
         size_t getParentLinkageID();
         std::string getParentLinkageName();
@@ -453,6 +457,7 @@ namespace RobotKin {
         void printChildren();
         
         bool needsUpdate();
+        void updateFrames();
         
         void notifyUpdate();
         
@@ -489,7 +494,6 @@ namespace RobotKin {
         // Linkage Public Member Functions
         //--------------------------------------------------------------------------
         void initialize(std::vector<Joint> joints, Tool tool);
-        void updateFrames();
         static bool defaultAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Eigen::VectorXd& qPrev);
         
         size_t upstreamParent_;

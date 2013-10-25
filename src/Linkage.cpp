@@ -190,6 +190,7 @@ void Joint::crawlUpstream()
         }
         linkage().parentLinkage().lastJoint().crawlUpstream();
     }
+    notifyUpdate();
 }
 
 bool Joint::needsUpdate() { return needsUpdate_ /* || linkage().needsUpdate() */; }
@@ -209,22 +210,6 @@ void Joint::notifyUpdate()
     if(linkage().nJoints() > localID()+1)
         linkage().joint(localID()+1).notifyUpdate();
     
-//    if(stream() == DOWNSTREAM)
-//    {
-//        if(linkage().nJoints() > localID()+1)
-//            linkage().joint(localID()+1).notifyUpdate();
-//    }
-//    else if(stream() == UPSTREAM || stream() == ANCHOR)
-//    {
-//        if(localID() > 0)
-//            linkage().joint(localID()-1).notifyUpdate();
-//    }
-//    else
-//    {
-//        std::cerr << "Unknown stream type: " << stream() << " (" << (int)(stream()) << ")" << std::endl;
-//        std::cerr << " -- Offending Joint: " << name() << " (" << id() << ")" << std::endl;
-//    }
-    
     linkage().notifyUpdate();
 }
 
@@ -234,6 +219,7 @@ void Linkage::notifyUpdate()
         return;
     
     needsUpdate_ = true;
+    
     
     if(stream() == ANCHOR)
     {
@@ -305,11 +291,11 @@ void Linkage::updateFrames()
     
     needsUpdate_ = false;
     
-    for(size_t i=0; i < nChildren(); i++)
-        childLinkage(i).updateFrames();
+//    for(size_t i=0; i < nChildren(); i++)
+//        childLinkage(i).updateFrames();
     
-    if(stream()==UPSTREAM || stream()==ANCHOR)
-        parentLinkage().updateFrames();
+//    if(stream()==UPSTREAM || stream()==ANCHOR)
+//        parentLinkage().updateFrames();
 }
 
 
@@ -407,23 +393,37 @@ const TRANSFORM& Joint::respectToFixedTransformed() const
     return respectToFixedTransformed_;
 }
 
-const TRANSFORM& Joint::respectToLinkage() const
+const TRANSFORM& Joint::respectToLinkage()
 {
+    if(hasLinkage)
+        if(linkage().needsUpdate())
+            linkage().updateFrames();
+    
     return respectToLinkage_;
 }
 
-TRANSFORM Joint::respectToRobot() const
+TRANSFORM Joint::respectToRobot()
 {
     if(hasLinkage)
+    {
+        if(linkage().needsUpdate())
+            linkage().updateFrames();
+        
         return linkage_->respectToRobot_ * respectToLinkage_;
+    }
     else
         return TRANSFORM::Identity();
 }
 
-TRANSFORM Joint::respectToWorld() const
+TRANSFORM Joint::respectToWorld()
 {
     if(hasLinkage)
+    {
+        if(linkage().needsUpdate())
+            linkage().updateFrames();
+        
         return linkage_->respectToWorld() * respectToLinkage_;
+    }
     else
         return TRANSFORM::Identity();
 }
@@ -458,7 +458,7 @@ void Link::printInfo() const
     cout << const_tensor() << endl << endl;
 }
 
-void Joint::printInfo() const
+void Joint::printInfo()
 {
     cout << frameTypeString() << " Info: " << name() << " (ID: " << id()  << "), Joint Type: "
          << jointType_ << ", Tree Direction: " << stream_ << endl;
@@ -527,15 +527,20 @@ const TRANSFORM& Tool::respectToLinkage() const
 }
 
 
-TRANSFORM Tool::respectToRobot() const
-{
+TRANSFORM Tool::respectToRobot()
+{   
     if(hasLinkage)
+    {
+        if(linkage_->needsUpdate())
+            linkage_->updateFrames();
+            
         return linkage_->respectToRobot_ * respectToLinkage_;
+    }
     else
         return respectToLinkage_;
 }
 
-TRANSFORM Tool::respectToWorld() const
+TRANSFORM Tool::respectToWorld()
 {
     if(hasLinkage)
         return linkage_->respectToWorld() * respectToLinkage_;
@@ -712,7 +717,7 @@ void Linkage::printChildren()
              << childLinkages_[i]->id() << ")" << endl;
 }
 
-void Tool::printInfo() const
+void Tool::printInfo()
 {
     cout << frameTypeString() << " Info: " << name() << " (ID: " << id() << ")" << endl;
     cout << "Respect to fixed frame:" << endl;
@@ -975,21 +980,69 @@ void Linkage::respectToFixed(TRANSFORM aCoordinate)
 }
 
 
-const TRANSFORM& Linkage::respectToRobot() const
+const TRANSFORM& Linkage::respectToRobot()
 {
+    if(needsUpdate_)
+        updateFrames();
+    
     return respectToRobot_;
 }
 
 
-TRANSFORM Linkage::respectToWorld() const
+TRANSFORM Linkage::respectToWorld()
 {
+    if(needsUpdate_)
+        updateFrames();
+    
     if(hasRobot)
         return robot_->respectToWorld_ * respectToRobot_;
     else
         return TRANSFORM::Identity();
 }
 
-void Linkage::jacobian(MatrixXd& J, TRANSLATION location, const Frame* refFrame) const
+SCREW Joint::Jacobian(TRANSLATION location)
+{
+    TRANSLATION d_i, z_i;
+    
+    d_i = location - respectToLinkage().translation();
+    z_i = respectToLinkage().rotation()*jointAxis_;
+    
+    SCREW mJacobian;
+    
+    if(jointType_ == REVOLUTE)
+        mJacobian << z_i.cross(d_i), z_i;
+    else if(jointType_ == PRISMATIC)
+        mJacobian << z_i, TRANSLATION::Zero();
+
+    return mJacobian;    
+}
+
+SCREW Joint::Jacobian(TRANSLATION location, Frame &refFrame)
+{
+    SCREW mJacobian = Jacobian(location);
+    
+    Matrix3d r(refFrame.respectToWorld().rotation().inverse() * linkage().respectToWorld().rotation());
+    Matrix6d R;
+    R << r, Matrix3d::Zero(), Matrix3d::Zero(), r;
+    return R * mJacobian;
+}
+
+
+JACOBIAN Linkage::Jacobian(TRANSLATION location, Frame &refFrame)
+{
+    JACOBIAN mJacobian(6, nJoints());
+    
+    for(int i=0; i<nJoints(); i++)
+        mJacobian.block(0, i, 6, 1) = joint(i).Jacobian(location);
+    
+    Matrix3d r(refFrame.respectToWorld().rotation().inverse() * respectToWorld().rotation());
+    MatrixXd R(6,6);
+    R << r, Matrix3d::Zero(), Matrix3d::Zero(), r;
+    
+    return R * mJacobian;
+}
+
+void Linkage::jacobian(MatrixXd& J, TRANSLATION location, Frame* refFrame)
 { // location should be specified respect to linkage coordinate frame
     
     size_t nCols = nJoints();
@@ -1027,7 +1080,7 @@ void Linkage::jacobian(MatrixXd& J, TRANSLATION location, const Frame* refFrame)
     J = R * J;
 }
 
-void Linkage::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const
+void Linkage::jacobian(MatrixXd& J, vector<Joint*>& jointFrames, TRANSLATION location, Frame* refFrame)
 { // location should be specified respect to linkage coordinate frame
 
     size_t nCols = jointFrames.size();
@@ -1066,7 +1119,7 @@ void Linkage::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATI
 }
 
 
-void Linkage::printInfo() const
+void Linkage::printInfo()
 {
     cout << frameTypeString() << " Info: " << name() << " (ID: " << id() << ")"
          << ", Tree Direction: " << stream_ << endl;
@@ -1088,7 +1141,7 @@ void Linkage::printInfo() const
          jointIt != const_joints().end(); ++jointIt) {
         (*jointIt)->printInfo();
     }
-    const_tool().printInfo();
+    tool().printInfo();
     
     MatrixXd J;
     jacobian(J, const_tool().respectToLinkage().translation(), this);

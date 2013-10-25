@@ -325,11 +325,16 @@ void Robot::values(const VectorXd& allValues) {
 
 void Robot::values(const vector<size_t>& jointIndices, const VectorXd& jointValues)
 {
+//    if( jointIndices.size() == jointValues.size() )
+//    {
+//        for(size_t i=0; i<jointIndices.size(); i++)
+//            joints_[jointIndices[i]]->value(jointValues[i], true);
+//        updateFrames();
+//    }
     if( jointIndices.size() == jointValues.size() )
     {
         for(size_t i=0; i<jointIndices.size(); i++)
-            joints_[jointIndices[i]]->value(jointValues[i], true);
-        updateFrames();
+            joints_[jointIndices[i]]->value(jointValues[i]);
     }
     else
         cerr << "Invalid number of joint values: " << jointValues.size()
@@ -349,7 +354,7 @@ void Robot::respectToFixed(TRANSFORM aCoordinate)
     updateFrames();
 }
 
-TRANSFORM Robot::respectToWorld() const
+TRANSFORM Robot::respectToWorld()
 {
     return respectToWorld_;
 }
@@ -359,7 +364,7 @@ void Robot::respectToWorld( TRANSFORM _Tworld )
     respectToWorld_ = _Tworld;
 }
 
-void Robot::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const
+void Robot::jacobian(MatrixXd& J, vector<Joint*>& jointFrames, TRANSLATION location, Frame* refFrame)
 { // location should be specified in respect to robot coordinates
     size_t nCols = jointFrames.size();
     J.resize(6, nCols);
@@ -395,7 +400,7 @@ void Robot::jacobian(MatrixXd& J, const vector<Joint*>& jointFrames, TRANSLATION
     J = R * J;
 }
 
-void Robot::printInfo() const
+void Robot::printInfo()
 {
     Frame::printInfo();
 

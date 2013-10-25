@@ -74,7 +74,6 @@ namespace RobotKin {
     //------------------------------------------------------------------------------
     // Typedefs
     //------------------------------------------------------------------------------
-    typedef Eigen::Matrix<double, 6, Eigen::Dynamic> Matrix6Xd;
 
 	// Sort parentIndices and linkages
     struct indexParentIndexPair {
@@ -169,13 +168,13 @@ namespace RobotKin {
         const TRANSFORM& respectToFixed() const;
         void respectToFixed(TRANSFORM aCoordinate);
         
-        TRANSFORM respectToWorld() const;
+        TRANSFORM respectToWorld();
         void respectToWorld(TRANSFORM Tworld); // TODO: Make this move around the anchor probably
         
-        void jacobian(Eigen::MatrixXd& J, const std::vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const;
+        void jacobian(Eigen::MatrixXd& J, std::vector<Joint*>& jointFrames, TRANSLATION location, Frame* refFrame)__attribute__((deprecated));
         
         void updateFrames();
-        void printInfo() const;
+        void printInfo();
         
         //--------------------------------------------------------------------------
         // Kinematics Solvers
