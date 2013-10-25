@@ -87,23 +87,37 @@ void ikTest()
         restValues[5] = 0;
     }
 
-    bool totallyRandom = false;
+    bool totallyRandom = true;
     int resolution = 1000;
     double scatterScale = 0.05;
     
-    int tests = 10000;
+    int tests = 5000;
 
 
     Constraints constraints;
     constraints.restingValues(restValues);
-    constraints.performNullSpaceTask = false;
-    constraints.maxAttempts = 1;
-    constraints.maxIterations = 50;
-    constraints.convergenceTolerance = 0.001;
+    if(!totallyRandom)
+    {
+        constraints.performNullSpaceTask = false;
+        constraints.maxAttempts = 1;
+        constraints.maxIterations = 50;
+        constraints.convergenceTolerance = 0.001;
 //    constraints.wrapToJointLimits = true;
 //    constraints.wrapSolutionToJointLimits = true;
-    constraints.wrapToJointLimits = false;
-    constraints.wrapSolutionToJointLimits = false;
+        constraints.wrapToJointLimits = false;
+        constraints.wrapSolutionToJointLimits = false;
+    }
+    else
+    {
+//        constraints.performNullSpaceTask = true;
+//        constraints.maxAttempts = 3;
+//        constraints.maxIterations = 200;
+//        constraints.convergenceTolerance = 0.001;
+//        constraints.wrapToJointLimits = true;
+//        constraints.wrapSolutionToJointLimits = true;
+//        constraints.wrapToJointLimits = false;
+//        constraints.wrapSolutionToJointLimits = false;
+    }
 
     TRANSFORM target;
 

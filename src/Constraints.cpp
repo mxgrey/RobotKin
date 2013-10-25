@@ -16,13 +16,13 @@ Constraints::Constraints()
       maxIterations(500),
       dampingConstant(0.05),
       finalTransform(TRANSFORM::Identity()),
-      convergenceTolerance(0.0001),
+      convergenceTolerance(0.001),
       performErrorClamp(true),
       translationClamp(0.2),
       rotationClamp(0.15),
       customErrorClamp(false),
       useIterativeJacobianSeed(true),
-      maxAttempts(5),
+      maxAttempts(3),
       rotationScale(0.01),
       performDeltaClamp(true),
       deltaClamp(5*M_PI/180),
@@ -84,13 +84,13 @@ void Constraints::iterativeJacobianSeed(Robot& robot, size_t attemptNumber,
              && values.size() == restingValues_.size() )
         for(int i=0; i<values.size(); i++)
             values(i) = restingValues_(i);
-    else if( attemptNumber == 2 )
-    {
-        wrapToJointLimits = false;
-        robot.imposeLimits = false;
-        for(int i=0; i<values.size(); i++)
-            values(i) = 0;
-    }
+//    else if( attemptNumber == 2 )
+//    {
+//        wrapToJointLimits = false;
+//        robot.imposeLimits = false;
+//        for(int i=0; i<values.size(); i++)
+//            values(i) = 0;
+//    }
     else
     {
         int resolution = 1000;
