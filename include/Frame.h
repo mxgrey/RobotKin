@@ -110,7 +110,19 @@ namespace RobotKin {
         "WORLD"
     };
 
-    std::string FrameType_to_string(FrameType type);
+    static std::string FrameType_to_string(FrameType type)
+    {
+        if( 0 <= type && type < FRAME_TYPE_SIZE )
+            return FrameType_string[type];
+        else
+            return "Unknown Type";
+    }
+    
+    static std::ostream& operator<<( std::ostream& oStrStream, const FrameType type )
+    {
+        oStrStream << FrameType_to_string(type);
+        return oStrStream;
+    }
     
 
     typedef enum {
@@ -145,12 +157,24 @@ namespace RobotKin {
         "RK_SOLVER_NOT_READY"
     };
 
-    std::string rk_result_to_string(rk_result_t result);
+    static std::string rk_result_to_string(rk_result_t result)
+    {
+        if( 0 <= result && result < RK_TYPE_SIZE)
+            return rk_result_string[result];
+        else
+            return "Unknown Result";
+    }
+    
+    static std::ostream& operator<<( std::ostream& oStrStream, const rk_result_t result )
+    {
+        oStrStream << rk_result_to_string(result);
+        return oStrStream;
+    }
 
 
 
     typedef enum {
-        ANCHOR = 0,
+        DUMMY = 0,
         REVOLUTE,
         PRISMATIC,
 
@@ -159,12 +183,59 @@ namespace RobotKin {
 
     static const char *JointType_string[JOINT_TYPE_SIZE] =
     {
-        "ANCHOR",
+        "DUMMY",
         "REVOLUTE",
         "PRISMATIC"
     };
 
-    std::string JointType_to_string(JointType type);
+    static std::string JointType_to_string(JointType type)
+    {
+        if( 0 <= type && type < JOINT_TYPE_SIZE )
+            return JointType_string[type];
+        else
+            return "Unknown Joint Type";
+    }
+    
+    static std::ostream& operator<<( std::ostream& oStrStream, const JointType type )
+    {
+        oStrStream << JointType_to_string(type);
+        return oStrStream;
+    }
+    
+    
+    
+    
+    typedef enum {
+        
+        DOWNSTREAM = 0,
+        UPSTREAM,
+        ANCHOR,
+        
+        STREAM_TYPE_SIZE
+        
+    } StreamType;
+    
+    static const char *StreamType_string[STREAM_TYPE_SIZE] = 
+    {
+        "DOWNSTREAM",
+        "UPSTREAM",
+        "ANCHOR"
+    };
+    
+    static std::string StreamType_to_string(StreamType type)
+    {
+        if( 0 <= type && type < STREAM_TYPE_SIZE )
+            return StreamType_string[type];
+        else
+            return "Unknown Stream Type";
+    }
+    
+    static std::ostream& operator<<( std::ostream& oStrStream, const StreamType type )
+    {
+        oStrStream << StreamType_to_string(type);
+        return oStrStream;
+    }
+    
 
 
     void clampMag(Eigen::VectorXd& v, double clamp);
@@ -208,7 +279,7 @@ namespace RobotKin {
         
         virtual TRANSFORM respectToWorld() const = 0;
 
-        TRANSFORM respectTo(const Frame* aFrame) const;
+        TRANSFORM respectTo(const Frame* pFrame) const;
         TRANSFORM withRespectTo(const Frame &frame) const;
         
         virtual void printInfo() const;

@@ -46,6 +46,8 @@ Joint& Joint::operator =( const Joint& joint )
     max_ = joint.max_;
 
     value(joint.value_);
+    
+    stream_ = joint.stream_;
 
     link = joint.link;
 }
@@ -57,7 +59,9 @@ Joint::Joint(const Joint &joint)
       jointAxis_(joint.jointAxis_),
       min_(joint.min_),
       max_(joint.max_),
-      link(joint.link)
+      link(joint.link),
+      stream_(DOWNSTREAM),
+      needsUpdate_(true)
 {
     value(joint.value_);
 }
@@ -74,7 +78,9 @@ Joint::Joint(TRANSFORM respectToFixed,
               jointType_(jointType),
               min_(minValue),
               max_(maxValue),
-              value_(0)
+              value_(0),
+              stream_(DOWNSTREAM),
+              needsUpdate_(true)
 {
     setJointAxis(axis);
     value(value_);
@@ -158,10 +164,157 @@ void Joint::setJointAxis(AXIS axis)
 
 AXIS Joint::getJointAxis() { return jointAxis_; }
 
+
+StreamType Joint::stream() { return stream_; }
+
+StreamType Linkage::stream() { return stream_; }
+
+void Joint::crawlUpstream()
+{
+    stream_ = UPSTREAM;
+    linkage().stream_ = UPSTREAM;
+    if(localID() > 0)
+        linkage().joint(localID()-1).crawlUpstream();
+    else if(linkage().hasParent)
+    {
+        for(int i=0; i<linkage().parentLinkage().nChildren(); i++)
+        {
+            if(linkage().parentLinkage().childLinkage(i).stream()==UPSTREAM)
+            {
+                linkage().parentLinkage().upstreamParent_ = i;
+                break;
+            }
+        }
+        linkage().parentLinkage().lastJoint().crawlUpstream();
+    }
+}
+
+bool Joint::needsUpdate() { return needsUpdate_ /* || linkage().needsUpdate() */; }
+
+bool Linkage::needsUpdate() { return needsUpdate_; }
+
+void Joint::notifyUpdate()
+{
+    if(needsUpdate())
+        return;
+    
+    needsUpdate_ = true;
+    
+    if(!hasLinkage)
+        return;
+    
+    if(linkage().nJoints() > localID()+1)
+        linkage().joint(localID()+1).notifyUpdate();
+    
+//    if(stream() == DOWNSTREAM)
+//    {
+//        if(linkage().nJoints() > localID()+1)
+//            linkage().joint(localID()+1).notifyUpdate();
+//    }
+//    else if(stream() == UPSTREAM || stream() == ANCHOR)
+//    {
+//        if(localID() > 0)
+//            linkage().joint(localID()-1).notifyUpdate();
+//    }
+//    else
+//    {
+//        std::cerr << "Unknown stream type: " << stream() << " (" << (int)(stream()) << ")" << std::endl;
+//        std::cerr << " -- Offending Joint: " << name() << " (" << id() << ")" << std::endl;
+//    }
+    
+    linkage().notifyUpdate();
+}
+
+void Linkage::notifyUpdate()
+{
+    if(needsUpdate())
+        return;
+    
+    needsUpdate_ = true;
+    
+    if(stream() == ANCHOR)
+    {
+        if(joint(0).needsUpdate() && hasParent)
+            parentLinkage().notifyUpdate();
+        
+        if(lastJoint().needsUpdate())
+            for(int i=0; i<nChildren(); i++)
+                childLinkage(i).notifyUpdate();
+        
+        return;
+    }
+    
+    for(int i=0; i<nChildren(); i++)
+        if(childLinkage(i).stream() == DOWNSTREAM)
+            childLinkage(i).notifyUpdate();
+    
+    if(stream() == UPSTREAM && hasParent)
+        parentLinkage().notifyUpdate();
+}
+
+void Joint::update() { if(hasLinkage) linkage().updateFrames(); }
+
+void Linkage::updateFrames()
+{
+    if(!needsUpdate())
+        return;
+    
+    for(int i=0; i<nJoints(); i++)
+    {
+        if(joints_[i]->needsUpdate())
+        {
+            if(i==0)
+                joints_[i]->respectToLinkage_ = joints_[i]->respectToFixedTransformed_;
+            else
+                joints_[i]->respectToLinkage_ = joints_[i-1]->respectToLinkage_
+                                                * joints_[i]->respectToFixedTransformed_;
+            
+            joints_[i]->needsUpdate_ = false;
+        }
+    }
+    
+    if(joints_.size() > 0)
+        tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
+    else
+        tool_.respectToLinkage_ = tool_.respectToFixed_;
+    
+    
+    if(stream()==DOWNSTREAM)
+    {
+        if(hasParent)
+            respectToRobot_ = parentLinkage().lastJoint().respectToRobot() * respectToFixed_;
+    }
+    else if(stream()==UPSTREAM)
+    {
+        respectToRobot_ = childLinkage(upstreamParent_).respectToRobot()
+                          * lastJoint().respectToLinkage().inverse();
+    }
+    else if(stream()==ANCHOR)
+    {
+        if(hasRobot)
+            respectToRobot_ = robot_->joint(robot_->anchorJoint()).respectToLinkage().inverse();
+    }
+    
+    needsUpdate_ = false;
+    
+    for(size_t i=0; i < nChildren(); i++)
+        childLinkage(i).updateFrames();
+    
+    if(stream()==UPSTREAM || stream()==ANCHOR)
+        parentLinkage().updateFrames();
+}
+
+
+
 // Joint Methods
 double Joint::value() const { return value_; }
 rk_result_t Joint::value(double newValue, bool update)
 {
+    if(newValue == value())
+        return RK_SOLVED;
+    
+    notifyUpdate();
+    
     rk_result_t result = RK_SOLVED;
 
     if(newValue < min_)
@@ -382,6 +535,8 @@ TRANSFORM Tool::respectToWorld() const
         return respectToLinkage_;
 }
 
+// TODO: Figure out which of the functions below are depricated
+
 const Linkage* Tool::parentLinkage() const
 {
     if(hasLinkage)
@@ -596,9 +751,10 @@ Linkage::Linkage(const Linkage &linkage)
                    linkage.id_, linkage.frameType_),
       respectToRobot_(linkage.respectToRobot_),
       tool_(linkage.tool_),
-      initializing_(false),
       hasParent(false),
-      hasChildren(false)
+      hasChildren(false),
+      stream_(DOWNSTREAM),
+      upstreamParent_(0)
 {
     for(size_t i=0; i<linkage.joints_.size(); i++)
         addJoint(*(linkage.joints_[i]));
@@ -611,9 +767,10 @@ Linkage::Linkage(const Linkage &linkage)
 Linkage::Linkage()
     : Frame::Frame(TRANSFORM::Identity(), "", 0, LINKAGE),
       respectToRobot_(TRANSFORM::Identity()),
-      initializing_(false),
       hasParent(false),
-      hasChildren(false)
+      hasChildren(false),
+      stream_(DOWNSTREAM),
+      upstreamParent_(0)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
 }
@@ -621,9 +778,10 @@ Linkage::Linkage()
 Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id)
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
       respectToRobot_(TRANSFORM::Identity()),
-      initializing_(false),
       hasParent(false),
-      hasChildren(false)
+      hasChildren(false),
+      stream_(DOWNSTREAM),
+      upstreamParent_(0)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
 }
@@ -632,9 +790,10 @@ Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id)
 Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id, Joint joint, Tool tool)
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
       respectToRobot_(respectToFixed),
-      initializing_(false),
       hasParent(false),
-      hasChildren(false)
+      hasChildren(false),
+      stream_(DOWNSTREAM),
+      upstreamParent_(0)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
     vector<Joint> joints(1);
@@ -645,9 +804,10 @@ Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id, Joint joint, 
 Linkage::Linkage(TRANSFORM respectToFixed, string name, size_t id, vector<Joint> joints, Tool tool)
     : Frame::Frame(respectToFixed, name, id, LINKAGE),
       respectToRobot_(respectToFixed),
-      initializing_(false),
       hasParent(false),
-      hasChildren(false)
+      hasChildren(false),
+      stream_(DOWNSTREAM),
+      upstreamParent_(0)
 {
     analyticalIK = Linkage::defaultAnalyticalIK;
     initialize(joints, tool);
@@ -745,6 +905,7 @@ Joint& Linkage::joint(string jointName)
     invalidJoint->name("invalid");
     return *invalidJoint;
 }
+Joint& Linkage::lastJoint() { return joint(nJoints()-1); }
 
 Linkage& Linkage::childLinkage(size_t childIndex)
 {
@@ -926,15 +1087,11 @@ void Linkage::printInfo() const
 //------------------------------------------------------------------------------
 void Linkage::initialize(vector<Joint> joints, Tool tool)
 {
-    initializing_ = true;
-    
     for(size_t i = 0; i != joints.size(); ++i)
         addJoint(joints[i]);
     
     setTool(tool);
     
-    initializing_ = false;
-
     updateFrames();
 }
 
@@ -976,39 +1133,6 @@ rk_result_t Linkage::setJointValue(size_t jointIndex, double val){ return joint(
 
 rk_result_t Linkage::setJointValue(string jointName, double val){ return joint(jointName).value(val); }
 
-
-void Linkage::updateFrames()
-{
-    if (~initializing_) {
-        for (size_t i = 0; i < joints_.size(); ++i) {
-            if (i == 0) {
-                joints_[i]->respectToLinkage_ = joints_[i]->respectToFixedTransformed_;
-                
-            } else {
-                joints_[i]->respectToLinkage_ = joints_[i-1]->respectToLinkage_ * joints_[i]->respectToFixedTransformed_;
-            }
-        }
-        if(joints_.size() > 0)
-            tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
-        else
-            tool_.respectToLinkage_ = tool_.respectToFixed_;
-        
-        if(hasChildren)
-            updateChildLinkage();
-        
-        needsUpdate_ = false;
-    }
-}
-
-
-void Linkage::updateChildLinkage()
-{
-    for (size_t i = 0; i < nChildren(); ++i) {
-        childLinkages_[i]->respectToRobot_ = tool_.respectToRobot() * childLinkages_[i]->respectToFixed_;
-        if(childLinkages_[i]->hasChildren)
-            childLinkages_[i]->updateChildLinkage();
-    }
-}
 
 bool Linkage::defaultAnalyticalIK(VectorXd& q, const TRANSFORM& B, const VectorXd& qPrev) {
     // This function is just a place holder and should not be used. The analyticalIK function pointer should be set to the real analytical IK function.

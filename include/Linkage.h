@@ -141,10 +141,10 @@ namespace RobotKin {
         //----------------------------------------------------------------------
         // Constructors
         Joint(TRANSFORM respectToFixed = TRANSFORM::Identity(),
-              std::string name = "",
+              std::string name="",
               size_t id = 0,
-              JointType jointType = REVOLUTE,
-              TRANSLATION axis=TRANSLATION::UnitZ(),
+              JointType jointType = DUMMY,
+              AXIS axis=AXIS::UnitZ(),
               double minValue = -M_PI,
               double maxValue = M_PI);
         Joint(const Joint& joint);
@@ -207,6 +207,14 @@ namespace RobotKin {
 
         Linkage& linkage();
         Robot& robot();
+        
+        void update();
+        
+        bool needsUpdate();
+        
+        void notifyUpdate();
+        
+        StreamType stream();
 
         void printInfo() const;
 
@@ -216,7 +224,11 @@ namespace RobotKin {
         //----------------------------------------------------------------------
         double value_; // Current joint value (R type = joint angle, P type = joint length)
 
-
+        bool needsUpdate_;
+        
+        StreamType stream_;
+        
+        void crawlUpstream();
 
         const Robot* parentRobot() const;
 
@@ -231,7 +243,6 @@ namespace RobotKin {
         TRANSFORM respectToFixedTransformed_; // Coordinates transformed according to the joint value and type with respect to respectToFixed frame
         TRANSFORM respectToLinkage_; // Coordinates with respect to linkage base frame
         size_t localID_;
-
 
     }; // class Joint
 
@@ -395,6 +406,7 @@ namespace RobotKin {
         
         Joint& joint(size_t jointIndex);
         Joint& joint(std::string jointName);
+        Joint& lastJoint();
 
         Linkage& childLinkage(size_t childIndex);
         // TODO: Allow this to be called by name?
@@ -440,6 +452,12 @@ namespace RobotKin {
         void getChildNames(std::vector<std::string>& names);
         void printChildren();
         
+        bool needsUpdate();
+        
+        void notifyUpdate();
+        
+        StreamType stream();
+        
         //--------------------------------------------------------------------------
         // Linkage Public Member Variables
         //--------------------------------------------------------------------------
@@ -458,6 +476,10 @@ namespace RobotKin {
         // TODO: Consider allowing multiple switchable tools
         //vector<Linkage::Tool> tools_;
 //        size_t activeTool_;
+        
+        StreamType stream_;
+        
+        bool needsUpdate_;
 
         bool hasParent;
         bool hasChildren;
@@ -468,16 +490,10 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         void initialize(std::vector<Joint> joints, Tool tool);
         void updateFrames();
-        void updateChildLinkage();
         static bool defaultAnalyticalIK(Eigen::VectorXd& q, const TRANSFORM& B, const Eigen::VectorXd& qPrev);
         
+        size_t upstreamParent_;
         
-        
-        //--------------------------------------------------------------------------
-        // Linkage Private Member Variables
-        //--------------------------------------------------------------------------
-        bool initializing_;
-        bool needsUpdate_;
         std::map<std::string, size_t> jointNameToIndex_;
         
         

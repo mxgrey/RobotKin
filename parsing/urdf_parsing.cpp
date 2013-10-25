@@ -1,5 +1,7 @@
 
-//#define HAVE_URDF_PARSE // Uncomment this to get Qt to autocomplete below
+#define HAVE_URDF_PARSE // Uncomment this to get Qt to autocomplete below
+
+
 #ifdef HAVE_URDF_PARSE
 
 #include <urdf_parser/urdf_parser.h>
@@ -107,14 +109,14 @@ bool RobotKinURDF::loadURDFString(RobotKin::Robot& robot, string xml_model_strin
     boost::shared_ptr<urdf::Link> rootLink = model->root_link_;
     RobotKin::Link link;
     parseURDFLink(link, rootLink);
-    robot.rootLink = link;
+    robot.linkage(0).joint(0).link = link;
 
     if(robot.name().compare("")==0)
         robot.name(model->getName());
 
 
 
-    exploreLink(robot, model, rootLink, 0, -1);
+    exploreLink(robot, model, rootLink, 0, 0);
 
     return true;
 }
@@ -194,7 +196,7 @@ bool RobotKinURDF::addURDFJoint(RobotKin::Linkage &linkage, boost::shared_ptr<ur
     else if(ujoint->type == urdf::Joint::PRISMATIC)
         jt = RobotKin::PRISMATIC;
     else
-        jt = RobotKin::ANCHOR;
+        jt = RobotKin::DUMMY;
 
     Vector3d jointAxis(ujoint->axis.x, ujoint->axis.y, ujoint->axis.z);
     if(jointAxis.norm() == 0)

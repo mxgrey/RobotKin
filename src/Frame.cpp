@@ -27,30 +27,6 @@ using namespace std;
 using namespace Eigen;
 
 
-string RobotKin::FrameType_to_string(FrameType type)
-{
-    if( 0 <= type && type < FRAME_TYPE_SIZE )
-        return FrameType_string[type];
-    else
-        return "Unknown Type";
-}
-
-string RobotKin::rk_result_to_string(rk_result_t result)
-{
-    if( 0 <= result && result < RK_TYPE_SIZE)
-        return rk_result_string[result];
-    else
-        return "Unknown Result";
-}
-
-string RobotKin::JointType_to_string(JointType type)
-{
-    if( 0 <= type && type < JOINT_TYPE_SIZE )
-        return JointType_string[type];
-    else
-        return "Unknown Joint Type";
-}
-
 
 
 //------------------------------------------------------------------------------
@@ -119,9 +95,9 @@ string Frame::frameTypeString() const
     return FrameType_to_string(frameType_);
 }
 
-TRANSFORM Frame::respectTo(const Frame* aFrame) const
+TRANSFORM Frame::respectTo(const Frame* pFrame) const
 {
-    return aFrame->respectToWorld().inverse() * respectToWorld();
+    return pFrame->respectToWorld().inverse() * respectToWorld();
 }
 
 TRANSFORM Frame::withRespectTo(const Frame &frame) const { return respectTo(&frame); }

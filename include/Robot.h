@@ -111,7 +111,7 @@ namespace RobotKin {
         // Destructor
         virtual ~Robot();
 
-        Link rootLink;
+        Link rootLink; // TODO: replace this with dummy joint + link
 
         bool imposeLimits;
 
@@ -172,7 +172,7 @@ namespace RobotKin {
         void respectToFixed(TRANSFORM aCoordinate);
         
         TRANSFORM respectToWorld() const;
-	void respectToWorld(TRANSFORM Tworld );
+        void respectToWorld(TRANSFORM Tworld); // TODO: Make this move around the anchor probably
         
         void jacobian(Eigen::MatrixXd& J, const std::vector<Joint*>& jointFrames, TRANSLATION location, const Frame* refFrame) const;
         
@@ -245,6 +245,11 @@ namespace RobotKin {
 
 
         static Robot& Default();
+        
+        size_t anchorJoint();
+        void anchorJoint(size_t newAnchor);
+        void anchorJoint(std::string newAnchor);
+        size_t anchorLinkageID();
 
     protected:
         //--------------------------------------------------------------------------
@@ -264,13 +269,9 @@ namespace RobotKin {
         
         
     private:
-        //--------------------------------------------------------------------------
-        // Robot Constants, Enums, and Types
-        //--------------------------------------------------------------------------
-
         
-        
-        
+        size_t anchorJoint_;
+        size_t anchorLinkage_;
         //--------------------------------------------------------------------------
         // Robot Private Member Variables
         //--------------------------------------------------------------------------

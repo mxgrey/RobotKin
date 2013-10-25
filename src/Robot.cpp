@@ -39,6 +39,11 @@ Robot::Robot()
           verbose(false)
 {
     linkages_.resize(0);
+    Joint rootJoint;
+    Linkage rootLinkage(TRANSFORM::Identity(), "RootLinkage", 0, rootJoint);
+    addLinkage(rootLinkage, -1, rootLinkage.name());
+    anchorJoint_ = 0;
+    anchorLinkage_ = 0;
     frameType_ = ROBOT;
 }
 
@@ -50,8 +55,12 @@ Robot::Robot(vector<Linkage> linkageObjs, vector<int> parentIndices)
           verbose(false)
 {
     frameType_ = ROBOT;
-    
     linkages_.resize(0);
+    Joint rootJoint;
+    Linkage rootLinkage(TRANSFORM::Identity(), "RootLinkage", 0, rootJoint);
+    addLinkage(rootLinkage, -1, rootLinkage.name());
+    anchorJoint_ = 0;
+    anchorLinkage_ = 0;
     initialize(linkageObjs, parentIndices);
 }
 
@@ -64,10 +73,14 @@ Robot::Robot(string filename, string name, size_t id)
 {
     // TODO: Test to make sure filename ends with ".urdf"
     linkages_.resize(0);
+    Joint rootJoint;
+    Linkage rootLinkage(TRANSFORM::Identity(), "RootLinkage", 0, rootJoint);
+    addLinkage(rootLinkage, -1, rootLinkage.name());
+    anchorJoint_ = 0;
     loadURDF(filename);
 }
 
-bool Robot::loadURDF(string filename)
+bool Robot::loadURDF(string filename) // TODO: Add the ability to pick a parent linkage to branch from
 {
     return RobotKinURDF::loadURDF(*this, filename);
 }
@@ -101,6 +114,35 @@ bool Robot::loadURDFString(string filename)
 }
 
 #endif // HAVE_URDF_PARSE
+
+
+size_t Robot::anchorJoint() { return anchorJoint_; }
+size_t Robot::anchorLinkageID() { return anchorLinkage_; }
+
+void Robot::anchorJoint(size_t newAnchor)
+{
+    if(newAnchor == anchorJoint_)
+        return;
+    
+    // TODO: Update frames here as a precaution?
+    
+    respectToWorld_ = joint(newAnchor).respectToWorld();
+    
+    for(size_t i=0; i<nJoints(); i++)
+        joints_[i]->stream_ = DOWNSTREAM;
+    
+    for(size_t i=0; i<nLinkages(); i++)
+        linkages_[i]->stream_ = DOWNSTREAM;
+    
+    joints_[newAnchor]->crawlUpstream();
+    joints_[newAnchor]->stream_ = ANCHOR;
+    joint(newAnchor).linkage().stream_ = ANCHOR;
+    
+    anchorJoint_ = newAnchor;
+    anchorLinkage_ = joint(newAnchor).linkage().id();
+}
+
+void Robot::anchorJoint(string newAnchor) { anchorJoint(joint(newAnchor).id()); }
 
 
 // Destructor
