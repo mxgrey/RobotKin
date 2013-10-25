@@ -23,7 +23,6 @@ using namespace Eigen;
 using namespace RobotKin;
 
 
-void ikTest();
 
 
 
@@ -31,19 +30,10 @@ void ikTest();
 
 
 
-int main(int argc, char *argv[])
-{
-    ikTest();
-
-    return 0;
-}
 
 
 
-
-
-
-void ikTest()
+void ikTest(bool totallyRandom)
 {
     cout << "--------------------------------------------" << endl;
     cout << "| Testing Standard Damped Least Squares IK |" << endl;
@@ -76,18 +66,18 @@ void ikTest()
     }
     else if(limb == "RightArm" || limb == "LeftArm")
     {
+        restValues[0] = 0;
         if(limb=="RightArm")
-            restValues[0] = -30*M_PI/180;
+            restValues[1] = -30*M_PI/180;
         else
-            restValues[0] =  30*M_PI/180;
-        restValues[1] = 0;
+            restValues[1] =  30*M_PI/180;
         restValues[2] = 0;
         restValues[3] = -30*M_PI/180;
         restValues[4] = 0;
         restValues[5] = 0;
     }
 
-    bool totallyRandom = true;
+//    bool totallyRandom = true;
     int resolution = 1000;
     double scatterScale = 0.05;
     
@@ -101,7 +91,7 @@ void ikTest()
         constraints.performNullSpaceTask = false;
         constraints.maxAttempts = 1;
         constraints.maxIterations = 50;
-        constraints.convergenceTolerance = 0.001;
+//        constraints.convergenceTolerance = 0.001;
 //    constraints.wrapToJointLimits = true;
 //    constraints.wrapSolutionToJointLimits = true;
         constraints.wrapToJointLimits = false;
@@ -252,3 +242,21 @@ void ikTest()
 
 
 }
+
+
+
+
+
+
+
+int main(int argc, char *argv[])
+{
+    cout << "Totally Random: " << endl;
+    ikTest(true);
+    
+    cout << endl << endl << "Continuous Mode: " << endl;
+    ikTest(false);
+
+    return 0;
+}
+
