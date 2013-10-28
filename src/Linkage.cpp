@@ -677,6 +677,38 @@ Joint& Joint::parentJoint()
     return *invalidJoint;
 }
 
+Joint& Joint::upstreamJoint()
+{
+    if(hasLinkage)
+    {
+        if( stream() == DOWNSTREAM )
+        {
+            if(localID() > 0)
+                return linkage().joint(localID()-1);
+            else if(linkage().upstreamLinkage().stream()==DOWNSTREAM)
+                return linkage().upstreamLinkage().lastJoint();
+            else
+                return linkage().upstreamLinkage().joint(0);
+        }
+        else if( stream() == UPSTREAM )
+        {
+            if(localID() < linkage().nJoints()-1)
+                return linkage().joint(localID()+1);
+            else
+                return linkage().upstreamLinkage().joint(0);
+        }
+        else if( stream() == ANCHOR )
+        {
+            return *this;
+        }
+    }
+    
+    Joint* invalidJoint = new Joint;
+    invalidJoint->name("invalid");
+    invalidJoint->id_ = robot().nJoints();
+    return *invalidJoint;
+}
+
 size_t Linkage::getRobotID()
 {
     if(hasRobot)
@@ -861,6 +893,21 @@ Linkage &Linkage::parentLinkage()
     Linkage* invalidLinkage = new Linkage;
     invalidLinkage->name("invalid");
     return *invalidLinkage;
+}
+
+Linkage &Linkage::upstreamLinkage()
+{
+    if(stream() == DOWNSTREAM)
+    {
+        if( parentLinkage().stream() == UPSTREAM )
+            return parentLinkage().childLinkage(parentLinkage().upstreamParent_);
+        else
+            return parentLinkage();
+    }
+    else if(stream() == UPSTREAM)
+        return childLinkage(upstreamParent_);
+    else
+        return *this;
 }
 
 size_t Linkage::nChildren() const { return childLinkages_.size(); }

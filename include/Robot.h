@@ -144,6 +144,10 @@ namespace RobotKin {
         void addLinkage(Linkage linkage, std::string parentName, std::string name);
         void addLinkage(Linkage linkage, int parentIndex, std::string name);
         
+        // TODO: Mention in documentation that this function is faster if "from" is the anchor point
+        IntArray jointChain(std::string from, std::string to);
+        IntArray jointChain(size_t from, size_t to);
+        
         // Getting joint information
         size_t nJoints() const;
         size_t jointIndex(std::string jointName) const;

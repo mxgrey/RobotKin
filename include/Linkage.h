@@ -198,6 +198,7 @@ namespace RobotKin {
         TRANSFORM respectToWorld();
 
         Joint& parentJoint();
+        Joint& upstreamJoint();
 
         size_t getLinkageID();
         std::string getLinkageName();
@@ -393,6 +394,7 @@ namespace RobotKin {
 
 
         Linkage& parentLinkage();
+        Linkage& upstreamLinkage();
         
         size_t nChildren() const;
 

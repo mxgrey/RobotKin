@@ -336,12 +336,6 @@ void Robot::values(const VectorXd& allValues) {
 
 void Robot::values(const IntArray &jointIndices, const VectorXd& jointValues)
 {
-//    if( jointIndices.size() == jointValues.size() )
-//    {
-//        for(size_t i=0; i<jointIndices.size(); i++)
-//            joints_[jointIndices[i]]->value(jointValues[i], true);
-//        updateFrames();
-//    }
     if( jointIndices.size() == jointValues.size() )
     {
         for(size_t i=0; i<jointIndices.size(); i++)
@@ -352,6 +346,36 @@ void Robot::values(const IntArray &jointIndices, const VectorXd& jointValues)
              << "\n\t This should be equal to " << jointIndices.size()
              << "\n\t See line (" << __LINE__-9 << ") of Robot.cpp"
              << endl;
+}
+
+IntArray Robot::jointChain(string from, string to) { return jointChain(joint(from).id(), joint(to).id()); }
+
+IntArray Robot::jointChain(size_t from, size_t to)
+{
+    size_t prev_anchor = anchorJoint();
+    anchorJoint(from);
+    
+    IntArray backwards;
+    size_t next = to;
+    
+    bool searching = true;
+    while(searching)
+    {
+        backwards.push_back(next);
+        
+        if(joint(next).stream()==ANCHOR)
+            searching = false;
+        else
+            next = joint(next).upstreamJoint().id();
+    }
+    
+    IntArray chain(backwards.size());
+    for(int i=0; i<backwards.size(); i++)
+        chain[i] = backwards[backwards.size()-i-1];
+    
+    anchorJoint(prev_anchor);
+    
+    return chain;
 }
 
 rk_result_t Robot::setJointValue(string jointName, double val, bool update){ return joint(jointName).value(val, update); }

@@ -70,6 +70,14 @@ void tutorial()
     
     hubo.printInfo();
     
+    string start = "LEP";
+    string end = "RKP";
+    IntArray chain = hubo.jointChain(start, end);
+    
+    cout << "Chain from " << start << " to " << end << ":" << endl;
+    for(int i=0; i<chain.size(); i++)
+        cout << hubo.joint(chain[i]).name() << endl;
+    
     
     // Create an instance of a Hubo
 //    Hubo hubo;
