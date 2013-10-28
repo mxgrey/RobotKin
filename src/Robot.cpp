@@ -138,7 +138,15 @@ void Robot::anchorJoint(size_t newAnchor)
     if(newAnchor == anchorJoint_)
         return;
     
+    if(newAnchor >= nJoints())
+    {
+        cerr << "Joint value (" << newAnchor << ") exceeds the number of joints on the robot!" << endl;
+        cerr << " -- We will NOT change the anchor point of the robot" << endl;
+        return;
+    }
+    
     // TODO: Update frames here as a precaution?
+    // -- Actually, this is addressed by the auto-update
     
     respectToWorld_ = joint(newAnchor).respectToWorld();
     
@@ -187,7 +195,7 @@ size_t Robot::linkageIndex(string linkageName) const
     return 0;
 }
 
-rk_result_t Robot::jointNamesToIndices(const vector<string> &jointNames, vector<size_t> &jointIndices)
+rk_result_t Robot::jointNamesToIndices(const vector<string> &jointNames, IntArray &jointIndices)
 {
     jointIndices.resize(jointNames.size());
     map<string,size_t>::iterator j;
@@ -202,7 +210,7 @@ rk_result_t Robot::jointNamesToIndices(const vector<string> &jointNames, vector<
     return RK_SOLVED;
 }
 
-rk_result_t Robot::linkageNamesToIndices(const vector<string> &linkageNames, vector<size_t> &linkageIndices)
+rk_result_t Robot::linkageNamesToIndices(const vector<string> &linkageNames, IntArray &linkageIndices)
 {
     linkageIndices.resize(linkageNames.size());
     map<string,size_t>::iterator j;
@@ -225,12 +233,13 @@ const Linkage& Robot::const_linkage(size_t linkageIndex) const
 const Linkage& Robot::const_linkage(string linkageName) const { return *linkages_[linkageNameToIndex_.at(linkageName)]; }
 
 Linkage& Robot::linkage(size_t linkageIndex)
-{ // FIXME: Remove assert
-    if(linkageIndex < nJoints())
+{
+    if(linkageIndex < nLinkages())
         return *linkages_[linkageIndex];
 
     Linkage* invalidLinkage = new Linkage;
     invalidLinkage->name("invalid");
+    invalidLinkage->id_ = nLinkages();
     return *invalidLinkage;
 }
 Linkage& Robot::linkage(string linkageName)
@@ -241,6 +250,7 @@ Linkage& Robot::linkage(string linkageName)
 
     Linkage* invalidLinkage = new Linkage;
     invalidLinkage->name("invalid");
+    invalidLinkage->id_ = nLinkages();
     return *invalidLinkage;
 }
 
@@ -290,6 +300,7 @@ Joint& Robot::joint(string jointName)
 
     cerr << "Invalid joint name: (" << jointName << ")" << endl;
     Joint* invalidJoint = new Joint;
+    invalidJoint->id_ = nJoints();
     invalidJoint->name("invalid");
     return *invalidJoint;
 }
@@ -323,7 +334,7 @@ void Robot::values(const VectorXd& allValues) {
              << endl;
 }
 
-void Robot::values(const vector<size_t>& jointIndices, const VectorXd& jointValues)
+void Robot::values(const IntArray &jointIndices, const VectorXd& jointValues)
 {
 //    if( jointIndices.size() == jointValues.size() )
 //    {
@@ -363,6 +374,32 @@ void Robot::respectToWorld( TRANSFORM _Tworld )
 {
     respectToWorld_ = _Tworld;
 }
+
+
+JACOBIAN Robot::Jacobian(IntArray jointArray, TRANSLATION location)
+{
+    JACOBIAN mJacobian(6, jointArray.size());
+    
+    for(int i=0; i<jointArray.size(); i++)
+        mJacobian.block(0, i, 6, 1) = joint(jointArray[i]).JHelper(location, joint(jointArray[i]).respectToRobot());
+    
+    return mJacobian;
+}
+
+JACOBIAN Robot::Jacobian(IntArray jointArray, TRANSLATION location, Frame &refFrame)
+{
+    JACOBIAN mJacobian(6, jointArray.size());
+    
+    for(int i=0; i<jointArray.size(); i++)
+        mJacobian.block(0, i, 6, 1) = joint(jointArray[i]).JHelper(location, joint(jointArray[i]).respectToRobot());
+    
+    Matrix3d r(refFrame.respectToWorld().rotation().inverse() * respectToWorld().rotation());
+    MatrixXd R(6,6);
+    R << r, Matrix3d::Zero(), Matrix3d::Zero(), r;
+    
+    return R * mJacobian;
+}
+
 
 void Robot::jacobian(MatrixXd& J, vector<Joint*>& jointFrames, TRANSLATION location, Frame* refFrame)
 { // location should be specified in respect to robot coordinates

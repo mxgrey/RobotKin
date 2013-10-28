@@ -25,7 +25,7 @@ Jump: 0%
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 
-After restructuring + smart updating
+After restructuring kin tree + smart updating
 Tested 10/25/13
 
 Totally Random: 
@@ -55,3 +55,34 @@ Jump: 0%
 
 
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+After restructuring Jacobian computation
+Tested 10/27/13
+
+Totally Random: 
+--------------------------------------------
+| Testing Standard Damped Least Squares IK |
+--------------------------------------------
+ URDF Robot name: huboplus
+Time: 0.003484 : 287.026
+Win: 91.14%
+
+
+Continuous Mode: 
+--------------------------------------------
+| Testing Standard Damped Least Squares IK |
+--------------------------------------------
+ URDF Robot name: huboplus
+Time: 3.6e-05 : 27777.8
+Win: 100%
+Jump: 0%
+
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+
+
+
+

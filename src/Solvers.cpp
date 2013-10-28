@@ -59,7 +59,7 @@ void RobotKin::clampMaxAbs(VectorXd& v, double clamp)
 double RobotKin::minimum(double a, double b) { return a<b ? a : b; }
 
 
-void RobotKin::wrapToJointLimits(Robot& robot, const vector<size_t>& jointIndices, VectorXd& jointValues)
+void RobotKin::wrapToJointLimits(Robot& robot, const IntArray &jointIndices, VectorXd& jointValues)
 {
     for(int i=0; i<jointIndices.size(); i++)
     {
@@ -197,7 +197,7 @@ TRANSLATION Robot::centerOfMass(FrameType withRespectTo)
         return TRANSLATION::Zero();
 }
 
-TRANSLATION Robot::centerOfMass(const vector<size_t> &indices, FrameType typeOfIndex, FrameType withRespectTo)
+TRANSLATION Robot::centerOfMass(const IntArray &indices, FrameType typeOfIndex, FrameType withRespectTo)
 {
     TRANSLATION com; com.setZero();
     if( JOINT == typeOfIndex )
@@ -247,7 +247,7 @@ TRANSLATION Robot::centerOfMass(const vector<string> &names, FrameType typeOfInd
     return centerOfMass(indices, typeOfIndex, withRespectTo);
 }
 
-double Robot::mass(const std::vector<size_t> &indices, FrameType typeOfIndex)
+double Robot::mass(const IntArray &indices, FrameType typeOfIndex)
 {
     double result = 0;
 
@@ -325,7 +325,7 @@ TRANSLATION Linkage::centerOfMass(FrameType withRespectTo)
         return TRANSLATION::Zero();
 }
 
-TRANSLATION Linkage::centerOfMass(const std::vector<size_t> &indices, bool includeTool, FrameType withRespectTo)
+TRANSLATION Linkage::centerOfMass(const IntArray &indices, bool includeTool, FrameType withRespectTo)
 {
     TRANSLATION com; com.setZero();
     for(int i=0; i<indices.size(); i++)
@@ -502,7 +502,7 @@ double Linkage::mass()
     return result;
 }
 
-double Linkage::mass(const vector<size_t> &indices, bool includeTool)
+double Linkage::mass(const IntArray &indices, bool includeTool)
 {
     double result = 0;
     for(int i=0; i<indices.size(); i++)
@@ -582,7 +582,7 @@ double Joint::gravityTorque(bool downstream)
 
 
 
-void Robot::gravityJointTorques(const vector<size_t> &jointIndices, Eigen::VectorXd &torques, bool downstream)
+void Robot::gravityJointTorques(const IntArray &jointIndices, Eigen::VectorXd &torques, bool downstream)
 {
     // TODO: Perhaps make this more efficient by using something besides gravityTorque()
     // If CoM and mass results were recycled, it could perhaps be made more efficient
@@ -607,7 +607,7 @@ void Linkage::gravityJointTorques(Eigen::VectorXd &torques, bool downstream)
 
 
 // Based on a paper by Samuel R. Buss and Jin-Su Kim // TODO: Cite the paper properly
-rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
+rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const IntArray &jointIndices, VectorXd &jointValues,
                                               const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     return RK_SOLVER_NOT_READY;
@@ -651,7 +651,8 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_chain(const vector<size_t> &j
 
         values(jointIndices, jointValues);
 
-        jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
+//        jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
+        J = Jacobian(jointIndices, joint(jointIndices.back()).respectToRobot().translation()+finalTF.translation());
 
         svd.compute(J, ComputeFullU | ComputeThinV);
 
@@ -770,7 +771,7 @@ rk_result_t Robot::selectivelyDampedLeastSquaresIK_linkage(const string linkageN
 
 
 
-rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
+rk_result_t Robot::pseudoinverseIK_chain(const IntArray &jointIndices, VectorXd &jointValues,
                                   const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     return RK_SOLVER_NOT_READY;
@@ -808,7 +809,8 @@ rk_result_t Robot::pseudoinverseIK_chain(const vector<size_t> &jointIndices, Vec
 
         values(jointIndices, jointValues);
 
-        jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
+//        jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
+        J = Jacobian(jointIndices, joint(jointIndices.back()).respectToRobot().translation()+finalTF.translation());
         Jsub = J.block(0,0,3,jointValues.size());
 
         pinv(Jsub, Jinv);
@@ -877,7 +879,7 @@ rk_result_t Robot::pseudoinverseIK_linkage(const string linkageName, VectorXd &j
 }
 
 
-rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues, const TRANSFORM &target, const TRANSFORM &finalTF)
+rk_result_t Robot::jacobianTransposeIK_chain(const IntArray &jointIndices, VectorXd &jointValues, const TRANSFORM &target, const TRANSFORM &finalTF)
 {
     return RK_SOLVER_NOT_READY;
     // FIXME: Make this solver work
@@ -913,7 +915,8 @@ rk_result_t Robot::jacobianTransposeIK_chain(const vector<size_t> &jointIndices,
     do {
         values(jointIndices, jointValues);
 
-        jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
+//        jacobian(J, joints, joints.back()->respectToRobot().translation()+finalTF.translation(), this);
+        J = Jacobian(jointIndices, joint(jointIndices.back()).respectToRobot().translation()+finalTF.translation());
 
         pose = joint(jointIndices.back()).respectToRobot()*finalTF;
         aastate = pose.rotation();
@@ -976,7 +979,7 @@ rk_result_t Robot::jacobianTransposeIK_linkage(const string linkageName, VectorX
 
 
 // TODO: Make a constraint class instead of restValues
-rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices, VectorXd &jointValues,
+rk_result_t Robot::dampedLeastSquaresIK_chain(const IntArray &jointIndices, VectorXd &jointValues,
                                               const TRANSFORM &target, Constraints& constraints )
 {
     bool storedImposeLimits = imposeLimits;
@@ -1063,7 +1066,8 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
             }
 
 //            jacobian(J, pJoints, pJoints.back()->respectToRobot().translation()+constraints.finalTransform.translation(), this);
-            jacobian(J, pJoints, pose.translation(), this);
+//            jacobian(J, pJoints, pose.translation(), this);
+            J = Jacobian(jointIndices, pose.translation());
 
             /////////////////////////////////////////////////////////////////////////
             /////////////////////////  STANDARD APPROACH  ///////////////////////////
@@ -1229,7 +1233,7 @@ rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<size_t> &jointIndices
 rk_result_t Robot::dampedLeastSquaresIK_chain(const vector<string> &jointNames, VectorXd &jointValues,
                                               const TRANSFORM &target, Constraints& constraints)
 {
-    vector<size_t> jointIndices;
+    IntArray jointIndices;
 
     if( jointNamesToIndices(jointNames, jointIndices) == RK_INVALID_JOINT )
         return RK_INVALID_JOINT;

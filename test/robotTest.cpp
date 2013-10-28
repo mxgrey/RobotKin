@@ -70,6 +70,7 @@ void tutorial()
     
     hubo.printInfo();
     
+    
     // Create an instance of a Hubo
 //    Hubo hubo;
     

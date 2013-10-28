@@ -122,10 +122,10 @@ namespace RobotKin {
         size_t linkageIndex(std::string linkageName) const;
 
         rk_result_t jointNamesToIndices(const std::vector<std::string> &jointNames,
-                                        std::vector<size_t> &jointIndices);
+                                        IntArray &jointIndices);
 
         rk_result_t linkageNamesToIndices(const std::vector<std::string> &linkageNames,
-                                          std::vector<size_t> &linkageIndices);
+                                          IntArray &linkageIndices);
         
         // Getting individual linkages
         const Linkage& const_linkage(size_t linkageIndex) const;
@@ -163,13 +163,16 @@ namespace RobotKin {
         
         Eigen::VectorXd values() const;
         void values(const Eigen::VectorXd& allValues);
-        void values(const std::vector<size_t> &jointIndices, const Eigen::VectorXd& jointValues);
+        void values(const IntArray &jointIndices, const Eigen::VectorXd& jointValues);
         
         const TRANSFORM& respectToFixed() const;
         void respectToFixed(TRANSFORM aCoordinate);
         
         TRANSFORM respectToWorld();
         void respectToWorld(TRANSFORM Tworld); // TODO: Make this move around the anchor probably
+        
+        JACOBIAN Jacobian(IntArray jointArray, TRANSLATION location);
+        JACOBIAN Jacobian(IntArray jointArray, TRANSLATION location, Frame& refFrame);
         
         void jacobian(Eigen::MatrixXd& J, std::vector<Joint*>& jointFrames, TRANSLATION location, Frame* refFrame)__attribute__((deprecated));
         
@@ -180,7 +183,7 @@ namespace RobotKin {
         // Kinematics Solvers
         //--------------------------------------------------------------------------
 
-        rk_result_t selectivelyDampedLeastSquaresIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
+        rk_result_t selectivelyDampedLeastSquaresIK_chain(const IntArray &jointIndices, Eigen::VectorXd &jointValues,
                                          const TRANSFORM &target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t selectivelyDampedLeastSquaresIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
@@ -192,7 +195,7 @@ namespace RobotKin {
 
         //////////////////
 
-        rk_result_t pseudoinverseIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
+        rk_result_t pseudoinverseIK_chain(const IntArray &jointIndices, Eigen::VectorXd &jointValues,
                                           const TRANSFORM &target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t pseudoinverseIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
@@ -203,7 +206,7 @@ namespace RobotKin {
 
         //////////////////
 
-        rk_result_t jacobianTransposeIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
+        rk_result_t jacobianTransposeIK_chain(const IntArray &jointIndices, Eigen::VectorXd &jointValues,
                                           const TRANSFORM &target, const TRANSFORM &finalTF = TRANSFORM::Identity());
 
         rk_result_t jacobianTransposeIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
@@ -214,7 +217,7 @@ namespace RobotKin {
 
         /////////////////
 
-        rk_result_t dampedLeastSquaresIK_chain(const std::vector<size_t> &jointIndices, Eigen::VectorXd &jointValues,
+        rk_result_t dampedLeastSquaresIK_chain(const IntArray &jointIndices, Eigen::VectorXd &jointValues,
                                                const TRANSFORM &target, RobotKin::Constraints& constraints=RobotKin::Constraints::Defaults());
 
         rk_result_t dampedLeastSquaresIK_chain(const std::vector<std::string>& jointNames, Eigen::VectorXd& jointValues,
@@ -227,18 +230,18 @@ namespace RobotKin {
 
         TRANSLATION centerOfMass(FrameType withRespectTo=ROBOT); // Center of mass for entire robot + tools
         double mass();              // Mass of entire robot + tools
-        TRANSLATION centerOfMass(const std::vector<size_t> &indices, FrameType typeOfIndex=JOINT, FrameType withRespectTo=WORLD);
+        TRANSLATION centerOfMass(const IntArray &indices, FrameType typeOfIndex=JOINT, FrameType withRespectTo=WORLD);
         //^ Type Of Indices can be Joint or Linkage
         TRANSLATION centerOfMass(const std::vector<std::string> &names, FrameType typeOfIndex=JOINT, FrameType withRespectTo=WORLD);
         //^ Type of Indices can be Joint or Linkage
-        double mass(const std::vector<size_t> &indices, FrameType typeOfIndex=JOINT);
+        double mass(const IntArray &indices, FrameType typeOfIndex=JOINT);
         //^ Type of Indices can be Joint or Linkage
         double mass(const std::vector<std::string> &names, FrameType typeOfIndex=JOINT);
         //^ Type of Indices can be Joint or Linkage
 
         /////////////////
 
-        void gravityJointTorques(const std::vector<size_t> &jointIndices, Eigen::VectorXd &torques, bool downstream=true);
+        void gravityJointTorques(const IntArray &jointIndices, Eigen::VectorXd &torques, bool downstream=true);
 
 
         static Robot& Default();

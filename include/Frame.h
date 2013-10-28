@@ -80,6 +80,9 @@ namespace RobotKin {
     typedef Eigen::Matrix<double, 6, 6> Matrix6d;
     typedef Eigen::Matrix<double, 6, Eigen::Dynamic> Matrix6Xd;
     typedef Matrix6Xd JACOBIAN;
+
+    typedef std::vector<size_t> IntArray; // TODO: Replace with a more powerful class array
+                                          // This will also remove the need for seperate functions for string versus int arrays
     
     class Robot;
     class Linkage;
@@ -247,7 +250,7 @@ namespace RobotKin {
     double minimum(double a, double b);
     double mod(double x, double y);
     double wrapToPi(double angle);
-    void wrapToJointLimits(Robot& robot, const std::vector<size_t>& jointIndices, Eigen::VectorXd& jointValues);
+    void wrapToJointLimits(Robot& robot, const IntArray& jointIndices, Eigen::VectorXd& jointValues);
     
     class Frame
     {
@@ -281,7 +284,7 @@ namespace RobotKin {
         
         virtual TRANSFORM respectToWorld() = 0;
 
-        TRANSFORM respectTo(Frame *pFrame);
+        TRANSFORM respectTo(Frame *pFrame)__attribute__((deprecated));
         TRANSFORM withRespectTo(Frame &frame);
         
         virtual void printInfo();

@@ -45,6 +45,8 @@ void ikTest(bool totallyRandom)
     parseTest.linkage("Body_LSP").name("LeftArm");
     parseTest.linkage("Body_RHY").name("RightLeg");
     parseTest.linkage("Body_LHY").name("LeftLeg");
+    
+    parseTest.anchorJoint("RAP");
 
     string limb = "LeftArm";
 

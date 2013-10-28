@@ -193,7 +193,7 @@ void Joint::crawlUpstream()
     notifyUpdate();
 }
 
-bool Joint::needsUpdate() { return needsUpdate_ /* || linkage().needsUpdate() */; }
+bool Joint::needsUpdate() { return needsUpdate_; }
 
 bool Linkage::needsUpdate() { return needsUpdate_; }
 
@@ -248,6 +248,7 @@ void Linkage::updateFrames()
     if(!needsUpdate())
         return;
     
+    bool updateTool = false;
     for(int i=0; i<nJoints(); i++)
     {
         if(joints_[i]->needsUpdate())
@@ -259,14 +260,19 @@ void Linkage::updateFrames()
                                                 * joints_[i]->respectToFixedTransformed_;
             
             joints_[i]->needsUpdate_ = false;
+            updateTool = true;
         }
     }
     
-    if(joints_.size() > 0)
-        tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
-    else
-        tool_.respectToLinkage_ = tool_.respectToFixed_;
+    if(updateTool)
+    {
+        if(joints_.size() > 0)
+            tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
+        else
+            tool_.respectToLinkage_ = tool_.respectToFixed_;
+    }
     
+    needsUpdate_ = false;
     
     if(stream()==DOWNSTREAM)
     {
@@ -288,14 +294,6 @@ void Linkage::updateFrames()
         if(hasRobot)
             respectToRobot_ = robot_->joint(robot_->anchorJoint()).respectToLinkage().inverse();
     }
-    
-    needsUpdate_ = false;
-    
-//    for(size_t i=0; i < nChildren(); i++)
-//        childLinkage(i).updateFrames();
-    
-//    if(stream()==UPSTREAM || stream()==ANCHOR)
-//        parentLinkage().updateFrames();
 }
 
 
@@ -695,7 +693,7 @@ string Linkage::getRobotName()
         return "";
 }
 
-void Linkage::getChildIDs(vector<size_t> &ids)
+void Linkage::getChildIDs(IntArray &ids)
 {
     ids.resize(childLinkages_.size());
     for(size_t i=0; i<childLinkages_.size(); i++)
@@ -867,7 +865,7 @@ Linkage &Linkage::parentLinkage()
 
 size_t Linkage::nChildren() const { return childLinkages_.size(); }
 
-rk_result_t Linkage::jointNamesToIndices(const vector<string> &jointNames, vector<size_t> &jointIndices)
+rk_result_t Linkage::jointNamesToIndices(const vector<string> &jointNames, IntArray &jointIndices)
 {
     jointIndices.resize(jointNames.size());
     map<string,size_t>::iterator j;
@@ -1000,40 +998,51 @@ TRANSFORM Linkage::respectToWorld()
         return TRANSFORM::Identity();
 }
 
-SCREW Joint::Jacobian(TRANSLATION location)
+SCREW Joint::JHelper(TRANSLATION &p, const TRANSFORM &jointTransform)
 {
-    TRANSLATION d_i, z_i;
-    
-    d_i = location - respectToLinkage().translation();
-    z_i = respectToLinkage().rotation()*jointAxis_;
+    TRANSLATION z_i;
+    if(stream_ == DOWNSTREAM)
+        z_i = jointTransform.rotation()*jointAxis_;
+    else
+        z_i = -jointTransform.rotation()*jointAxis_;
     
     SCREW mJacobian;
     
     if(jointType_ == REVOLUTE)
-        mJacobian << z_i.cross(d_i), z_i;
+        mJacobian << z_i.cross( p - jointTransform.translation() ), z_i;
     else if(jointType_ == PRISMATIC)
         mJacobian << z_i, TRANSLATION::Zero();
+    
+    else
+        mJacobian.setZero();
+    
+    return mJacobian;
+}
 
-    return mJacobian;    
+SCREW Joint::Jacobian(TRANSLATION location)
+{
+    return JHelper(location, respectToLinkage());
 }
 
 SCREW Joint::Jacobian(TRANSLATION location, Frame &refFrame)
 {
-    SCREW mJacobian = Jacobian(location);
-    
-    Matrix3d r(refFrame.respectToWorld().rotation().inverse() * linkage().respectToWorld().rotation());
-    Matrix6d R;
-    R << r, Matrix3d::Zero(), Matrix3d::Zero(), r;
-    return R * mJacobian;
+    return JHelper(location, withRespectTo(refFrame));
 }
 
+JACOBIAN Linkage::Jacobian(TRANSLATION location)
+{
+    JACOBIAN mJacobian(6, nJoints());
+    for(int i=0; i<nJoints(); i++)
+        mJacobian.block(0, i, 6, 1) = joint(i).JHelper(location, joint(i).respectToLinkage());
+    return mJacobian;
+}
 
 JACOBIAN Linkage::Jacobian(TRANSLATION location, Frame &refFrame)
 {
     JACOBIAN mJacobian(6, nJoints());
     
     for(int i=0; i<nJoints(); i++)
-        mJacobian.block(0, i, 6, 1) = joint(i).Jacobian(location);
+        mJacobian.block(0, i, 6, 1) = joint(i).JHelper(location, joint(i).respectToLinkage());
     
     Matrix3d r(refFrame.respectToWorld().rotation().inverse() * respectToWorld().rotation());
     MatrixXd R(6,6);
@@ -1143,11 +1152,9 @@ void Linkage::printInfo()
     }
     tool().printInfo();
     
-    MatrixXd J;
-    jacobian(J, const_tool().respectToLinkage().translation(), this);
-    
-    cout << "Jacobian for " << name() << ":" << endl;
-    cout << J.matrix() << endl;
+
+    cout << "Jacobian for " << name() << ":" << endl << Jacobian(tool().respectToLinkage().translation()) << endl;
+
     cout << "\n" << endl;
 }
 

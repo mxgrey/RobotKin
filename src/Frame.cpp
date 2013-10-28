@@ -100,7 +100,7 @@ TRANSFORM Frame::respectTo(Frame* pFrame)
     return pFrame->respectToWorld().inverse() * respectToWorld();
 }
 
-TRANSFORM Frame::withRespectTo(Frame &frame) { return respectTo(&frame); }
+TRANSFORM Frame::withRespectTo(Frame &frame) { return frame.respectToWorld().inverse() * respectToWorld(); }
 
 void Frame::printInfo()
 {

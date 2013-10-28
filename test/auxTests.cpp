@@ -45,7 +45,6 @@ void ostreamTests()
 }
 
 
-
 int main(int argc, char *argv[])
 {
     ostreamTests();

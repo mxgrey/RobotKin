@@ -233,6 +233,8 @@ namespace RobotKin {
         void crawlUpstream();
 
         const Robot* parentRobot() const;
+        
+        SCREW JHelper(TRANSLATION& p, const TRANSFORM &jointTransform);
 
     private:
         //----------------------------------------------------------------------
@@ -369,9 +371,9 @@ namespace RobotKin {
         //--------------------------------------------------------------------------
         double mass();
         TRANSLATION centerOfMass(FrameType withRespectTo=ROBOT);
-        TRANSLATION centerOfMass(const std::vector<size_t> &indices, bool includeTool=true, FrameType withRespectTo=ROBOT);
+        TRANSLATION centerOfMass(const IntArray &indices, bool includeTool=true, FrameType withRespectTo=ROBOT);
         TRANSLATION centerOfMass(const std::vector<std::string> &names, bool includeTool=true, FrameType withRespectTo=ROBOT);
-        double mass(const std::vector<size_t> &indices, bool includeTool=true);
+        double mass(const IntArray &indices, bool includeTool=true);
         double mass(const std::vector<std::string> &names, bool includeTool=true);
 
         TRANSLATION centerOfMass(size_t fromJoint, bool downstream=true, bool includeTool=true, FrameType withRespectTo=ROBOT);
@@ -395,7 +397,7 @@ namespace RobotKin {
         size_t nChildren() const;
 
         rk_result_t jointNamesToIndices(const std::vector<std::string> &jointNames,
-                                        std::vector<size_t> &jointIndices);
+                                        IntArray &jointIndices);
 
         size_t jointNameToIndex(std::string jointName);
         
@@ -438,6 +440,7 @@ namespace RobotKin {
         
         TRANSFORM respectToWorld();
         
+        JACOBIAN Jacobian(TRANSLATION location);
         JACOBIAN Jacobian(TRANSLATION location, Frame& refFrame);
         
         void jacobian(Eigen::MatrixXd& J, TRANSLATION location, Frame *refFrame)__attribute__((deprecated));
@@ -452,7 +455,7 @@ namespace RobotKin {
         size_t getRobotID();
         std::string getRobotName();
         
-        void getChildIDs(std::vector<size_t>& ids);
+        void getChildIDs(IntArray& ids);
         void getChildNames(std::vector<std::string>& names);
         void printChildren();
         
