@@ -516,11 +516,15 @@ void Tool::respectToFixed(TRANSFORM aCoordinate)
 {
     respectToFixed_ = aCoordinate;
     if(hasLinkage)
-        linkage_->updateFrames();
+        linkage_->notifyUpdate();
 }
 
 const TRANSFORM& Tool::respectToLinkage() const
 {
+    if(hasLinkage)
+        if(linkage_->needsUpdate())
+            linkage_->updateFrames();
+
     return respectToLinkage_;
 }
 
@@ -532,18 +536,18 @@ TRANSFORM Tool::respectToRobot()
         if(linkage_->needsUpdate())
             linkage_->updateFrames();
             
-        return linkage_->respectToRobot_ * respectToLinkage_;
+        return linkage_->respectToRobot() * respectToLinkage();
     }
     else
-        return respectToLinkage_;
+        return respectToLinkage();
 }
 
 TRANSFORM Tool::respectToWorld()
 {
     if(hasLinkage)
-        return linkage_->respectToWorld() * respectToLinkage_;
+        return linkage_->respectToWorld() * respectToLinkage();
     else
-        return respectToLinkage_;
+        return respectToLinkage();
 }
 
 // TODO: Figure out which of the functions below are depricated
@@ -1021,7 +1025,7 @@ const TRANSFORM& Linkage::respectToFixed() const { return respectToFixed_; }
 void Linkage::respectToFixed(TRANSFORM aCoordinate)
 {
     respectToFixed_ = aCoordinate;
-    updateFrames();
+    notifyUpdate();
 }
 
 
