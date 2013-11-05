@@ -247,8 +247,7 @@ void Linkage::updateFrames()
 {
     if(!needsUpdate())
         return;
-    
-    bool updateTool = false;
+
     for(int i=0; i<nJoints(); i++)
     {
         if(joints_[i]->needsUpdate())
@@ -260,16 +259,17 @@ void Linkage::updateFrames()
                                                 * joints_[i]->respectToFixedTransformed_;
             
             joints_[i]->needsUpdate_ = false;
-            updateTool = true;
+            tool_.needsUpdate_ = true;
         }
     }
-    
-    if(updateTool)
+
+    if(tool_.needsUpdate_)
     {
         if(joints_.size() > 0)
             tool_.respectToLinkage_ = joints_[joints_.size()-1]->respectToLinkage_ * tool_.respectToFixed_;
         else
             tool_.respectToLinkage_ = tool_.respectToFixed_;
+        tool_.needsUpdate_ = false;
     }
     
     needsUpdate_ = false;
@@ -515,6 +515,7 @@ const TRANSFORM& Tool::respectToFixed() const { return respectToFixed_; }
 void Tool::respectToFixed(TRANSFORM aCoordinate)
 {
     respectToFixed_ = aCoordinate;
+    needsUpdate_ = true;
     if(hasLinkage)
         linkage_->notifyUpdate();
 }

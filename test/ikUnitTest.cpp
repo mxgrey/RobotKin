@@ -40,11 +40,18 @@ void ikTest(bool totallyRandom)
     cout << "-------------------------------------------" << endl;
 
 
-    Robot ikTest("../urdf/huboplus.urdf");
+//    Robot ikTest("../urdf/huboplus.urdf");
+    Robot ikTest("../urdf/drchubo.urdf");
     ikTest.linkage("Body_RSP").name("RightArm");
     ikTest.linkage("Body_LSP").name("LeftArm");
     ikTest.linkage("Body_RHY").name("RightLeg");
     ikTest.linkage("Body_LHY").name("LeftLeg");
+
+    RobotKin::TRANSFORM toolTf = ikTest.joint("RWR_dummy").respectToFixed();
+    ikTest.linkage("RightArm").tool().respectToFixed(toolTf);
+
+    toolTf = ikTest.joint("LWR_dummy").respectToFixed();
+    ikTest.linkage("LeftArm").tool().respectToFixed(toolTf);
 
 //    string limb = "LeftArm";
     string limb = "RightArm";
@@ -242,9 +249,6 @@ void ikTest(bool totallyRandom)
 
 
 }
-
-
-
 
 
 

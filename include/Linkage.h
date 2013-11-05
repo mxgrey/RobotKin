@@ -310,6 +310,8 @@ namespace RobotKin {
 
     protected:
 
+        bool needsUpdate_;
+
         const Linkage* parentLinkage() const;
 
         const Robot* parentRobot() const;
