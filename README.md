@@ -6,6 +6,8 @@ All worthwhile features of this library have been migrated into [DART](http://da
 This repo is no longer developed or maintained. Please refer to DART for your kinematics, 
 articulated dynamics, and 3D simulation needs.
 
+## ((Defunct))
+
 A robot kinematics C++ library.
 
 In order to parse URDFs, compile the dependencies in the following manner : 
